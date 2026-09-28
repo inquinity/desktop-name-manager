@@ -14,5 +14,14 @@ swiftc -O -o dnm-prototype dnm-prototype.swift
 ```
 
 Labeled images and `manifest.json` live in
-`~/Library/Application Support/dnm-prototype/`. What testing it showed is in
+`~/Library/Application Support/dnm-prototype/`.
+
+`overlay-harness.swift` is the test harness used to answer two questions: does
+`desktopImageURL` follow Space switches in a long-running process, and does a
+desktop-level, per-Space overlay window survive Show Desktop? It runs for N seconds
+(default 30) and logs each Space change:
+
+```sh
+swiftc -O -o overlay-harness overlay-harness.swift && ./overlay-harness 20
+``` What testing it showed is in
 [../docs/research/findings.md](../docs/research/findings.md).
