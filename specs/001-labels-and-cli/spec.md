@@ -107,9 +107,12 @@ current Desktop marked; run show on one and confirm its details match what was s
 
 1. **Given** two labeled Desktops, **When** the user runs list, **Then** both appear with
    their label text and the current Desktop on each display is marked.
-2. **Given** a labeled Desktop, **When** the user runs show, **Then** every label property
+2. **Given** any Mac, **When** the user runs list, **Then** the output states that unlabeled,
+   non-current Desktops are not shown, even when there is nothing to hide (so the caveat is
+   always present, not only when Desktops are omitted).
+3. **Given** a labeled Desktop, **When** the user runs show, **Then** every label property
    is printed, in both human and machine-readable forms.
-3. **Given** the tool is run with `desktop-name` instead of `dnm`, **Then** behavior is
+4. **Given** the tool is run with `desktop-name` instead of `dnm`, **Then** behavior is
    identical.
 
 ---
@@ -184,7 +187,11 @@ and after labeling and removing; they are unchanged.
 - **FR-010**: The system MUST retain the information needed to restore and to list labels in
   local storage under the user's account, and MUST NOT modify the original wallpaper file.
 - **FR-011**: The system MUST provide a command to list Desktops with their labels and mark the
-  current Desktop on each display, with human-readable and machine-readable output.
+  current Desktop on each display, with human-readable and machine-readable output. Only
+  labeled Desktops and the current Desktop of each display are listed, and the output MUST
+  say so: the human-readable output MUST end with a visible note that Desktops that are
+  neither labeled nor current are not shown, and the machine-readable output MUST carry the
+  same caveat as a field, so a reader never mistakes the list for every Desktop.
 - **FR-012**: The system MUST provide a command to show one label's full details.
 - **FR-013**: The command-line tool MUST be invocable as both `dnm` and `desktop-name` with
   identical behavior, and MUST return distinct, documented exit codes for success, invalid
@@ -252,7 +259,8 @@ and after labeling and removing; they are unchanged.
   Desktop of each display, using public interfaces only. Unlabeled, non-current Desktops are
   not listed by this feature. A full Desktop list depends on reading the system's Space list
   through an optional, read-only private interface, and comes with Quick View (spec 003)
-  once spike S2 proves it.
+  once spike S2 proves it. Because of this gap, the list output always carries a caveat
+  saying so (FR-011).
 - Dynamic, aerial and shuffling wallpapers are out of scope here and refused (spec 006).
 - The graphical app, menu-bar item, hotkeys and editor are out of scope (spec 002); groups,
   display roles and sites are out of scope (spec 004); packaging and release are spec 005.
