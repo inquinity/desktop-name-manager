@@ -107,9 +107,9 @@ current Desktop marked; run show on one and confirm its details match what was s
 
 1. **Given** two labeled Desktops, **When** the user runs list, **Then** both appear with
    their label text and the current Desktop on each display is marked.
-2. **Given** any Mac, **When** the user runs list, **Then** the output states that unlabeled,
-   non-current Desktops are not shown, even when there is nothing to hide (so the caveat is
-   always present, not only when Desktops are omitted).
+2. **Given** any Mac, **When** the user runs list, **Then** the output states that only labeled
+   and current Desktops are shown, even when nothing is left out (so the note is always
+   present, not only when Desktops are omitted).
 3. **Given** a labeled Desktop, **When** the user runs show, **Then** every label property
    is printed, in both human and machine-readable forms.
 4. **Given** the tool is run with `desktop-name` instead of `dnm`, **Then** behavior is
@@ -189,9 +189,9 @@ and after labeling and removing; they are unchanged.
 - **FR-011**: The system MUST provide a command to list Desktops with their labels and mark the
   current Desktop on each display, with human-readable and machine-readable output. Only
   labeled Desktops and the current Desktop of each display are listed, and the output MUST
-  say so: the human-readable output MUST end with a visible note that Desktops that are
-  neither labeled nor current are not shown, and the machine-readable output MUST carry the
-  same caveat as a field, so a reader never mistakes the list for every Desktop.
+  say so: the human-readable output MUST end with a visible note that only labeled and
+  current Desktops are shown, and the machine-readable output MUST carry the same note as a
+  field, so a reader never mistakes the list for every Desktop.
 - **FR-012**: The system MUST provide a command to show one label's full details.
 - **FR-013**: The command-line tool MUST be invocable as both `dnm` and `desktop-name` with
   identical behavior, and MUST return distinct, documented exit codes for success, invalid
