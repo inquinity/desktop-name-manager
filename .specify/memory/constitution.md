@@ -56,6 +56,11 @@ keychain profile names, credentials, or personal images. `wallpaper-samples/` an
 - Bundle ID `com.altmansoftwaredesign.desktop-name-manager` (`.dev` suffix for dev builds).
 - Releases are hosted on this repository's GitHub Releases; the cask ships first in
   `inquinity/homebrew-tap`.
+- Minimum macOS: the oldest release that runs each feature as designed without special-case
+  code for older APIs. An older release is supported only if that costs nothing: no
+  compatibility shims, no version checks or fallback paths, and no capability or design
+  compromise. If supporting it needs any of these, it MUST be dropped. Each plan MUST
+  record the chosen minimum and the reasoning.
 - Licensed MIT. New dependencies MUST be justified in the plan and MUST satisfy
   principles I-VI.
 
@@ -86,4 +91,4 @@ for adding or materially expanding one, PATCH for clarifications. Every plan and
 MUST verify compliance; any deviation MUST be justified in the plan's complexity
 tracking and approved by the maintainer. Runtime guidance for agents lives in `CLAUDE.md`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-28 | **Last Amended**: 2026-09-28
+**Version**: 1.1.0 | **Ratified**: 2026-09-28 | **Last Amended**: 2026-09-28
