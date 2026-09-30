@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Labels and the `dnm` CLI: stamp a per-Desktop label (with automatic plain/halo/frosted style and text color from sampling the background, default fixed corner bottom-left, size, position, multi-line text, emoji) into a copy of that Desktop's wallpaper and set it as that Desktop's wallpaper; list Desktops; set, show, and remove labels via the CLI (`dnm`, alias `desktop-name`); removing a label restores the original image and its placement exactly; no macOS permissions required; no network or telemetry."
+**Input**: User description: "Labels and the `dnm` CLI: stamp a per-Desktop label (with automatic plain/halo/frosted style and text color from sampling the background, default fixed corner bottom-left, size, position, emoji) into a copy of that Desktop's wallpaper and set it as that Desktop's wallpaper; list Desktops; set, show, and remove labels via the CLI (`dnm`, alias `desktop-name`); removing a label restores the original image and its placement exactly; no macOS permissions required; no network or telemetry."
 
 ## Clarifications
 
@@ -29,9 +29,8 @@
 - Q: Should label length be limited, and what happens past the limit? → A: Yes. A label is
   a single line of at most 30 characters (each emoji counts as one character). Line breaks
   and anything longer are rejected with a message naming the rule that was broken, and
-  nothing changes. Multi-line labels are deferred to a later spec; starting strict is safe
-  because a limit can be loosened later without breaking anyone (the earlier answer of 4
-  lines and 60 characters was tightened the same day).
+  nothing changes. Multi-line labels are not part of this version and are a backlog item;
+  starting strict is safe because a limit can be loosened later without breaking anyone.
 - Q: What format do machine-readable outputs use? → A: JSON, selected with `--json`, the same
   on `list`, `show` and `displays` and designed to be piped to `jq`. The tool does not
   include or depend on `jq`.
@@ -343,10 +342,11 @@ and after labeling and removing; they are unchanged.
   through an optional, read-only private interface, and comes with Quick View (spec 003)
   once spike S2 proves it. Because of this gap, the list output always carries a caveat
   saying so (FR-011).
+- Backlog candidate (not in any current spec): multi-line labels.
 - Dynamic, aerial and shuffling wallpapers are out of scope here and refused (spec 006).
 - The graphical app, menu-bar item, hotkeys and editor are out of scope (spec 002); groups,
   display roles and sites are out of scope (spec 004); packaging and release are spec 005.
-- Defaults from the hand-off: bottom-left corner, single-line labels (30 characters) and emoji allowed; multi-line labels deferred, SF Pro
+- Defaults from the hand-off: bottom-left corner, single-line labels (30 characters) and emoji allowed, SF Pro
   Semibold font, accent color and Mission Control "large" preset deferred.
 - Removing or replacing a label does not delete its stamped copy. It stays for the cool-down
   period in FR-018, which is what makes the one-level undo in FR-022 possible ("I didn't
