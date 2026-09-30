@@ -8,6 +8,38 @@
 
 **Input**: User description: "Labels and the `dnm` CLI: stamp a per-Desktop label (with automatic plain/halo/frosted style and text color from sampling the background, default fixed corner bottom-left, size, position, multi-line text, emoji) into a copy of that Desktop's wallpaper and set it as that Desktop's wallpaper; list Desktops; set, show, and remove labels via the CLI (`dnm`, alias `desktop-name`); removing a label restores the original image and its placement exactly; no macOS permissions required; no network or telemetry."
 
+## Clarifications
+
+### Session 2026-09-30
+
+- Q: Should this version include an `undo` command for the last label change within the
+  cool-down? → A: Yes. One level only: it reverses the most recent set, replace or remove on
+  the current Desktop of a display while the cool-down has not expired.
+- Q: Which display do the commands act on when the user does not say? → A: The main display.
+  Users pick another display with `--display`, given as the display's name as macOS shows it
+  (for example "Built-in Display") or a partial name that matches only one display
+  (for example "Built"). `main` always works. Position keywords (here, left, right) and
+  numbered displays are rejected as a rabbit hole; short monitor aliases come later with
+  display roles (spec 004). A `displays` command lists the displays. The graphical app
+  (spec 002) decides its target from where the user interacts.
+- Q: When a label is set on a Desktop that already has one and some options are omitted, do
+  the omitted options keep the old look or reset? → A: They reset to the automatic defaults
+  (style and color re-analyzed, default position and size). The result of a set depends only
+  on the command given and the wallpaper, never on the previous label.
+- Q: Should label length be limited, and what happens past the limit? → A: Yes. A label is
+  a single line of at most 30 characters (each emoji counts as one character). Line breaks
+  and anything longer are rejected with a message naming the rule that was broken, and
+  nothing changes. Multi-line labels are deferred to a later spec; starting strict is safe
+  because a limit can be loosened later without breaking anyone (the earlier answer of 4
+  lines and 60 characters was tightened the same day).
+- Q: What format do machine-readable outputs use? → A: JSON, selected with `--json`, the same
+  on `list`, `show` and `displays` and designed to be piped to `jq`. The tool does not
+  include or depend on `jq`.
+- Q: What happens when the wallpaper image cannot be read because macOS denies access (for
+  example a protected folder)? → A: The tool shows the system's permission error (text in the
+  CLI; a message box in the app, spec 002), makes no change, and exits with a failure code.
+  It never asks for, works around or requires the permission itself.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Label the current Desktop (Priority: P1)
@@ -33,8 +65,9 @@ name, then visit Desktops 1, 2 and 3. Only Desktop 2 shows the label, and it is 
    each is labeled with no style options, **Then** the tool picks a style and text color
    that keeps the label legible on both, and the chosen style is reported to the user.
 3. **Given** a labeled Desktop, **When** the user sets a different label on it, **Then** the
-   label is replaced (not drawn on top of the old one) and the original wallpaper is still
-   the one recorded for restoring.
+   label is replaced (not drawn on top of the old one), the original wallpaper is still the
+   one recorded for restoring, and any option the user did not give uses its automatic
+   default rather than the old label's value.
 4. **Given** a labeled Desktop, **When** the Mac restarts or the user reorders Desktops or
    uses Show Desktop, **Then** the label is still on the same Desktop.
 
@@ -44,7 +77,8 @@ name, then visit Desktops 1, 2 and 3. Only Desktop 2 shows the label, and it is 
 
 The user removes the label from a Desktop. Its wallpaper returns to exactly what it was
 before labeling: same image, same placement (fill, fit, stretch, center or tile), same
-background color.
+background color. If the user removes or replaces a label by mistake, an undo command
+reverses the last change for a short time afterwards.
 
 **Why this priority**: The constitution requires every wallpaper change to be exactly
 reversible. Users will not label their Desktops if they cannot get back to where they were.
@@ -62,19 +96,25 @@ compare the settings and image with the recording. They are identical.
    user removes the label, **Then** the tool reports that it cannot restore, leaves the
    current wallpaper untouched, and explains what the user can do.
 
+4. **Given** a Desktop whose label was just removed or replaced, **When** the user runs undo
+   within the cool-down, **Then** the Desktop returns to exactly what it showed before that
+   change (the previous label, or the original wallpaper if it had none).
+5. **Given** the cool-down has expired, or there is nothing to undo, **When** the user runs
+   undo, **Then** nothing changes and the tool says why.
+
 ---
 
 ### User Story 3 - Control the look of a label (Priority: P2)
 
 The user chooses where the label goes (a corner or another anchor position), how large it
 is, its text color, and its style (plain, halo, frosted), overriding the automatic choice.
-Labels may span several lines and may contain emoji.
+Labels are a single line and may contain emoji.
 
 **Why this priority**: The automatic defaults cover most users, but people have strong
-preferences about placement and size, and multi-line and emoji labels are part of the
-promised experience.
+preferences about placement and size, and emoji labels are part of the promised
+experience.
 
-**Independent Test**: Set a two-line label containing an emoji with an explicit corner, size,
+**Independent Test**: Set a label containing an emoji with an explicit corner, size,
 style and color, and confirm each choice is visible in the result.
 
 **Acceptance Scenarios**:
@@ -83,10 +123,14 @@ style and color, and confirm each choice is visible in the result.
    corner at the default size.
 2. **Given** explicit position, size, style and color, **When** a label is set, **Then** the
    result reflects each option and the tool rejects invalid values with a clear message.
-3. **Given** a label with a line break and an emoji, **When** it is set, **Then** both lines
-   and the emoji are drawn without clipping or garbled characters.
-4. **Given** an over-long label, **When** it is set, **Then** the label is shrunk or wrapped
-   to fit on screen, or rejected with a message; it is never drawn off-screen.
+3. **Given** a label containing an emoji, **When** it is set, **Then** the emoji is drawn
+   without clipping or garbled characters.
+4. **Given** a label over 30 characters or containing a line break, **When** it is set,
+   **Then** it is rejected with a message naming the rule that was broken, and nothing
+   changes.
+5. **Given** a label within the limits and a very small display or a large size option,
+   **When** it is set, **Then** the label is fully visible on screen and never drawn
+   off-screen or clipped.
 
 ---
 
@@ -132,12 +176,16 @@ and after labeling and removing; they are unchanged.
 
 **Acceptance Scenarios**:
 
-1. **Given** a fresh user account with no privacy permissions granted, **When** any command
-   is run, **Then** no permission prompt appears and the command works.
+1. **Given** a fresh user account with no privacy permissions granted and a wallpaper in a
+   normal location, **When** any command is run, **Then** the tool asks for nothing and the
+   command works.
 2. **Given** the current Desktop uses a dynamic, aerial or shuffling wallpaper, **When** the
    user sets a label, **Then** the tool makes no change and explains that this wallpaper
    type is not supported yet.
-3. **Given** any command, **When** it finishes, **Then** it has made no network connection
+3. **Given** a wallpaper image macOS will not let the tool read, **When** the user sets a
+   label, **Then** the system's error is shown, nothing changes, and the exit code reports
+   failure.
+4. **Given** any command, **When** it finishes, **Then** it has made no network connection
    and written no telemetry.
 
 ---
@@ -149,8 +197,13 @@ and after labeling and removing; they are unchanged.
   ratio or color profile; the label stays legible and the result keeps the image quality.
 - Two displays show different wallpapers; only the targeted display's current Desktop
   changes.
+- A display named in `--display` is not connected, or two connected displays share a name;
+  the tool lists the candidates and changes nothing.
 - The label text is empty, only whitespace, or contains characters that are hard to draw;
   the tool rejects or handles it with a clear message.
+- The label is exactly 30 characters; it is accepted and fully visible.
+- The wallpaper image is in a location macOS refuses the tool access to; the tool reports the
+  system's error, changes nothing, and does not ask for the permission.
 - The disk is full or the tool's storage location is not writable; the wallpaper is left
   as it was.
 - The stamped copy is deleted by the user while a Desktop still uses it; the tool detects
@@ -177,29 +230,36 @@ and after labeling and removing; they are unchanged.
   and MUST report the chosen values.
 - **FR-005**: The system MUST place the label in the bottom-left corner by default, and MUST
   let the user choose another position, a size, a text color and a style explicitly.
-- **FR-006**: Labels MUST support multiple lines and emoji.
+- **FR-006**: Labels MUST support emoji. A label is a single line; line breaks are not
+  supported in this version.
 - **FR-007**: The system MUST validate label text and options and reject invalid input with a
-  clear message and no change to the wallpaper.
+  clear message and no change to the wallpaper. A label MUST have at least one visible
+  character, contain no line break, and be at most 30 characters (each emoji counts as one
+  character).
 - **FR-008**: Removing a label MUST restore the Desktop's original image, placement mode and
   background color exactly as they were before the first label was applied.
 - **FR-009**: Replacing a label MUST NOT change the recorded original; only the first
-  labeling of an unlabeled Desktop records it.
+  labeling of an unlabeled Desktop records it. A replacement MUST apply the automatic
+  default to every option the user does not give, and MUST NOT inherit values from the
+  label it replaces.
 - **FR-010**: The system MUST retain the information needed to restore and to list labels in
   local storage under the user's account, and MUST NOT modify the original wallpaper file.
 - **FR-011**: The system MUST provide a command to list Desktops with their labels and mark the
-  current Desktop on each display, with human-readable and machine-readable output. Only
+  current Desktop on each display, with human-readable output or JSON (FR-025). Only
   labeled Desktops and the current Desktop of each display are listed, and the output MUST
   say so: the human-readable output MUST end with a visible note that only labeled and
-  current Desktops are shown, and the machine-readable output MUST carry the same note as a
+  current Desktops are shown, and the JSON output MUST carry the same note as a
   field, so a reader never mistakes the list for every Desktop.
 - **FR-012**: The system MUST provide a command to show one label's full details.
-- **FR-013**: The command-line tool MUST be invocable as both `dnm` and `desktop-name` with
+- **FR-013**: The command-line tool (set, remove, undo, list, show, displays) MUST be invocable as both `dnm` and `desktop-name` with
   identical behavior, and MUST return distinct, documented exit codes for success, invalid
   input, unsupported wallpaper, and failure.
 - **FR-014**: The system MUST decline, without changing anything, to label a Desktop that uses
   a dynamic, aerial or shuffling wallpaper, and MUST say why.
 - **FR-015**: Labeling MUST require no macOS permissions and no elevated privileges, and the
-  tool MUST NOT prompt for any.
+  tool MUST NOT request any. If macOS denies access to a file the tool needs (for example a
+  wallpaper image in a protected folder), the tool MUST show the system's error, make no
+  change, and exit with a failure code (FR-013); it MUST NOT try to work around the denial.
 - **FR-016**: The system MUST NOT make network connections and MUST NOT collect telemetry.
 - **FR-017**: The system MUST NOT require disabling System Integrity Protection or any other
   system security setting.
@@ -216,12 +276,32 @@ and after labeling and removing; they are unchanged.
   View) as a shared component, not only through the command line.
 - **FR-021**: The tracked repository MUST NOT contain personal paths, user names, display or
   Desktop identifiers, or personal images in tests, fixtures, docs or examples.
+- **FR-022**: The system MUST provide an `undo` command that reverses the most recent label
+  change (set, replace or remove) on the current Desktop of a chosen display, restoring its
+  exact previous state, as long as the cool-down in FR-018 has not expired for that change.
+  Undo is one level only: after an undo there is nothing further to undo for that Desktop.
+  When undo is not possible (expired, nothing to undo, or the needed copy is gone), it MUST
+  change nothing and say why.
+- **FR-023**: Commands that act on a Desktop (set, remove, undo, show) MUST act on the current
+  Desktop of the main display unless the user passes `--display`. The option MUST accept
+  `main`, a display's name exactly as macOS shows it, or a case-insensitive partial name that
+  matches exactly one connected display. A value that matches no display or more than one
+  MUST be rejected with the candidates listed and no change made. Numbered displays and
+  position keywords MUST NOT be accepted.
+- **FR-024**: The system MUST provide a `displays` command that lists the connected displays
+  by name and marks the main display, in human-readable form or JSON (FR-025), so users
+  can see what `--display` will accept.
+
+- **FR-025**: Commands that report information (`list`, `show`, `displays`) MUST offer a
+  `--json` option that prints a single JSON document to standard output with a consistent
+  structure across commands and nothing else on that stream, so it can be piped to tools such
+  as `jq`. Diagnostics go to standard error. The tool MUST NOT bundle or require `jq`.
 
 ### Key Entities
 
 - **Desktop**: One Space on one display, identified by the system and stable across
   restarts and reordering. Has a current wallpaper and at most one label.
-- **Label**: The text and look for a Desktop: text (one or more lines), style, position,
+- **Label**: The text and look for a Desktop: text (one line), style, position,
   size, text color, and whether each was chosen automatically or by the user.
 - **Original wallpaper record**: What the Desktop showed before its first label: the image
   reference, placement mode, and background color. Used to restore exactly.
@@ -240,13 +320,15 @@ and after labeling and removing; they are unchanged.
 - **SC-003**: After label then remove, the Desktop's wallpaper settings and image are
   identical to their pre-label state in 100% of test runs, including non-default placement
   modes.
-- **SC-004**: Across every command, zero permission prompts appear, zero network
+- **SC-004**: Across every command on wallpapers in normal locations, the tool requests no permissions, zero network
   connections are made, and the original wallpaper files are byte-for-byte unchanged.
 - **SC-005**: A first-time user can label a Desktop by following the README's one example,
   in under one minute, without consulting other documentation.
 - **SC-006**: One hour after the last label change, the next command run leaves no stamped
   copy on disk except those a Desktop currently uses, even after 100 consecutive
   relabelings of one Desktop.
+- **SC-007**: In 100% of test runs, undoing a removal or replacement within the cool-down
+  returns the Desktop to a state identical to the one before the change.
 
 ## Assumptions
 
@@ -264,12 +346,11 @@ and after labeling and removing; they are unchanged.
 - Dynamic, aerial and shuffling wallpapers are out of scope here and refused (spec 006).
 - The graphical app, menu-bar item, hotkeys and editor are out of scope (spec 002); groups,
   display roles and sites are out of scope (spec 004); packaging and release are spec 005.
-- Defaults from the hand-off: bottom-left corner, multi-line labels and emoji allowed, SF Pro
+- Defaults from the hand-off: bottom-left corner, single-line labels (30 characters) and emoji allowed; multi-line labels deferred, SF Pro
   Semibold font, accent color and Mission Control "large" preset deferred.
 - Removing or replacing a label does not delete its stamped copy. It stays for the cool-down
-  period in FR-018, which keeps a later "undo" operation possible ("I didn't mean to clear
-  that label"). An undo command is not required by this spec; the cool-down guarantees only
-  that the data to build one still exists.
+  period in FR-018, which is what makes the one-level undo in FR-022 possible ("I didn't
+  mean to clear that label").
 - Cleanup is opportunistic: it runs at the start or end of ordinary commands. If the tool is
   not run for days, old copies simply wait until the next run.
 - The minimum supported macOS version follows the constitution's minimum-macOS rule (oldest

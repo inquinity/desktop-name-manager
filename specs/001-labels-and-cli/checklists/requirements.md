@@ -35,5 +35,8 @@
   implementation detail.
 - Decided: `list` shows labeled Desktops plus the current Desktop per display (full list
   deferred to spec 003).
-- Left for `/speckit-clarify` or planning: exact cool-down (30 to 60 minutes) and whether to
-  add an undo command; the concrete minimum macOS version (constitution rule applies).
+- Clarified 2026-09-30: undo (one level), display selection (`--display`, main by default),
+  omitted options reset to defaults, label limits (4 lines, 60 characters), `--json` output,
+  unreadable-wallpaper failure.
+- Left for planning: the exact cool-down (default 60 minutes), the concrete minimum macOS
+  version (constitution rule applies), and how to identify "current Desktop" for the CLI.
