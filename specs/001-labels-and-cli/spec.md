@@ -280,6 +280,8 @@ and after labeling and removing; they are unchanged.
   change (set, replace or remove) on the current Desktop of a chosen display, restoring its
   exact previous state, as long as the cool-down in FR-018 has not expired for that change.
   Undo is one level only: after an undo there is nothing further to undo for that Desktop.
+  Undo acts on the most recent change made on the display, and only while the display's
+  current wallpaper is still the one that change produced.
   When undo is not possible (expired, nothing to undo, or the needed copy is gone), it MUST
   change nothing and say why.
 - **FR-023**: Commands that act on a Desktop (set, remove, undo, show) MUST act on the current
@@ -357,8 +359,8 @@ and after labeling and removing; they are unchanged.
   Because it cannot see Desktops that are not current, a stamp counts as in use while it is
   the active stamp of a label, and a wallpaper changed by hand in System Settings leaves its
   old stamp on disk.
-- Known limitation, for later: undo acts on the most recent change made on the display. If
-  two Desktops on one display show the identical image, undo cannot tell them apart.
+- Known limitation (FR-022), to revisit later: if two Desktops on one display show the
+  identical image, undo cannot tell them apart and acts on the most recent change.
 - Cleanup is opportunistic: it runs at the start or end of ordinary commands. If the tool is
   not run for days, old copies simply wait until the next run.
 - The minimum supported macOS version follows the constitution's minimum-macOS rule (oldest

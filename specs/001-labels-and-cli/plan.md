@@ -113,8 +113,8 @@ it was invoked with.
 ## Spec Amendments
 
 Design found four places where the spec's wording was stronger than public APIs allow.
-Amendments 1, 3 and 4 were applied to the spec on 2026-09-30. Amendment 2 (undo) is a known
-limitation recorded in the spec's assumptions and left for later.
+All four were applied to the spec on 2026-09-30. For amendment 2 (undo), the limitation
+when Desktops share an image is recorded in the spec's assumptions and left to revisit later.
 
 1. **Cleanup "in use" (FR-018, SC-006).** Without reading the system's private wallpaper
    store, the tool cannot tell whether a non-current Desktop still shows a stamp. Plan: a
