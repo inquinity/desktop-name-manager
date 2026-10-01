@@ -1,0 +1,160 @@
+# Contract: `dnm` command-line interface
+
+The binary is `dnm`. The same binary is installed as `desktop-name` and behaves
+identically (FR-013). Commands never prompt and never read from standard input.
+
+```text
+dnm set <label> [--display <name>] [--position <p>] [--size <s>] [--style <look>] [--color <c>]
+dnm remove [--display <name>]
+dnm undo   [--display <name>]
+dnm show   [--display <name>] [--json]
+dnm list   [--json]
+dnm displays [--json]
+dnm --help | dnm <command> --help | dnm --version
+```
+
+## Common behavior
+
+- **Target**: commands that act on a Desktop (`set`, `remove`, `undo`, `show`) act on the
+  current Desktop of the display chosen by `--display`, or of the main display when it is
+  omitted (FR-023).
+- **`--display <value>`**: `main`; or a display's name as macOS shows it
+  (case-insensitive); or a partial name matching exactly one connected display. No match or
+  more than one match exits `2`, prints the candidates, and changes nothing. Numbers and
+  position keywords are not accepted.
+- **Cleanup**: every command first deletes retired stamps older than the cool-down (60
+  minutes) and unreferenced files older than that (FR-018). It prints nothing about this
+  unless it fails.
+- **Streams**: results on standard output; messages, warnings and errors on standard
+  error. With `--json`, standard output holds exactly one JSON document and nothing else.
+- **No change on failure**: any command that exits non-zero leaves the wallpaper as it
+  found it.
+
+## `dnm set <label>`
+
+Labels the target Desktop. A label is 1 to 30 characters after trimming, on one line;
+emoji are allowed and count as one character each (FR-006, FR-007).
+
+| Option | Values | Default |
+|---|---|---|
+| `--position` | `bottom-left`, `bottom-right`, `top-left`, `top-right`, `bottom`, `top` | `bottom-left` |
+| `--size` | `small`, `medium`, `large` | `medium` |
+| `--style` | `plain`, `halo`, `frosted` | chosen automatically |
+| `--color` | `light`, `dark`, or `#RRGGBB` | chosen automatically |
+
+- Options the user leaves out use their default; they never inherit from a label being
+  replaced (FR-009).
+- Output (human): one line naming the display, the label, and the style and color chosen,
+  for example `Labeled "Email" on Built-in Display (frosted, light text, bottom-left).`
+- Replacing an existing label keeps the recorded original.
+- Exits `3` without changes on unsupported wallpaper (FR-014); `2` on invalid input.
+
+## `dnm remove`
+
+Restores the target Desktop's original image, placement and fill color exactly (FR-008).
+
+- If the Desktop has no label: prints `No label on <display>.`, changes nothing, exits `0`.
+- If the original file cannot be found (moved without a resolvable bookmark, or deleted):
+  prints why and what to do (choose a wallpaper in System Settings), changes nothing,
+  exits `1`.
+
+## `dnm undo`
+
+Reverses the most recent `set`, `replace` or `remove` made on the display, if it is within
+the cool-down and the display's current wallpaper still equals what that change produced
+(FR-022). One level only.
+
+- Output states what was restored, for example `Restored label "Email" on Built-in Display
+  (removed 4 minutes ago).`
+- Exits `1` with a reason and no change when there is nothing to undo, the cool-down has
+  expired, the current wallpaper no longer matches, or the needed file is gone.
+
+## `dnm show`
+
+Prints the target Desktop's label details: text, look, text color, position, size, which of
+those were chosen automatically, when it was set, and whether an original is recorded.
+A Desktop with no label prints `No label on <display>.` and exits `0`.
+
+JSON shape:
+
+```json
+{
+  "display": { "name": "Built-in Display", "isMain": true },
+  "labeled": true,
+  "label": {
+    "text": "Email",
+    "look": "frosted",
+    "textColor": "light",
+    "position": "bottom-left",
+    "size": "medium",
+    "automatic": ["look", "textColor"]
+  },
+  "createdAt": "2026-09-30T14:03:11Z",
+  "originalRecorded": true
+}
+```
+
+## `dnm list`
+
+Lists every labeled Desktop the tool knows plus the current Desktop of each connected
+display, with the current ones marked (FR-011). Human output always ends with the line:
+
+```text
+Only labeled and current Desktops are shown.
+```
+
+JSON shape (the same sentence appears as `scope`):
+
+```json
+{
+  "scope": "Only labeled and current Desktops are shown.",
+  "desktops": [
+    {
+      "display": "Built-in Display",
+      "connected": true,
+      "current": true,
+      "label": "Email"
+    },
+    {
+      "display": "LG HDR 4K",
+      "connected": true,
+      "current": true,
+      "label": null
+    }
+  ]
+}
+```
+
+- `label` is `null` for a current Desktop with no label.
+- A labeled Desktop whose display is not connected has `"connected": false`.
+- The JSON never includes display UUIDs or file paths.
+
+## `dnm displays`
+
+Lists connected displays by the names `--display` accepts, marking the main display
+(FR-024).
+
+```text
+Built-in Display   (main)
+LG HDR 4K
+```
+
+```json
+{ "displays": [ { "name": "Built-in Display", "isMain": true },
+                { "name": "LG HDR 4K", "isMain": false } ] }
+```
+
+## Exit codes (FR-013)
+
+| Code | Meaning |
+|---|---|
+| `0` | Success, including "nothing to remove". |
+| `1` | Failure: file access denied (the system's error is shown), file missing, disk error, undo not possible, a newer manifest format. |
+| `2` | Invalid input: bad label, bad option value, unknown or ambiguous `--display`. |
+| `3` | Unsupported wallpaper (dynamic, catalog, video, shuffle, or none reported). |
+
+## Stability
+
+The command names, option names, exit codes and JSON field names above are the contract
+for scripts. New JSON fields may be added; existing ones are not renamed or removed
+without a major version.

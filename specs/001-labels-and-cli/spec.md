@@ -254,7 +254,8 @@ and after labeling and removing; they are unchanged.
   identical behavior, and MUST return distinct, documented exit codes for success, invalid
   input, unsupported wallpaper, and failure.
 - **FR-014**: The system MUST decline, without changing anything, to label a Desktop that uses
-  a dynamic, aerial or shuffling wallpaper, and MUST say why.
+  a dynamic, aerial, catalog or shuffling wallpaper, or one for which the system reports no
+  wallpaper file, and MUST say why. Detection is by the wallpaper file itself.
 - **FR-015**: Labeling MUST require no macOS permissions and no elevated privileges, and the
   tool MUST NOT request any. If macOS denies access to a file the tool needs (for example a
   wallpaper image in a protected folder), the tool MUST show the system's error, make no
@@ -324,8 +325,8 @@ and after labeling and removing; they are unchanged.
 - **SC-005**: A first-time user can label a Desktop by following the README's one example,
   in under one minute, without consulting other documentation.
 - **SC-006**: One hour after the last label change, the next command run leaves no stamped
-  copy on disk except those a Desktop currently uses, even after 100 consecutive
-  relabelings of one Desktop.
+  copy on disk except those still active or retired within the cool-down, even after 100
+  consecutive relabelings of one Desktop.
 - **SC-007**: In 100% of test runs, undoing a removal or replacement within the cool-down
   returns the Desktop to a state identical to the one before the change.
 
@@ -351,6 +352,13 @@ and after labeling and removing; they are unchanged.
 - Removing or replacing a label does not delete its stamped copy. It stays for the cool-down
   period in FR-018, which is what makes the one-level undo in FR-022 possible ("I didn't
   mean to clear that label").
+- A Desktop is recognized by the wallpaper file it currently shows; macOS keeps that file
+  with its Space across restarts and reordering. This feature reads no Space identifiers.
+  Because it cannot see Desktops that are not current, a stamp counts as in use while it is
+  the active stamp of a label, and a wallpaper changed by hand in System Settings leaves its
+  old stamp on disk.
+- Known limitation, for later: undo acts on the most recent change made on the display. If
+  two Desktops on one display show the identical image, undo cannot tell them apart.
 - Cleanup is opportunistic: it runs at the start or end of ordinary commands. If the tool is
   not run for days, old copies simply wait until the next run.
 - The minimum supported macOS version follows the constitution's minimum-macOS rule (oldest
