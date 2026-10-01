@@ -29,3 +29,13 @@ it first.
   `specify` command, check `git status` for `.claude/settings.json`.
 - **Keep two skills manual.** Leave `disable-model-invocation: true` on
   `speckit-implement` and `speckit-taskstoissues`.
+
+## Build and test
+
+- `swift build` and `swift test` (Swift 6.4, macOS 26 or later). Unit and contract tests use a
+  fake wallpaper system and a temporary store; they never change the real wallpaper.
+- `scripts/periphery.sh` runs the unused-code gate (it must stay clean).
+- Set `DNM_STORE_DIR` to a throwaway directory for any live run so real labels are untouched,
+  and follow the backup and restore rules in the live-test bullet above.
+- Local-only render checks run over `wallpaper-samples/` when it exists
+  (`swift test --filter LegibilitySweep`).

@@ -141,7 +141,7 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 ### Implementation for User Story 5
 
 - [x] T049 [US5] Map read and write permission errors to `DnmError` access-denied carrying the system's error text, never prompting and never retrying with a workaround, in `Sources/DesktopNameCore/Operations/SetLabel.swift` and `Sources/DesktopNameCore/Operations/RemoveLabel.swift` (FR-015)
-- [ ] T050 [P] [US5] Write the live check script `Tests/live/live-safety.sh` (use the `shell-script-expert` skill): backs up `Index.plist`, sets `DNM_STORE_DIR`, runs scenarios 12 to 15 from quickstart.md including a network-off run, and restores everything on exit
+- [x] T050 [P] [US5] Write the live check script `Tests/live/live-safety.sh` (use the `shell-script-expert` skill): backs up `Index.plist`, sets `DNM_STORE_DIR`, runs scenarios 12 to 15 from quickstart.md including a network-off run, and restores everything on exit
 - [ ] T051 [US5] Review: independent code review and a first security pass of Phase 5 recorded in `review-notes.md`
 
 **Checkpoint**: The tool never asks for permissions, and its privacy rules are enforced by tests.
@@ -198,12 +198,12 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 
 **Purpose**: Documentation, live checks, performance and the release review gate.
 
-- [ ] T066 [P] Update `README.md` with one end-to-end example a first-time user can follow in under a minute (SC-005), the exit codes (also shown in `dnm --help`), and a note on the "Show on all Spaces" setting
-- [ ] T067 [P] Update `CLAUDE.md` with the build and test commands (`swift build`, `swift test`) and the `DNM_STORE_DIR` rule for live tests
-- [ ] T068 [P] Write `Tests/live/live-label.sh` covering quickstart scenarios 1 to 3, 5 to 11 and 16 to 19 (scenario 4 is manual because it needs a log out) with the `Index.plist` backup, a private store directory and restore on exit, using the `shell-script-expert` skill
+- [x] T066 [P] Update `README.md` with one end-to-end example a first-time user can follow in under a minute (SC-005), the exit codes (also shown in `dnm --help`), and a note on the "Show on all Spaces" setting
+- [x] T067 [P] Update `CLAUDE.md` with the build and test commands (`swift build`, `swift test`) and the `DNM_STORE_DIR` rule for live tests
+- [x] T068 [P] Write `Tests/live/live-label.sh` covering quickstart scenarios 1 to 3, 5 to 11 and 16 to 19 (scenario 4 is manual because it needs a log out) with the `Index.plist` backup, a private store directory and restore on exit, using the `shell-script-expert` skill
 - [ ] T069 Check the timing budget: `time .build/release/dnm set "Timing"` is under 1 s on a 5K display (SC-001, FR-019); record the result in `review-notes.md`
 - [ ] T070 Run the full quickstart on macOS 26 and on macOS 27 and record the results, including solid colors (scenario 17), image quality (scenario 18) and persistence (scenario 4, by hand); this is the evidence for the minimum-version decision in research R3
-- [ ] T071 [P] Add `scripts/codeql-local.sh` (use the `shell-script-expert` skill) that creates a CodeQL database from `swift build` and runs the Swift security queries, taking the CodeQL CLI from the Homebrew install and the query repository checkout from the `CODEQL_REPO` environment variable (no path hard-coded), checking that the checkout is at a pinned release tag, writing results to a `.codeql/` folder that is added to `.gitignore`, and printing a short findings summary; document the install steps in `review-notes.md` and record the CodeQL and query-repo versions with each run. The script must never download anything itself
+- [x] T071 [P] Add `scripts/codeql-local.sh` (use the `shell-script-expert` skill) that creates a CodeQL database from `swift build` and runs the Swift security queries, taking the CodeQL CLI from the Homebrew install and the query repository checkout from the `CODEQL_REPO` environment variable (no path hard-coded), checking that the checkout is at a pinned release tag, writing results to a `.codeql/` folder that is added to `.gitignore`, and printing a short findings summary; document the install steps in `review-notes.md` and record the CodeQL and query-repo versions with each run. The script must never download anything itself
 - [ ] T072 Pre-release code review and security review of everything, using the modes agreed in `review-notes.md` (including a CodeQL run from T071) (permissions, private interfaces, network, file access including cleanup, the `swift-argument-parser` dependency, and the build); resolve findings or have them explicitly accepted before any release
 
 ---

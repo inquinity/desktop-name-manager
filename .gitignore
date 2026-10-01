@@ -17,3 +17,6 @@ dist/
 
 # Prototype binary
 prototype/dnm-prototype
+
+# Local CodeQL results
+.codeql/
