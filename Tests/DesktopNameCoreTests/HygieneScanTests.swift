@@ -92,7 +92,7 @@ import Testing
         let homePath = "/Us" + "ers/" + "someone" + "/Pictures"
         #expect(!Self.scan(homePath, file: "x").isEmpty)
         #expect(Self.scan("/Us" + "ers/<name>/Pictures and /Us" + "ers/Shared", file: "x").isEmpty)
-        #expect(!Self.scan("display 0A1B2C3D-0000-1111-2222-333344445555", file: "x").isEmpty)
+        #expect(!Self.scan("display " + ["0A1B2C3D", "0000", "1111", "2222", "333344445555"].joined(separator: "-"), file: "x").isEmpty)
         #expect(!Self.scan("profile " + ["altman", "notary"].joined(separator: "-"), file: "x").isEmpty)
         #expect(Self.scan("nothing sensitive here", file: "x").isEmpty)
     }

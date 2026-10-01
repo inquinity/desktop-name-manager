@@ -22,7 +22,7 @@ Design decisions and their reasoning are in [research.md](research.md).
 **Language/Version**: Swift 6.4 (Xcode 27 toolchain), Swift 6 language mode
 
 **Primary Dependencies**: Apple system frameworks only in the core (AppKit, CoreGraphics,
-ImageIO, CoreImage, Vision, CryptoKit, UniformTypeIdentifiers). One third-party package for
+ImageIO, CoreImage, UniformTypeIdentifiers). One third-party package for
 the CLI only: `swift-argument-parser` (Apple), pinned to an exact version. Justified in
 research R2.
 

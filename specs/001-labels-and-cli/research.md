@@ -8,7 +8,7 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
 
 - **Decision**: Swift 6.4 with SwiftPM (`swift-tools-version: 6.2` or later, `platforms:
   [.macOS(.v26)]`). One package: library `DesktopNameCore`, executable `dnm`.
-- **Why**: the prototype is Swift and uses AppKit, ImageIO and Vision directly. A package
+- **Why**: the prototype is Swift and uses AppKit, ImageIO and Vision directly (this feature does not need Vision; see R7). A package
   gives the later app (spec 002) the same library. `.v26` needs tools version 6.2 or later
   (checked with the installed toolchain).
 - **Alternatives**: an Xcode project (harder to review and build from the command line);
@@ -32,7 +32,7 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
   both available to the maintainer).
 - **Why**: the constitution's rule is the oldest release that runs the feature with no
   compatibility code. The APIs used (`NSWorkspace` desktop image calls, `NSScreen`,
-  ImageIO, CoreImage, Vision saliency, CryptoKit) have existed since 10.15 at the latest, so
+  ImageIO, CoreImage) have existed since 10.15 at the latest, so
   they do not limit it. The limit is evidence. Constitution principle VII requires live
   checks for behavior that touches the real wallpaper. The per-Space behavior was verified
   on 27.0 in the prototype, and the live checks will run on 26 as well before release. Wallpaper handling changed in macOS 13 and 14, and forum reports
@@ -113,7 +113,7 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
 - **Decision**: port the prototype's pipeline into `Render/`: compose the backdrop exactly
   as macOS shows it on that display (pixel size, fill/fit/center/stretch, fill color), sample
   the label's area, choose text color and one of plain, halo or frosted, draw the text
-  (SF Pro Semibold) and write the image. Changes from the prototype: single line of at most
+  (SF Pro Semibold) and write the image. Changes from the prototype: the Vision saliency map is dropped (it only served the automatic-position feature, which is out of scope, and it stalled when many renders ran at once); single line of at most
   30 characters; "pill" removed (not in the spec); automatic position removed (fixed corner,
   bottom-left, unless the user chooses one); emoji drawn through normal font fallback.
   Because the image already matches the display exactly, it is set with scale-to-fill and

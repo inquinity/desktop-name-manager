@@ -23,9 +23,9 @@ final class FakeWallpaperSystem: WallpaperSystem {
         connectedDisplays = displays
     }
 
-    static func makeDisplay(name: String, uuid: String, isMain: Bool, width: Double = 1440, height: Double = 900) -> Display {
+    static func makeDisplay(name: String, uuid: String, isMain: Bool, width: Double = 1440, height: Double = 900, scale: Double = 2) -> Display {
         Display(name: name, uuid: uuid, isMain: isMain,
-                geometry: DisplayGeometry(pointWidth: width, pointHeight: height, scale: 2, insetTop: 30, insetBottom: 60))
+                geometry: DisplayGeometry(pointWidth: width, pointHeight: height, scale: scale, insetTop: 30, insetBottom: 60))
     }
 
     func show(_ url: URL?, placement: WallpaperPlacement = FakeWallpaperSystem.defaultPlacement, on display: Display) {
