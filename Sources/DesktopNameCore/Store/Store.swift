@@ -81,7 +81,8 @@ public final class Store: Sendable {
     public func transaction<T>(_ body: (inout Manifest) throws -> T) throws -> T {
         try ensureDirectory()
         let lock = try StoreLock(at: lockURL)
-        withExtendedLifetime(lock) {}
+        // Hold the lock until the manifest has been saved: the object must outlive the whole body.
+        defer { withExtendedLifetime(lock) {} }
         var manifest = hasManifest ? try loadManifest() : Manifest()
         let result = try body(&manifest)
         do {

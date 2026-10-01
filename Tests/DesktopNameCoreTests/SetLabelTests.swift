@@ -102,4 +102,20 @@ import Testing
         #expect(try h.manifest().changes.count == 1)   // one record per display
         #expect(try h.manifest().changes[0].kind == .replace)
     }
+
+    @Test func aFileMadeByThisToolButUnknownToTheStoreIsNeverUsedAsAnOriginal() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        // A stamp from another store (another build, or a lost manifest) is showing on the Desktop.
+        let stray = try SyntheticImages.write(SyntheticImages.dark(), to: h.root.appendingPathComponent("\(UUID().uuidString).dnm.png"))
+        h.system.show(stray, on: h.display)
+        do {
+            try h.labeler.setLabel(LabelText("Email"), on: h.display)
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect(error.exitCode == 1)
+            #expect((error.errorDescription ?? "").contains("not in this store"))
+        }
+        #expect(h.system.setCalls.isEmpty)
+        #expect(try h.manifest().stamps.isEmpty)
+    }
 }

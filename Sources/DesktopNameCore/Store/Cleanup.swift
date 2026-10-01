@@ -21,10 +21,23 @@ public enum Cleanup {
     public static func run(store: Store, now: Date) throws {
         guard store.hasManifest else { return }
         let fileManager = FileManager.default
+        let cutoff = now.addingTimeInterval(-coolDown)
+
+        // Read-only first: when nothing is due, do not take the lock or write anything, so reporting
+        // commands work even on a store that cannot be written.
+        let current = try store.readManifest()
+        let knownNames = Set(current.stamps.map(\.fileName))
+        let hasExpiredStamp = current.stamps.contains { stamp in
+            if case .retired(let at, _) = stamp.state { return at <= cutoff }
+            return false
+        }
+        let hasExpiredRecord = current.changes.contains { $0.at <= cutoff }
+        let strayFiles = ((try? fileManager.contentsOfDirectory(at: store.directory, includingPropertiesForKeys: nil)) ?? []).filter {
+            isOurFileName($0.lastPathComponent) && !knownNames.contains($0.lastPathComponent)
+        }
+        guard hasExpiredStamp || hasExpiredRecord || !strayFiles.isEmpty else { return }
 
         try store.transaction { manifest in
-            let cutoff = now.addingTimeInterval(-coolDown)
-
             // Retired stamps past the cool-down: delete the file and the entry.
             manifest.stamps.removeAll { stamp in
                 guard case .retired(let at, _) = stamp.state, at <= cutoff else { return false }

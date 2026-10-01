@@ -24,22 +24,36 @@ import Testing
         return enumerator.compactMap { $0 as? URL }.filter { $0.pathExtension == "swift" }
     }
 
+    /// Forbidden tokens in code (not in comments or string literals).
+    static func findings(in text: String, file: String) -> [String] {
+        var found: [String] = []
+        for line in text.split(separator: "\n", omittingEmptySubsequences: false).enumerated() {
+            // Blank string literals first, so a "//" inside a URL string does not hide the code after it.
+            let withoutStrings = line.element.replacingOccurrences(of: #""(\\.|[^"\\])*""#, with: "\"\"", options: .regularExpression)
+            let code = withoutStrings.components(separatedBy: "//").first ?? ""
+            for (token, why) in forbidden where code.contains(token) {
+                found.append("\(file):\(line.offset + 1) \(token) (\(why))")
+            }
+        }
+        return found
+    }
+
     @Test(.enabled(if: PrivacyScanTests.sourcesDirectory != nil))
     func sourcesContainNoNetworkOrPrivateApiUse() throws {
         let files = Self.swiftFiles()
         #expect(!files.isEmpty)
         var findings: [String] = []
         for file in files {
-            let text = try String(contentsOf: file, encoding: .utf8)
-            for line in text.split(separator: "\n", omittingEmptySubsequences: false).enumerated() {
-                // Comments may mention these words; code may not.
-                let code = line.element.split(separator: "//", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? ""
-                for (token, why) in Self.forbidden where code.contains(token) {
-                    findings.append("\(file.lastPathComponent):\(line.offset + 1) \(token) (\(why))")
-                }
-            }
+            findings += Self.findings(in: try String(contentsOf: file, encoding: .utf8), file: file.lastPathComponent)
         }
         #expect(findings.isEmpty, "Forbidden APIs: \(findings.joined(separator: "; "))")
+    }
+
+    @Test func aUrlStringDoesNotHideForbiddenCodeAfterIt() {
+        let line = "let a = \"https://example.com\"; let b = URLSession.shared"
+        #expect(!Self.findings(in: line, file: "x").isEmpty)
+        #expect(Self.findings(in: "let c = 1 // mentions URLSession in a comment", file: "x").isEmpty)
+        #expect(Self.findings(in: "let d = \"URLSession\"", file: "x").isEmpty)
     }
 
     @Test func theScanFindsWhatItShouldFind() {

@@ -25,6 +25,11 @@ extension DesktopLabeler {
             original = ours.original
             replacing = ours.isActive ? ours : nil
         } else {
+            // A file named like ours that this store does not know (another store, a lost manifest) must not
+            // become an "original": it would stack labels and be deleted by that store's cleanup.
+            if let url = current.url, Cleanup.isOurFileName(url.lastPathComponent) {
+                throw DnmError.failure("The wallpaper \(url.lastPathComponent) was made by this tool but is not in this store (another build or a lost manifest). Choose a wallpaper in System Settings > Wallpaper, then run again. Nothing was changed.")
+            }
             switch try WallpaperKind.classify(current) {
             case .unsupported(let reason): throw DnmError.unsupportedWallpaper(reason)
             case .supported(let url): original = Self.original(from: current, url: url)

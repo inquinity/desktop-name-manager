@@ -20,7 +20,24 @@ here, before the work is merged or released.
 
 ## Reviews
 
-_None yet._
+### 2026-10-01: code review of Phases 1 to 7 (author's pass with the `/code-review` skill, high effort)
+
+**Independence caveat:** this pass was run by the same agent that wrote the code, so it does not
+yet satisfy the constitution's "independent review". An independent review (a different reviewer, or
+`/code-review ultra`, which the maintainer triggers) is still required before merge and release.
+
+Scope: `Sources/`, `Tests/`, `scripts/` at commit `bc48d4e`. Findings and outcomes:
+
+| # | Severity | Finding | Outcome |
+|---|---|---|---|
+| 1 | high | `Store.transaction` used `withExtendedLifetime(lock) {}`, which does not hold the lock for the body | Fixed with `defer { withExtendedLifetime(lock) {} }`. The concurrency test passed in release builds even before the fix, so the failure was not reproduced; the change follows the correct pattern |
+| 2 | medium | A `<uuid>.dnm.<ext>` file unknown to the store (another build's stamp, lost manifest) could be recorded as an original, stacking labels and risking deletion | Fixed: `set` refuses it; test added |
+| 3 | low | Set, remove and undo decide from a manifest read outside the lock, and rollback restores a whole snapshot | Accepted for now: the window is small with one CLI user. Revisit when the app shares the store (spec 002) |
+| 4 | low | Reporting commands failed on a read-only store because cleanup always wrote | Fixed: cleanup reads first and writes only when something is due; test added |
+| 5 | low | The privacy scan's comment stripping could hide forbidden APIs after a URL string | Fixed: string literals are blanked first; test added |
+
+Other results: `swift test` 124 tests pass; `scripts/periphery.sh` reports no unused code.
+
 
 ## Measurements
 

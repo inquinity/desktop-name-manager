@@ -134,6 +134,19 @@ import Testing
         #expect(files == [active!.fileName])
     }
 
+    @Test func whenNothingIsDueCleanupNeitherLocksNorWrites() throws {
+        let h = try Harness(); defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: h.store.directory.path)
+            h.cleanUp()
+        }
+        try h.add(Fixtures.stamp())
+        let before = try Data(contentsOf: h.store.manifestURL)
+        // Make the store read-only: cleanup must still succeed because there is nothing to do.
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: h.store.directory.path)
+        try h.run()
+        #expect(try Data(contentsOf: h.store.manifestURL) == before)
+    }
+
     @Test func fileNamePatternIsExact() {
         #expect(Cleanup.isOurFileName("\(UUID().uuidString).dnm.jpg"))
         #expect(Cleanup.isOurFileName("\(UUID().uuidString.lowercased()).dnm.heic"))
