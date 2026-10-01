@@ -1,0 +1,7 @@
+# Unused-code scan, run by scripts/periphery.sh (spec 001, task T007).
+# The public API of DesktopNameCore is kept because the later app links it.
+retain_public: true
+retain_codable_properties: true
+# Report findings in shipping code only; test helpers are not the target of this gate.
+report_exclude:
+  - "Tests/**"
