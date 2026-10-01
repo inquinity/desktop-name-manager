@@ -15,7 +15,7 @@ public final class DesktopLabeler {
     }
 
     /// Every command starts here: delete stamps nobody needs (FR-018).
-    func cleanUp() throws {
+    public func cleanUp() throws {
         try Cleanup.run(store: store, now: time.now)
     }
 

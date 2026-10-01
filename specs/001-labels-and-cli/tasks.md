@@ -59,7 +59,7 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 - [x] T015 Create `Sources/DesktopNameCore/Store/Store.swift` and `Sources/DesktopNameCore/Store/StoreLock.swift`: the store directory `~/Library/Application Support/<store name>/` where the store name is a constant in the core, `com.altmansoftwaredesign.desktop-name-manager`, with `.dev` appended in debug builds (`#if DEBUG`) and not read from any bundle; `DNM_STORE_DIR` override; versioned `manifest.json` (`schemaVersion` starting at 1, written atomically); `manifest.lock` held during every read-modify-write; a manifest with a newer `schemaVersion` is read-only with an error; a store that cannot be written fails before any wallpaper change (depends on T009, T010)
 - [x] T016 Create `Sources/DesktopNameCore/Store/Cleanup.swift`: at the start of a command, under the lock, delete stamp files whose entry was retired more than the cool-down (30 minutes) ago, and files with no manifest entry that are older than the cool-down and whose name matches `<uuid>.dnm.<ext>` exactly; never delete an active stamp, the manifest, the lock file, a subfolder or any other file; do nothing in a folder that has no manifest of ours; no background process (depends on T012, T015)
 - [x] T017 Create `Sources/DesktopNameCore/Displays/DisplayResolver.swift`: resolve `--display` as `main`, then a case-insensitive exact name, then a unique case-insensitive partial name; no match or several matches throw invalid input listing the candidates; numbers and position keywords are not accepted (FR-023) (depends on T011)
-- [ ] T018 Create the CLI shell: `Sources/dnm/Dnm.swift` (root command, `--version`), `Sources/dnm/Output.swift` (results to standard output, messages to standard error), `Sources/dnm/DisplayOption.swift` (shared `--display` option), and exit-code mapping from `DnmError` (depends on T001, T010)
+- [x] T018 Create the CLI shell: `Sources/dnm/Dnm.swift` (root command, `--version`), `Sources/dnm/Output.swift` (results to standard output, messages to standard error), `Sources/dnm/DisplayOption.swift` (shared `--display` option), and exit-code mapping from `DnmError` (depends on T001, T010)
 - [x] T019 [P] Test label validation in `Tests/DesktopNameCoreTests/LabelValidationTests.swift`: empty, whitespace only, 30 characters accepted, 31 rejected, a line break rejected, emoji counted as one character each
 - [x] T020 [P] Test display resolution in `Tests/DesktopNameCoreTests/DisplayResolverTests.swift`: `main`, exact name, unique partial, case-insensitivity, ambiguous and unknown values listing candidates, numbers and `left`/`right`/`here` rejected
 - [x] T021 [P] Test the store in `Tests/DesktopNameCoreTests/StoreTests.swift`: atomic write, round trip, the store name with and without the debug suffix, `DNM_STORE_DIR` override, the lock prevents concurrent read-modify-write, a newer `schemaVersion` is read-only, an unwritable store throws before anything else changes
@@ -95,7 +95,7 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 - [x] T033 [P] [US1] Port layout and drawing to `Sources/DesktopNameCore/Render/Painter.swift` (SF Pro Semibold, single line, bottom-left default) and image writing to `Sources/DesktopNameCore/Render/ImageWriter.swift` (high-quality JPEG; the file extension comes from the format written)
 - [x] T034 [US1] Create `Sources/DesktopNameCore/Render/LabelRenderer.swift` combining backdrop, sampling, style choice and painting behind one function that returns the image and the chosen treatment (depends on T031, T032, T033)
 - [x] T035 [US1] Create `Sources/DesktopNameCore/Operations/SetLabel.swift`: refuse unsupported wallpaper before writing anything (T030); take the base image from the manifest's recorded `Original` when the current file is one of our stamps (even if that stamp file is missing), otherwise from the current wallpaper, recording a new `Original` (path, bookmark, scaling, clipping, archived fill color); render; write `<uuid>.dnm.<ext>`; save the manifest; set the wallpaper with scale-to-fill and the original fill color; retire any replaced stamp; update the display's `ChangeRecord` (depends on T014, T015, T030, T034)
-- [ ] T036 [US1] Add `Sources/dnm/Commands/SetCommand.swift`: `dnm set <label>` with `--display`, running cleanup first and printing `Labeled "<label>" on <display> (<look>, <color> text, <position>).` (depends on T018, T035)
+- [x] T036 [US1] Add `Sources/dnm/Commands/SetCommand.swift`: `dnm set <label>` with `--display`, running cleanup first and printing `Labeled "<label>" on <display> (<look>, <color> text, <position>).` (depends on T018, T035)
 - [ ] T037 [US1] Review: independent code review of Phases 1 to 3, recorded in `specs/001-labels-and-cli/review-notes.md`; resolve findings before continuing
 
 **Checkpoint**: Labels can be set and replaced from the command line, and unsupported wallpapers are refused. Do not run it live on your real wallpaper until US2 is done.
@@ -118,7 +118,7 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 
 - [x] T041 [US2] Create `Sources/DesktopNameCore/Operations/RemoveLabel.swift`: resolve the bookmark (falling back to the path), set the original image with its exact placement and fill color, retire the stamp, record the `ChangeRecord` (depends on T035)
 - [x] T042 [US2] Create `Sources/DesktopNameCore/Operations/UndoLabel.swift`: require the display's `ChangeRecord` to be within the cool-down and the current wallpaper to equal `produced`, re-apply `before` (an earlier stamp or the original), reactivate or retire stamps accordingly, then clear the record so undo is one level only (depends on T041)
-- [ ] T043 [P] [US2] Add `Sources/dnm/Commands/RemoveCommand.swift` and `Sources/dnm/Commands/UndoCommand.swift` per contracts/cli.md, including the messages `No label on <display>.` and `Restored label "<label>" on <display> (<change> <n> minutes ago).` (depends on T018, T041, T042)
+- [x] T043 [P] [US2] Add `Sources/dnm/Commands/RemoveCommand.swift` and `Sources/dnm/Commands/UndoCommand.swift` per contracts/cli.md, including the messages `No label on <display>.` and `Restored label "<label>" on <display> (<change> <n> minutes ago).` (depends on T018, T041, T042)
 - [ ] T044 [US2] Review and MVP check: independent code review of Phase 4 recorded in `review-notes.md`, then run quickstart scenarios 1 to 3, 5 and 6 live on macOS 26 and 27 with the backup and restore steps
 
 **Checkpoint (MVP)**: Labels can be set, removed and undone with an exact restore.
@@ -157,13 +157,13 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 ### Tests for User Story 3
 
 - [x] T052 [P] [US3] Test option handling in `Tests/DesktopNameCoreTests/LabelOptionsTests.swift`: explicit values override the automatic choice and are recorded as not automatic; omitted options use their defaults (bottom-left, medium, automatic style and color); invalid values are rejected with a clear message and no change
-- [ ] T053 [P] [US3] Test the CLI contract for `set` options in `Tests/dnmTests/SetOptionsContractTests.swift`: accepted values per contracts/cli.md, over-30-character and line-break labels exit `2`, `--color #RRGGBB` parsing
+- [x] T053 [P] [US3] Test the CLI contract for `set` options in `Tests/dnmTests/SetOptionsContractTests.swift`: accepted values per contracts/cli.md, over-30-character and line-break labels exit `2`, `--color #RRGGBB` parsing
 - [x] T054 [P] [US3] Test drawing in `Tests/DesktopNameCoreTests/PainterTests.swift` on synthetic images: an emoji label draws without clipping, a 30-character label at `large` on the smallest display stays fully on screen, a label at the limit is accepted
 - [x] T055 [P] [US3] Add the local legibility and quality sweep in `Tests/SnapshotTests/LegibilitySweepTests.swift` over `wallpaper-samples/`, reporting skipped when the folder is absent, failing if any rendering misses the 3:1 on 95% rule (SC-002), and printing the difference measurement against the composed backdrop for the JPEG quality check (research R7); images stay untracked
 
 ### Implementation for User Story 3
 
-- [ ] T056 [US3] Add `--position`, `--size`, `--style` and `--color` to `Sources/dnm/Commands/SetCommand.swift` with the values from contracts/cli.md, and pass them as explicit overrides to `Sources/DesktopNameCore/Operations/SetLabel.swift`
+- [x] T056 [US3] Add `--position`, `--size`, `--style` and `--color` to `Sources/dnm/Commands/SetCommand.swift` with the values from contracts/cli.md, and pass them as explicit overrides to `Sources/DesktopNameCore/Operations/SetLabel.swift`
 - [x] T057 [US3] Make `Sources/DesktopNameCore/Render/LabelRenderer.swift` and `Sources/DesktopNameCore/Render/Painter.swift` honor explicit look, color, position and size, clamp the layout so the label never leaves the screen, and draw emoji through font fallback
 - [ ] T058 [US3] Review: independent code review of Phase 6 recorded in `review-notes.md`
 
@@ -180,14 +180,14 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 ### Tests for User Story 4
 
 - [x] T059 [P] [US4] Test list in `Tests/DesktopNameCoreTests/ListDesktopsTests.swift`: labeled Desktops plus the current Desktop per display, current ones marked, a labeled Desktop on a disconnected display marked `connected: false`, a deleted stamp file marked `stampMissing: true`, and no UUIDs or file paths in the output
-- [ ] T060 [P] [US4] Test the JSON contract in `Tests/dnmTests/JsonContractTests.swift`: the shapes in contracts/cli.md for `list`, `show` and `displays`, exactly one JSON document on standard output, diagnostics on standard error, and the scope sentence present as `scope` and as the last line of human output even when nothing is omitted (FR-011)
-- [ ] T061 [P] [US4] Test that `desktop-name` and `dnm` behave identically in `Tests/dnmTests/AliasTests.swift` by running the same binary under both names
+- [x] T060 [P] [US4] Test the JSON contract in `Tests/dnmTests/JsonContractTests.swift`: the shapes in contracts/cli.md for `list`, `show` and `displays`, exactly one JSON document on standard output, diagnostics on standard error, and the scope sentence present as `scope` and as the last line of human output even when nothing is omitted (FR-011)
+- [x] T061 [P] [US4] Test that `desktop-name` and `dnm` behave identically in `Tests/dnmTests/AliasTests.swift` by running the same binary under both names
 
 ### Implementation for User Story 4
 
 - [x] T062 [P] [US4] Create `Sources/DesktopNameCore/Operations/ListDesktops.swift` returning labeled Desktops and each connected display's current Desktop, with the missing-stamp flag (depends on T014, T015)
 - [x] T063 [P] [US4] Create `Sources/DesktopNameCore/Operations/ShowLabel.swift` returning a label's text, look, color, position, size, automatic flags, `createdAt`, whether an original is recorded, and whether the stamp file is missing
-- [ ] T064 [US4] Add `Sources/dnm/Commands/ListCommand.swift`, `Sources/dnm/Commands/ShowCommand.swift` and `Sources/dnm/Commands/DisplaysCommand.swift` with human and `--json` output per contracts/cli.md, ending human `list` output with `Only labeled and current Desktops are shown.` (depends on T018, T062, T063, T017)
+- [x] T064 [US4] Add `Sources/dnm/Commands/ListCommand.swift`, `Sources/dnm/Commands/ShowCommand.swift` and `Sources/dnm/Commands/DisplaysCommand.swift` with human and `--json` output per contracts/cli.md, ending human `list` output with `Only labeled and current Desktops are shown.` (depends on T018, T062, T063, T017)
 - [ ] T065 [US4] Review: independent code review of Phase 7 recorded in `review-notes.md`
 
 **Checkpoint**: All five stories work independently.
