@@ -1,0 +1,42 @@
+# Continuous integration for Desktop Name Manager (spec 001, task T006).
+# Builds and runs the unit tests. It uses no secrets, no signing and no third-party actions:
+# the repository is fetched with plain git so nothing outside GitHub's own runner image runs.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Read-only: the workflow cannot write to the repository or its settings.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    # TODO(T006 review): confirm this runner label exists and which Xcode it carries.
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - name: Fetch the repository
+        run: |
+          git init --quiet .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --quiet --depth 1 origin "${GITHUB_SHA}"
+          git checkout --quiet FETCH_HEAD
+
+      - name: Show toolchain
+        run: |
+          swift --version
+          xcodebuild -version
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        # Snapshot tests report skipped here: wallpaper-samples/ is never in the repository.
+        run: swift test
