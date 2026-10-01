@@ -133,14 +133,14 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 
 ### Tests for User Story 5
 
-- [ ] T045 [P] [US5] Test access denial in `Tests/DesktopNameCoreTests/AccessDeniedTests.swift`: an unreadable wallpaper file (permissions removed) surfaces the system's error text, changes nothing and maps to exit code `1`
-- [ ] T046 [P] [US5] Add a source-scan test in `Tests/DesktopNameCoreTests/PrivacyScanTests.swift` that fails if `Sources/` mentions `URLSession`, `Network`, `CFNetwork`, sockets, `dlopen` or SkyLight (research R10)
-- [ ] T047 [P] [US5] Add a linked-libraries test in `Tests/dnmTests/LinkedLibrariesTests.swift` that inspects the built `dnm` binary and fails on any networking or private framework
-- [ ] T048 [P] [US5] Test that original wallpaper files are byte-identical after set, replace, remove and undo, in `Tests/DesktopNameCoreTests/OriginalsUntouchedTests.swift` (SC-004)
+- [x] T045 [P] [US5] Test access denial in `Tests/DesktopNameCoreTests/AccessDeniedTests.swift`: an unreadable wallpaper file (permissions removed) surfaces the system's error text, changes nothing and maps to exit code `1`
+- [x] T046 [P] [US5] Add a source-scan test in `Tests/DesktopNameCoreTests/PrivacyScanTests.swift` that fails if `Sources/` mentions `URLSession`, `Network`, `CFNetwork`, sockets, `dlopen` or SkyLight (research R10)
+- [x] T047 [P] [US5] Add a linked-libraries test in `Tests/dnmTests/LinkedLibrariesTests.swift` that inspects the built `dnm` binary and fails on any networking or private framework
+- [x] T048 [P] [US5] Test that original wallpaper files are byte-identical after set, replace, remove and undo, in `Tests/DesktopNameCoreTests/OriginalsUntouchedTests.swift` (SC-004)
 
 ### Implementation for User Story 5
 
-- [ ] T049 [US5] Map read and write permission errors to `DnmError` access-denied carrying the system's error text, never prompting and never retrying with a workaround, in `Sources/DesktopNameCore/Operations/SetLabel.swift` and `Sources/DesktopNameCore/Operations/RemoveLabel.swift` (FR-015)
+- [x] T049 [US5] Map read and write permission errors to `DnmError` access-denied carrying the system's error text, never prompting and never retrying with a workaround, in `Sources/DesktopNameCore/Operations/SetLabel.swift` and `Sources/DesktopNameCore/Operations/RemoveLabel.swift` (FR-015)
 - [ ] T050 [P] [US5] Write the live check script `Tests/live/live-safety.sh` (use the `shell-script-expert` skill): backs up `Index.plist`, sets `DNM_STORE_DIR`, runs scenarios 12 to 15 from quickstart.md including a network-off run, and restores everything on exit
 - [ ] T051 [US5] Review: independent code review and a first security pass of Phase 5 recorded in `review-notes.md`
 
@@ -156,15 +156,15 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 
 ### Tests for User Story 3
 
-- [ ] T052 [P] [US3] Test option handling in `Tests/DesktopNameCoreTests/LabelOptionsTests.swift`: explicit values override the automatic choice and are recorded as not automatic; omitted options use their defaults (bottom-left, medium, automatic style and color); invalid values are rejected with a clear message and no change
+- [x] T052 [P] [US3] Test option handling in `Tests/DesktopNameCoreTests/LabelOptionsTests.swift`: explicit values override the automatic choice and are recorded as not automatic; omitted options use their defaults (bottom-left, medium, automatic style and color); invalid values are rejected with a clear message and no change
 - [ ] T053 [P] [US3] Test the CLI contract for `set` options in `Tests/dnmTests/SetOptionsContractTests.swift`: accepted values per contracts/cli.md, over-30-character and line-break labels exit `2`, `--color #RRGGBB` parsing
-- [ ] T054 [P] [US3] Test drawing in `Tests/DesktopNameCoreTests/PainterTests.swift` on synthetic images: an emoji label draws without clipping, a 30-character label at `large` on the smallest display stays fully on screen, a label at the limit is accepted
-- [ ] T055 [P] [US3] Add the local legibility and quality sweep in `Tests/SnapshotTests/LegibilitySweepTests.swift` over `wallpaper-samples/`, reporting skipped when the folder is absent, failing if any rendering misses the 3:1 on 95% rule (SC-002), and printing the difference measurement against the composed backdrop for the JPEG quality check (research R7); images stay untracked
+- [x] T054 [P] [US3] Test drawing in `Tests/DesktopNameCoreTests/PainterTests.swift` on synthetic images: an emoji label draws without clipping, a 30-character label at `large` on the smallest display stays fully on screen, a label at the limit is accepted
+- [x] T055 [P] [US3] Add the local legibility and quality sweep in `Tests/SnapshotTests/LegibilitySweepTests.swift` over `wallpaper-samples/`, reporting skipped when the folder is absent, failing if any rendering misses the 3:1 on 95% rule (SC-002), and printing the difference measurement against the composed backdrop for the JPEG quality check (research R7); images stay untracked
 
 ### Implementation for User Story 3
 
 - [ ] T056 [US3] Add `--position`, `--size`, `--style` and `--color` to `Sources/dnm/Commands/SetCommand.swift` with the values from contracts/cli.md, and pass them as explicit overrides to `Sources/DesktopNameCore/Operations/SetLabel.swift`
-- [ ] T057 [US3] Make `Sources/DesktopNameCore/Render/LabelRenderer.swift` and `Sources/DesktopNameCore/Render/Painter.swift` honor explicit look, color, position and size, clamp the layout so the label never leaves the screen, and draw emoji through font fallback
+- [x] T057 [US3] Make `Sources/DesktopNameCore/Render/LabelRenderer.swift` and `Sources/DesktopNameCore/Render/Painter.swift` honor explicit look, color, position and size, clamp the layout so the label never leaves the screen, and draw emoji through font fallback
 - [ ] T058 [US3] Review: independent code review of Phase 6 recorded in `review-notes.md`
 
 **Checkpoint**: Labels can be styled by the user and the automatic choices are only defaults.
@@ -179,14 +179,14 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 
 ### Tests for User Story 4
 
-- [ ] T059 [P] [US4] Test list in `Tests/DesktopNameCoreTests/ListDesktopsTests.swift`: labeled Desktops plus the current Desktop per display, current ones marked, a labeled Desktop on a disconnected display marked `connected: false`, a deleted stamp file marked `stampMissing: true`, and no UUIDs or file paths in the output
+- [x] T059 [P] [US4] Test list in `Tests/DesktopNameCoreTests/ListDesktopsTests.swift`: labeled Desktops plus the current Desktop per display, current ones marked, a labeled Desktop on a disconnected display marked `connected: false`, a deleted stamp file marked `stampMissing: true`, and no UUIDs or file paths in the output
 - [ ] T060 [P] [US4] Test the JSON contract in `Tests/dnmTests/JsonContractTests.swift`: the shapes in contracts/cli.md for `list`, `show` and `displays`, exactly one JSON document on standard output, diagnostics on standard error, and the scope sentence present as `scope` and as the last line of human output even when nothing is omitted (FR-011)
 - [ ] T061 [P] [US4] Test that `desktop-name` and `dnm` behave identically in `Tests/dnmTests/AliasTests.swift` by running the same binary under both names
 
 ### Implementation for User Story 4
 
-- [ ] T062 [P] [US4] Create `Sources/DesktopNameCore/Operations/ListDesktops.swift` returning labeled Desktops and each connected display's current Desktop, with the missing-stamp flag (depends on T014, T015)
-- [ ] T063 [P] [US4] Create `Sources/DesktopNameCore/Operations/ShowLabel.swift` returning a label's text, look, color, position, size, automatic flags, `createdAt`, whether an original is recorded, and whether the stamp file is missing
+- [x] T062 [P] [US4] Create `Sources/DesktopNameCore/Operations/ListDesktops.swift` returning labeled Desktops and each connected display's current Desktop, with the missing-stamp flag (depends on T014, T015)
+- [x] T063 [P] [US4] Create `Sources/DesktopNameCore/Operations/ShowLabel.swift` returning a label's text, look, color, position, size, automatic flags, `createdAt`, whether an original is recorded, and whether the stamp file is missing
 - [ ] T064 [US4] Add `Sources/dnm/Commands/ListCommand.swift`, `Sources/dnm/Commands/ShowCommand.swift` and `Sources/dnm/Commands/DisplaysCommand.swift` with human and `--json` output per contracts/cli.md, ending human `list` output with `Only labeled and current Desktops are shown.` (depends on T018, T062, T063, T017)
 - [ ] T065 [US4] Review: independent code review of Phase 7 recorded in `review-notes.md`
 

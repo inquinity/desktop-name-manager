@@ -44,19 +44,22 @@ public struct Stamp: Codable, Equatable, Sendable {
     public var label: Label
     public var original: Original
     public var displayUUID: String
+    /// The display's name when the stamp was made, for listing labels on displays that are not connected.
+    public var displayName: String
     public var pixelWidth: Int
     public var pixelHeight: Int
     public var createdAt: Date
     public var state: StampState
     public var supersededBy: UUID?
 
-    public init(id: UUID, fileName: String, label: Label, original: Original, displayUUID: String,
+    public init(id: UUID, fileName: String, label: Label, original: Original, displayUUID: String, displayName: String = "",
                 pixelWidth: Int, pixelHeight: Int, createdAt: Date, state: StampState = .active, supersededBy: UUID? = nil) {
         self.id = id
         self.fileName = fileName
         self.label = label
         self.original = original
         self.displayUUID = displayUUID
+        self.displayName = displayName
         self.pixelWidth = pixelWidth
         self.pixelHeight = pixelHeight
         self.createdAt = createdAt

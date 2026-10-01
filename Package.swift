@@ -11,8 +11,10 @@ let package = Package(
     targets: [
         .target(name: "DesktopNameCore"),
         .executableTarget(name: "dnm", dependencies: ["DesktopNameCore"]),
-        .testTarget(name: "DesktopNameCoreTests", dependencies: ["DesktopNameCore"]),
-        .testTarget(name: "SnapshotTests", dependencies: ["DesktopNameCore"]),
+        // Shared by the unit tests and the local snapshot sweep; never shipped.
+        .target(name: "DNMTestSupport", dependencies: ["DesktopNameCore"], path: "Tests/DNMTestSupport"),
+        .testTarget(name: "DesktopNameCoreTests", dependencies: ["DesktopNameCore", "DNMTestSupport"]),
+        .testTarget(name: "SnapshotTests", dependencies: ["DesktopNameCore", "DNMTestSupport"]),
         .testTarget(name: "dnmTests", dependencies: ["dnm"]),
     ]
 )

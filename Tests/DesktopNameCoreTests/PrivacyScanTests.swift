@@ -1,0 +1,49 @@
+import Foundation
+import Testing
+
+/// FR-016, FR-017 and constitution principles I and IV: the core uses public APIs only and has no
+/// way to reach the network. These checks fail if a forbidden API appears in the sources.
+@Suite struct PrivacyScanTests {
+    static let sourcesDirectory: URL? = HygieneScanTests.repositoryRoot?.appendingPathComponent("Sources")
+
+    /// Tokens that must not appear in shipping code.
+    static let forbidden: [(token: String, why: String)] = [
+        ("URLSession", "networking"), ("URLRequest", "networking"), ("import Network", "networking"),
+        ("NWConnection", "networking"), ("NWListener", "networking"), ("CFNetwork", "networking"),
+        ("CFSocket", "networking"), ("CFStream", "networking"), ("getaddrinfo", "networking"),
+        ("socket(", "networking"), ("WKWebView", "networking"), ("import WebKit", "networking"),
+        ("dlopen", "private framework loading"), ("dlsym", "private framework loading"),
+        ("SkyLight", "private framework"), ("PrivateFrameworks", "private framework"),
+        ("CGSConnection", "private framework"), ("SLSCopy", "private framework"),
+        ("CoreSymbolication", "private framework"), ("Telemetry", "telemetry"), ("Analytics", "telemetry"),
+    ]
+
+    static func swiftFiles() -> [URL] {
+        guard let root = sourcesDirectory,
+              let enumerator = FileManager.default.enumerator(at: root, includingPropertiesForKeys: nil) else { return [] }
+        return enumerator.compactMap { $0 as? URL }.filter { $0.pathExtension == "swift" }
+    }
+
+    @Test(.enabled(if: PrivacyScanTests.sourcesDirectory != nil))
+    func sourcesContainNoNetworkOrPrivateApiUse() throws {
+        let files = Self.swiftFiles()
+        #expect(!files.isEmpty)
+        var findings: [String] = []
+        for file in files {
+            let text = try String(contentsOf: file, encoding: .utf8)
+            for line in text.split(separator: "\n", omittingEmptySubsequences: false).enumerated() {
+                // Comments may mention these words; code may not.
+                let code = line.element.split(separator: "//", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? ""
+                for (token, why) in Self.forbidden where code.contains(token) {
+                    findings.append("\(file.lastPathComponent):\(line.offset + 1) \(token) (\(why))")
+                }
+            }
+        }
+        #expect(findings.isEmpty, "Forbidden APIs: \(findings.joined(separator: "; "))")
+    }
+
+    @Test func theScanFindsWhatItShouldFind() {
+        #expect(Self.forbidden.contains { "let s = URLSession.shared".contains($0.token) })
+        #expect(Self.forbidden.contains { "dlopen(\"x\")".contains($0.token) })
+    }
+}

@@ -54,7 +54,8 @@ extension DesktopLabeler {
                     manifest.stamps[index].supersededBy = id
                 }
                 manifest.stamps.append(Stamp(id: id, fileName: fileName, label: rendered.label, original: original,
-                                             displayUUID: display.uuid, pixelWidth: rendered.image.width,
+                                             displayUUID: display.uuid, displayName: display.name,
+                                             pixelWidth: rendered.image.width,
                                              pixelHeight: rendered.image.height, createdAt: now))
                 manifest.changes.removeAll { $0.displayUUID == display.uuid }
                 manifest.changes.append(ChangeRecord(displayUUID: display.uuid, kind: replacing == nil ? .set : .replace, at: now,

@@ -55,6 +55,7 @@ What the Desktop showed before its first label.
 | `label` | The Label above. |
 | `original` | The Original above, carried unchanged across replacements (FR-009). |
 | `displayUUID` | Display the stamp was made for. |
+| `displayName` | The display's name at that time, so labels on a disconnected display can still be listed by name. |
 | `geometry` | Pixel size and insets at render time. |
 | `createdAt` | Time of the set operation. |
 | `state` | `active`, or `retired(at, reason)` with reason `replaced`, `removed` or `undone`. |

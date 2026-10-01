@@ -1,12 +1,13 @@
 import CoreGraphics
+import DNMTestSupport
 import Testing
 @testable import DesktopNameCore
 
 @Suite struct StylePickerTests {
     let geometry = DisplayGeometry(pointWidth: 800, pointHeight: 500, scale: 1, insetTop: 30, insetBottom: 60)
 
-    func render(_ image: CGImage, options: LabelOptions = LabelOptions()) throws -> LabelRenderer.Rendered {
-        try LabelRenderer.render(backdrop: image, text: LabelText("Status Report"), options: options, geometry: geometry)
+    func render(_ image: CGImage, options: LabelOptions = LabelOptions()) throws -> Legibility.Evaluation {
+        try Legibility.evaluate(backdrop: image, text: LabelText("Status Report"), options: options, geometry: geometry)
     }
 
     @Test(arguments: [
@@ -14,9 +15,8 @@ import Testing
         ("gradient", SyntheticImages.gradient()), ("noise", SyntheticImages.noise()),
     ])
     func automaticStyleIsLegible(_ name: String, _ backdrop: CGImage) throws {
-        let rendered = try render(backdrop)
-        let share = try Legibility.legibleShare(image: rendered.image, rendered: rendered, geometry: geometry)
-        #expect(share >= Legibility.requiredShare, "\(name): \(share) of background pixels reach 3:1 (look \(rendered.label.look), \(rendered.label.textColor))")
+        let result = try render(backdrop)
+        #expect(result.share >= Legibility.requiredShare, "\(name): \(result.share) of background pixels reach 3:1 (look \(result.label.look), \(result.label.textColor))")
     }
 
     @Test func choicesAreReportedAsAutomatic() throws {
@@ -45,8 +45,7 @@ import Testing
 
     @Test func theMeasureDetectsIllegibleText() throws {
         // Light text forced onto a bright backdrop must fail the legibility rule.
-        let rendered = try render(SyntheticImages.bright(), options: LabelOptions(look: .plain, textColor: .light))
-        let share = try Legibility.legibleShare(image: rendered.image, rendered: rendered, geometry: geometry)
-        #expect(share < Legibility.requiredShare)
+        let result = try render(SyntheticImages.bright(), options: LabelOptions(look: .plain, textColor: .light))
+        #expect(result.share < Legibility.requiredShare)
     }
 }
