@@ -110,14 +110,14 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 
 ### Tests for User Story 2
 
-- [ ] T038 [P] [US2] Test remove in `Tests/DesktopNameCoreTests/RemoveLabelTests.swift`: the original file, scaling, clipping and fill color are restored exactly; a Desktop with no label changes nothing and exits `0`; the stamp is retired (reason `removed`) but not deleted
-- [ ] T039 [P] [US2] Test a missing original in `Tests/DesktopNameCoreTests/RemoveMissingOriginalTests.swift`: a moved original resolves through the bookmark; a deleted original reports why, changes nothing and fails with exit code `1`
-- [ ] T040 [P] [US2] Test undo in `Tests/DesktopNameCoreTests/UndoLabelTests.swift` with the fake clock: undo after remove brings the label back; undo after a replacement brings the previous label back; undo after the first set restores the original; a second undo reports nothing to undo; undo after the 30-minute cool-down, after the current wallpaper changed, or with the needed file gone changes nothing and says why (FR-022)
+- [x] T038 [P] [US2] Test remove in `Tests/DesktopNameCoreTests/RemoveLabelTests.swift`: the original file, scaling, clipping and fill color are restored exactly; a Desktop with no label changes nothing and exits `0`; the stamp is retired (reason `removed`) but not deleted
+- [x] T039 [P] [US2] Test a missing original in `Tests/DesktopNameCoreTests/RemoveMissingOriginalTests.swift`: a moved original resolves through the bookmark; a deleted original reports why, changes nothing and fails with exit code `1`
+- [x] T040 [P] [US2] Test undo in `Tests/DesktopNameCoreTests/UndoLabelTests.swift` with the fake clock: undo after remove brings the label back; undo after a replacement brings the previous label back; undo after the first set restores the original; a second undo reports nothing to undo; undo after the 30-minute cool-down, after the current wallpaper changed, or with the needed file gone changes nothing and says why (FR-022)
 
 ### Implementation for User Story 2
 
-- [ ] T041 [US2] Create `Sources/DesktopNameCore/Operations/RemoveLabel.swift`: resolve the bookmark (falling back to the path), set the original image with its exact placement and fill color, retire the stamp, record the `ChangeRecord` (depends on T035)
-- [ ] T042 [US2] Create `Sources/DesktopNameCore/Operations/UndoLabel.swift`: require the display's `ChangeRecord` to be within the cool-down and the current wallpaper to equal `produced`, re-apply `before` (an earlier stamp or the original), reactivate or retire stamps accordingly, then clear the record so undo is one level only (depends on T041)
+- [x] T041 [US2] Create `Sources/DesktopNameCore/Operations/RemoveLabel.swift`: resolve the bookmark (falling back to the path), set the original image with its exact placement and fill color, retire the stamp, record the `ChangeRecord` (depends on T035)
+- [x] T042 [US2] Create `Sources/DesktopNameCore/Operations/UndoLabel.swift`: require the display's `ChangeRecord` to be within the cool-down and the current wallpaper to equal `produced`, re-apply `before` (an earlier stamp or the original), reactivate or retire stamps accordingly, then clear the record so undo is one level only (depends on T041)
 - [ ] T043 [P] [US2] Add `Sources/dnm/Commands/RemoveCommand.swift` and `Sources/dnm/Commands/UndoCommand.swift` per contracts/cli.md, including the messages `No label on <display>.` and `Restored label "<label>" on <display> (<change> <n> minutes ago).` (depends on T018, T041, T042)
 - [ ] T044 [US2] Review and MVP check: independent code review of Phase 4 recorded in `review-notes.md`, then run quickstart scenarios 1 to 3, 5 and 6 live on macOS 26 and 27 with the backup and restore steps
 
