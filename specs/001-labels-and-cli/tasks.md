@@ -37,7 +37,7 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 - [ ] T002 Create the directory skeleton from plan.md: `Sources/DesktopNameCore/{Model,System,Displays,Render,Store,Operations}/`, `Sources/dnm/`, `Tests/{DesktopNameCoreTests,SnapshotTests,dnmTests,live}/`, each with a placeholder file so `swift build` succeeds
 - [ ] T003 [P] Add `.build/` and `.swiftpm/` to `.gitignore` if not already covered, checking `.gitignore` and `.git/info/exclude` first
 - [ ] T004 [P] Create synthetic image generators (solid, gradient, noise, bright and dark, a multi-frame image) in `Tests/DesktopNameCoreTests/Support/SyntheticImages.swift` so committed tests never use personal images
-- [ ] T005 [P] Create `specs/001-labels-and-cli/review-notes.md` with the review modes to be used before merge and before release (code review, security review, automated gates) and a section per review; the modes are confirmed with the maintainer before the first review
+- [x] T005 [P] Create `specs/001-labels-and-cli/review-notes.md` with the review modes to be used before merge and before release (code review, security review, automated gates) and a section per review; the modes are confirmed with the maintainer before the first review
 
 **Checkpoint**: `swift build` and `swift test` run (with no real tests yet), locally and in CI.
 
@@ -202,7 +202,8 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 - [ ] T067 [P] Write `Tests/live/live-label.sh` covering quickstart scenarios 1 to 3, 5 to 11 and 16 to 19 (scenario 4 is manual because it needs a log out) with the `Index.plist` backup, a private store directory and restore on exit, using the `shell-script-expert` skill
 - [ ] T068 Check the timing budget: `time .build/release/dnm set "Timing"` is under 1 s on a 5K display (SC-001, FR-019); record the result in `review-notes.md`
 - [ ] T069 Run the full quickstart on macOS 26 and on macOS 27 and record the results, including solid colors (scenario 17), image quality (scenario 18) and persistence (scenario 4, by hand); this is the evidence for the minimum-version decision in research R3
-- [ ] T070 Pre-release code review and security review of everything, using the modes agreed in `review-notes.md` (permissions, private interfaces, network, file access including cleanup, the `swift-argument-parser` dependency, and the build); resolve findings or have them explicitly accepted before any release
+- [ ] T070 [P] Add `scripts/codeql-local.sh` (use the `shell-script-expert` skill) that creates a CodeQL database from `swift build` and runs the Swift security queries, taking the CodeQL CLI from the Homebrew install and the query repository checkout from the `CODEQL_REPO` environment variable (no path hard-coded), checking that the checkout is at a pinned release tag, writing results to a `.codeql/` folder that is added to `.gitignore`, and printing a short findings summary; document the install steps in `review-notes.md` and record the CodeQL and query-repo versions with each run. The script must never download anything itself
+- [ ] T071 Pre-release code review and security review of everything, using the modes agreed in `review-notes.md` (including a CodeQL run from T070) (permissions, private interfaces, network, file access including cleanup, the `swift-argument-parser` dependency, and the build); resolve findings or have them explicitly accepted before any release
 
 ---
 
@@ -268,6 +269,6 @@ T032 Painter.swift + ImageWriter.swift
 
 ## Notes
 
-- 70 tasks. The prototype in `prototype/` is reference only; port its algorithms, do not import it.
+- 71 tasks. The prototype in `prototype/` is reference only; port its algorithms, do not import it.
 - Live tasks (T043, T049, T067, T068, T069) touch the real wallpaper: follow the rules at the top.
 - Commit after each task or logical group, with signed Conventional Commits.

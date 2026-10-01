@@ -89,6 +89,7 @@ specs/001-labels-and-cli/
 ```text
 Package.swift                         # swift-tools-version 6.2 or later, platforms: macOS 26
 .github/                             # CI workflow and Dependabot config (read-only, no secrets)
+scripts/                             # developer scripts, for example the local CodeQL run
 Sources/
 ├── DesktopNameCore/                  # library, reused by the app in spec 002
 │   ├── Model/                        # Label, Style, Stamp, Original, DesktopRef, errors
