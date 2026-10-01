@@ -64,13 +64,20 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
   read-only use, reserved for Quick View in spec 003); position keywords and numbers
   (rejected in clarify).
 
-## R5. Storage layout and identity of stamped images
+## R5. Storage layout and identity of stamps
 
 - **Decision**:
-  - Store directory: `~/Library/Application Support/<bundle id>/`, with the `.dev` bundle id
-    for development builds, so a dev build never touches real labels. Tests and live checks
-    override it with the `DNM_STORE_DIR` environment variable.
-  - Stamped images are named by a fresh random identifier on every set, not by content.
+  - Store directory: `~/Library/Application Support/<store name>/`. The store name is a
+    constant in the core library, `com.altmansoftwaredesign.desktop-name-manager`, with
+    `.dev` appended in debug builds (`#if DEBUG`), so a debug build never touches real
+    labels. It is not read from a bundle, because a SwiftPM command-line tool has none, and
+    the later app must share the same store. Tests and live checks override it with the
+    `DNM_STORE_DIR` environment variable.
+  - Stamps are named `<uuid>.dnm.<ext>`: a fresh random identifier on every set (not
+    content), a marker that identifies our files, and the image format's extension. The tool
+    chooses the format, not the source image (v1 writes JPEG: a 5K photo is about 3.5 MB as
+    JPEG and several times larger as PNG). The extension is stored with each stamp, so a
+    later format change breaks nothing.
   - A JSON manifest (schema versioned) holds all records. A lock file guards every
     read-modify-write.
   - Order of operations on set: write the stamp file, save the manifest with the new entry,
@@ -113,8 +120,10 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
   the original fill color, which is lossless (prototype finding).
 - **Why**: the approach passed all 23 test wallpapers; the decisions in the spec remove
   scope rather than add it.
-- **Output format**: JPEG at high quality, as in the prototype, unless snapshot tests show
-  visible loss on the local set, in which case the decision is revisited (**verify**).
+- **Output format**: JPEG at high quality, as in the prototype, unless the quality check
+  (live scenario 18: look at fine detail and flat color areas, and measure the difference
+  against the composed backdrop away from the label) shows visible loss, in which case the
+  decision is revisited.
 
 ## R8. Restoring exactly, and undo
 
@@ -123,7 +132,9 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
     (follows renames and moves), scaling, clipping, and the fill color as an archived
     `NSColor` so its color space round-trips. Nothing is copied.
   - Every stamp keeps its `Original`. Replacing a label creates a new stamp with the same
-    `Original`.
+    `Original`, and the new image is rendered from that recorded `Original`, never from the
+    previous stamp, so labels do not stack and a replacement works even if the old stamp
+    file is gone.
   - Retiring a stamp (replace, remove, undo) records the time and the reason; the file stays
     until the cool-down has passed.
   - `undo` takes the display's most recent change, checks that it is still within the
@@ -140,8 +151,11 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
 
 - **Decision**: at the start of every command, under the lock, delete (a) stamp files whose
   entry was retired more than the cool-down ago, and (b) files in the store directory that
-  have no manifest entry and are older than the cool-down. The cool-down is a constant of 60
-  minutes in the core (not a user setting), read through a clock object so tests can
+  have no manifest entry, are older than the cool-down, and match `<uuid>.dnm.<ext>`
+  exactly. It never deletes the manifest, the lock file, subfolders or any other file, and
+  does nothing in a folder with no manifest of ours, so a mistyped `DNM_STORE_DIR` cannot
+  damage other files. The cool-down is a constant of 30 minutes in the core (not a user
+  setting), read through a clock object so tests can
   advance time. No background process of any kind.
 - **Why**: matches the clarified spec. An entry is "in use" while it is active, because the
   tool cannot see other Desktops without a private interface.
@@ -178,15 +192,18 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
   tests use a fake; the real implementation is exercised by the hand-run live scripts.
   Render tests use synthetic generated images for the committed suite and the local
   `wallpaper-samples/` for the legibility sweep (SC-002), which reports skipped when the
-  folder is absent. Legibility is measured by contrast of the drawn text against the
-  backdrop under the label, plus a manual look at every rendering.
+  folder is absent. Legibility means that, in the finished image, the text has a
+  contrast ratio of at least 3:1 (the WCAG large-text threshold) against at least 95% of the
+  pixels directly behind it, after any halo or frosted backing. The prototype's rules (plain
+  only when under 5% of the area is weak, halo under 20%, otherwise frosted) were tuned to
+  this measure. A manual look at every rendering backs it up.
 - **Why**: keeps almost all logic testable without touching the user's wallpaper, which
   matches the project's rule about protecting it during live tests.
 
 ## Open items carried to implementation
 
-- Solid-color wallpapers: what `desktopImageURL` returns (R6).
-- JPEG quality versus visible loss (R7).
+- Solid-color wallpapers: what `desktopImageURL` returns (R6). Scheduled as live scenario 17.
+- JPEG quality versus visible loss (R7). Scheduled as live scenario 18.
 - "Show on all Spaces": the prototype warns when it is on, but detecting it means reading
   the system's private wallpaper store. This feature does not read it, so the README
   documents the setting instead. A read-only, optional check can come later in an isolated

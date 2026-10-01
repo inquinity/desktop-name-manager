@@ -50,7 +50,7 @@ Then, on Desktop 2, run the scenarios below and look at the screen each time.
 | 1 | Label the current Desktop | `dnm set "Email"` | Label appears bottom-left within about 1 s and is legible; Desktops 1 and 3 are unchanged (Story 1). |
 | 2 | Style and colour reported | `dnm show` | Look and colour match what you see; `automatic` lists them (Story 1, 4). |
 | 3 | Replace | `dnm set "Mail" --size large` then `dnm set "Mail"` | Second run is medium again: options reset (clarify 3). |
-| 4 | Persistence | Reorder Desktops, use Show Desktop, log out and in | Label stays on the same Desktop (Story 1). |
+| 4 | Persistence (manual: needs a log out, so no script) | Reorder Desktops, use Show Desktop, log out and in | Label stays on the same Desktop (Story 1). |
 | 5 | Exact restore | Note System Settings' placement for the Desktop, then `dnm remove` | Original image and placement return, byte-identical file (Story 2). |
 | 6 | Undo | `dnm set "Email"`, `dnm remove`, `dnm undo` | "Email" is back; a second `dnm undo` says nothing to undo (Story 2). |
 | 7 | Limits | `dnm set "$(printf 'a%.0s' {1..31})"` and a label with a line break | Both exit 2 with a message; wallpaper unchanged (Story 3). |
@@ -62,7 +62,10 @@ Then, on Desktop 2, run the scenarios below and look at the screen each time.
 | 13 | Unreadable | Put a wallpaper inside a protected folder, deny access, `dnm set "Test"` | The system's error shown, exit 1, no change (clarify 6). |
 | 14 | No network | Turn Wi-Fi off, repeat 1, 5, 11 | All succeed (Story 5). |
 | 15 | Originals untouched | `shasum` the original image before and after 1 to 6 | Identical. |
-| 16 | Cool-down cleanup | After scenario 6, wait 61 minutes, run `dnm list` | Retired stamp files are gone from `$DNM_STORE_DIR`; active ones remain (SC-006). |
+| 16 | Cool-down cleanup | After scenario 6, wait 31 minutes, run `dnm list` | Retired stamp files are gone from `$DNM_STORE_DIR`; active ones remain; no other file in the folder was touched (SC-006, FR-026). |
+| 17 | Solid color | Set the Desktop to a solid color in System Settings, `dnm set "Test"` | Either labeled as an image or declined with exit 3; record which (research R6). |
+| 18 | Image quality | Label a wallpaper with fine detail and flat color areas, compare to the original | No visible loss away from the label; record the difference measurement (research R7). |
+| 19 | Missing stamp | Delete the stamp file for a labeled Desktop, run `dnm show`, then `dnm set "Email"` | `show` says the stamp is missing; `set` rebuilds it from the original; `remove` also works (spec edge case). |
 
 Restore when finished:
 
@@ -89,6 +92,6 @@ contrast threshold, and you look at every rendering once. The images stay out of
 ## Exit criteria for this feature
 
 - `swift test` passes.
-- Live scenarios 1 to 16 pass on macOS 26 and macOS 27.
+- Live scenarios 1 to 19 pass on macOS 26 and macOS 27 (scenario 4 by hand).
 - Code review and security review of the changes are recorded before any release
   (constitution, Development Workflow).

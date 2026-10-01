@@ -22,8 +22,8 @@ dnm --help | dnm <command> --help | dnm --version
   (case-insensitive); or a partial name matching exactly one connected display. No match or
   more than one match exits `2`, prints the candidates, and changes nothing. Numbers and
   position keywords are not accepted.
-- **Cleanup**: every command first deletes retired stamps older than the cool-down (60
-  minutes) and unreferenced files older than that (FR-018). It prints nothing about this
+- **Cleanup**: every command first deletes retired stamps older than the cool-down (30
+  minutes) and our own unreferenced files older than that (FR-018, FR-026). It prints nothing about this
   unless it fails.
 - **Streams**: results on standard output; messages, warnings and errors on standard
   error. With `--json`, standard output holds exactly one JSON document and nothing else.
@@ -90,7 +90,8 @@ JSON shape:
     "automatic": ["look", "textColor"]
   },
   "createdAt": "2026-09-30T14:03:11Z",
-  "originalRecorded": true
+  "originalRecorded": true,
+  "stampMissing": false
 }
 ```
 
@@ -113,7 +114,8 @@ JSON shape (the same sentence appears as `scope`):
       "display": "Built-in Display",
       "connected": true,
       "current": true,
-      "label": "Email"
+      "label": "Email",
+      "stampMissing": false
     },
     {
       "display": "LG HDR 4K",
@@ -126,6 +128,9 @@ JSON shape (the same sentence appears as `scope`):
 ```
 
 - `label` is `null` for a current Desktop with no label.
+- `stampMissing` is `true` when the stamp file for a labeled Desktop is gone. `set` rebuilds
+  it from the recorded original and `remove` still restores the original. Human output of
+  `show` and `list` says so in words.
 - A labeled Desktop whose display is not connected has `"connected": false`.
 - The JSON never includes display UUIDs or file paths.
 

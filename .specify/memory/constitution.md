@@ -39,7 +39,7 @@ project MUST NOT adopt any design that would prevent inclusion in a Homebrew cas
 - Rendering logic MUST have snapshot tests over the local `wallpaper-samples/` set. These
   run locally only; the images MUST NOT enter git.
 - Behavior that touches the real wallpaper or Spaces MUST have live checks listed in its
-  spec, run only after backing up
+  spec directory (in `spec.md` or the quickstart), run only after backing up
   `~/Library/Application Support/com.apple.wallpaper/Store/Index.plist` and restoring it
   afterwards.
 - Behavior-changing work MUST be reviewed independently before merge, and every release
@@ -91,4 +91,4 @@ for adding or materially expanding one, PATCH for clarifications. Every plan and
 MUST verify compliance; any deviation MUST be justified in the plan's complexity
 tracking and approved by the maintainer. Runtime guidance for agents lives in `CLAUDE.md`.
 
-**Version**: 1.1.0 | **Ratified**: 2026-09-28 | **Last Amended**: 2026-09-28
+**Version**: 1.1.1 | **Ratified**: 2026-09-28 | **Last Amended**: 2026-09-28

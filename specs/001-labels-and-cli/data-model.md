@@ -1,12 +1,14 @@
 # Data Model: Desktop Labels and the `dnm` Command-Line Tool
 
-Everything the tool stores is in one directory, `~/Library/Application Support/<bundle id>/`
-(overridable with `DNM_STORE_DIR`):
+Everything the tool stores is in one directory, `~/Library/Application Support/<store name>/`
+(overridable with `DNM_STORE_DIR`). The store name is a constant in the core library,
+`com.altmansoftwaredesign.desktop-name-manager`, with the suffix `.dev` in debug builds. The
+CLI and the later app share it, so it does not depend on any app bundle:
 
 ```text
 manifest.json        # all records, schema versioned
 manifest.lock        # advisory lock held during every read-modify-write
-<id>.jpg             # one stamped wallpaper per set operation (id is random)
+<id>.dnm.<ext>       # one stamp per set operation (id is random; ext is the image format, jpg in v1)
 ```
 
 The manifest is written atomically (write to a temporary file, then replace).
@@ -48,7 +50,8 @@ What the Desktop showed before its first label.
 
 | Field | Meaning |
 |---|---|
-| `id` | Random identifier; also the image file name (`<id>.jpg`). |
+| `id` | Random identifier (a UUID). |
+| `fileName` | The stamp's file name, `<id>.dnm.<ext>`; the extension is whatever format was written (`jpg` in v1), so the format can change later without breaking cleanup. |
 | `label` | The Label above. |
 | `original` | The Original above, carried unchanged across replacements (FR-009). |
 | `displayUUID` | Display the stamp was made for. |
@@ -66,8 +69,10 @@ The last change made on a display, for `undo`.
 | `displayUUID` | The display. |
 | `kind` | `set`, `replace`, `remove`. |
 | `at` | Time of the change. |
-| `produced` | What the display's wallpaper became: a stamp id, or the original file and placement. |
-| `before` | What it was before: a stamp id, or the original file and placement. |
+| `produced` | A `StateRef`: what the display's wallpaper became. |
+| `before` | A `StateRef`: what it was before. |
+
+A `StateRef` is either `stamp(id)` or `original(path, bookmark, scaling, clipping, fillColor)`.
 
 After an undo the record is cleared (one level only).
 
@@ -88,8 +93,11 @@ retired (within cool-down) ──undo──▶ stamp active again, or Desktop sh
 retired (older than cool-down) ──any command──▶ file and entry deleted
 ```
 
-- A Stamp file is deleted only when its entry is retired and older than the cool-down (60
-  minutes), or when it has no manifest entry and is older than the cool-down.
+- A Stamp file is deleted only when its entry is retired and older than the cool-down (30
+  minutes), or when it has no manifest entry, is older than the cool-down, and its name
+  matches `<uuid>.dnm.<ext>` exactly. Cleanup never deletes the manifest, the lock file,
+  subfolders, or any file that does not match that pattern, and does nothing in a folder
+  that has no manifest of ours.
 - An active Stamp is never deleted.
 - Undo is allowed only while the Change record is within the cool-down and the display's
   current wallpaper matches `produced`.

@@ -205,11 +205,12 @@ and after labeling and removing; they are unchanged.
   system's error, changes nothing, and does not ask for the permission.
 - The disk is full or the tool's storage location is not writable; the wallpaper is left
   as it was.
-- The stamped copy is deleted by the user while a Desktop still uses it; the tool detects
-  this and can re-create it.
+- A stamp file is deleted by the user while a Desktop still uses it; `show` and `list` flag
+  the missing file, setting the label again rebuilds it from the recorded original, and
+  `remove` still restores the original.
 - The user changes the wallpaper by hand in System Settings after labeling; the tool
   treats the new wallpaper as the new original and does not later restore an outdated one.
-- Labeling the same Desktop repeatedly does not accumulate stamped files without bound.
+- Labeling the same Desktop repeatedly does not accumulate stamp files without bound.
 - Set is run while the user is on a Desktop in a full-screen app or another situation where
   the current Desktop cannot be determined; the tool reports it and changes nothing.
 
@@ -263,15 +264,17 @@ and after labeling and removing; they are unchanged.
 - **FR-016**: The system MUST NOT make network connections and MUST NOT collect telemetry.
 - **FR-017**: The system MUST NOT require disabling System Integrity Protection or any other
   system security setting.
-- **FR-018**: The system MUST clean up stamped copies that no Desktop uses, so storage does not
-  grow without bound, subject to these rules:
-  - it MUST never delete a copy that any Desktop still uses;
-  - it MUST keep every unused copy for a cool-down period (default 60 minutes, and no less
-    than 30) so a removed or replaced label can still be recovered;
-  - cleanup MUST happen only while a command is running, using each copy's age. No
-    background process, scheduled job or service is allowed for it.
+- **FR-018**: The system MUST clean up stamps that no Desktop uses, so storage does not grow
+  without bound, subject to these rules:
+  - it MUST never delete a stamp that any Desktop still uses;
+  - it MUST keep every unused stamp for a fixed cool-down of 30 minutes so a removed or
+    replaced label can still be recovered;
+  - cleanup MUST happen only while a command is running, using each stamp's age. No
+    background process, scheduled job or service is allowed for it;
+  - it MUST delete only files the tool itself created (recognizable by name, FR-026) and
+    MUST NOT delete any other file, whatever folder the store is placed in.
 - **FR-019**: Setting a label MUST complete in under one second for a typical 5K wallpaper on
-  supported hardware.
+  an Apple-silicon Mac.
 - **FR-020**: The label-rendering logic MUST be usable by later features (the app, Quick
   View) as a shared component, not only through the command line.
 - **FR-021**: The tracked repository MUST NOT contain personal paths, user names, display or
@@ -299,6 +302,11 @@ and after labeling and removing; they are unchanged.
   structure across commands and nothing else on that stream, so it can be piped to tools such
   as `jq`. Diagnostics go to standard error. The tool MUST NOT bundle or require `jq`.
 
+- **FR-026**: Every file the tool writes into its store MUST be named `<id>.dnm.<ext>`, where
+  `<id>` is a random identifier and `<ext>` is the image format's extension, so the tool can
+  tell its own files from any other file. The tool MUST recognize its files by this name
+  pattern together with its manifest, never by the image format alone.
+
 ### Key Entities
 
 - **Desktop**: One Space on one display, identified by the system and stable across
@@ -307,8 +315,8 @@ and after labeling and removing; they are unchanged.
   size, text color, and whether each was chosen automatically or by the user.
 - **Original wallpaper record**: What the Desktop showed before its first label: the image
   reference, placement mode, and background color. Used to restore exactly.
-- **Stamped wallpaper**: The labeled copy of the original image that the system currently
-  shows for a labeled Desktop. Owned by this tool; safe to delete once unused.
+- **Stamp**: The labeled copy of the original image that the system currently shows for a
+  labeled Desktop. Owned by this tool; safe to delete once unused.
 
 ## Success Criteria *(mandatory)*
 
@@ -317,8 +325,10 @@ and after labeling and removing; they are unchanged.
 - **SC-001**: A label appears on the current Desktop in under one second from running the
   command, for a 5K wallpaper on a supported Mac.
 - **SC-002**: On the local test set of at least 20 varied wallpapers, 100% of automatically
-  styled labels meet a legibility threshold, checked by an automated contrast measurement
-  and a manual review of every rendering.
+  styled labels are legible, where legible means that in the finished image the label's text
+  has a contrast ratio of at least 3:1 (the WCAG threshold for large text) against the pixels
+  directly behind it, for at least 95% of those pixels, after any halo or frosted backing.
+  This is checked by an automated measurement and a manual review of every rendering.
 - **SC-003**: After label then remove, the Desktop's wallpaper settings and image are
   identical to their pre-label state in 100% of test runs, including non-default placement
   modes.
@@ -326,8 +336,8 @@ and after labeling and removing; they are unchanged.
   connections are made, and the original wallpaper files are byte-for-byte unchanged.
 - **SC-005**: A first-time user can label a Desktop by following the README's one example,
   in under one minute, without consulting other documentation.
-- **SC-006**: One hour after the last label change, the next command run leaves no stamped
-  copy on disk except those still active or retired within the cool-down, even after 100
+- **SC-006**: Thirty minutes after the last label change, the next command run leaves no stamp
+  on disk except those still active or retired within the cool-down, even after 100
   consecutive relabelings of one Desktop.
 - **SC-007**: In 100% of test runs, undoing a removal or replacement within the cool-down
   returns the Desktop to a state identical to the one before the change.
@@ -351,7 +361,7 @@ and after labeling and removing; they are unchanged.
   display roles and sites are out of scope (spec 004); packaging and release are spec 005.
 - Defaults from the hand-off: bottom-left corner, single-line labels (30 characters) and emoji allowed, SF Pro
   Semibold font, accent color and Mission Control "large" preset deferred.
-- Removing or replacing a label does not delete its stamped copy. It stays for the cool-down
+- Removing or replacing a label does not delete its stamp. It stays for the cool-down
   period in FR-018, which is what makes the one-level undo in FR-022 possible ("I didn't
   mean to clear that label").
 - A Desktop is recognized by the wallpaper file it currently shows; macOS keeps that file
@@ -361,6 +371,12 @@ and after labeling and removing; they are unchanged.
   old stamp on disk.
 - Known limitation (FR-022), to revisit later: if two Desktops on one display show the
   identical image, undo cannot tell them apart and acts on the most recent change.
+- Intel Macs are deferred, not excluded. The code has no architecture dependency, and macOS 26
+  is, to my knowledge, the last release that supports Intel Macs. Correct behavior on
+  Apple silicon comes first. Intel support (a universal build) and testing on the
+  maintainer's 2019 16-inch MacBook Pro (which, to my knowledge, is on macOS 26's support list)
+  are revisited at packaging (spec 005). Until it is tested, Intel support is
+  not claimed.
 - Cleanup is opportunistic: it runs at the start or end of ordinary commands. If the tool is
   not run for days, old copies simply wait until the next run.
 - The minimum supported macOS version follows the constitution's minimum-macOS rule (oldest

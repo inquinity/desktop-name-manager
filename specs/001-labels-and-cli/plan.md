@@ -26,8 +26,8 @@ ImageIO, CoreImage, Vision, CryptoKit, UniformTypeIdentifiers). One third-party 
 the CLI only: `swift-argument-parser` (Apple), pinned to an exact version. Justified in
 research R2.
 
-**Storage**: Files under `~/Library/Application Support/<bundle id>/`: stamped wallpaper
-images and a versioned JSON manifest. See [data-model.md](data-model.md).
+**Storage**: Files under `~/Library/Application Support/<store name>/`: stamps (labeled
+wallpaper images named `<uuid>.dnm.<ext>`) and a versioned JSON manifest. See [data-model.md](data-model.md).
 
 **Testing**: Swift Testing for unit and contract tests, with a fake wallpaper system and a
 temporary store directory. Render snapshot tests over the local `wallpaper-samples/` set
@@ -44,7 +44,7 @@ prototype measured 0.26 s.
 **Constraints**: no network, no telemetry, no permissions requested, no private APIs, no
 background process, original wallpaper files never modified, every change reversible.
 
-**Scale/Scope**: one user; tens of labels; stamped images of about 0.8 to 3.5 MB each.
+**Scale/Scope**: one user; tens of labels; stamps of about 0.8 to 3.5 MB each.
 
 ## Constitution Check
 
@@ -80,6 +80,7 @@ specs/001-labels-and-cli/
 │   └── cli.md           # Phase 1 output: commands, options, output, exit codes
 ├── checklists/
 │   └── requirements.md
+├── review-notes.md      # code and security review records
 └── tasks.md             # Phase 2 output (/speckit-tasks command, not created here)
 ```
 
@@ -87,6 +88,7 @@ specs/001-labels-and-cli/
 
 ```text
 Package.swift                         # swift-tools-version 6.2 or later, platforms: macOS 26
+.github/                             # CI workflow and Dependabot config (read-only, no secrets)
 Sources/
 ├── DesktopNameCore/                  # library, reused by the app in spec 002
 │   ├── Model/                        # Label, Style, Stamp, Original, DesktopRef, errors
@@ -119,9 +121,9 @@ when Desktops share an image is recorded in the spec's assumptions and left to r
 1. **Cleanup "in use" (FR-018, SC-006).** Without reading the system's private wallpaper
    store, the tool cannot tell whether a non-current Desktop still shows a stamp. Plan: a
    stamp counts as in use while it is the active stamp in the manifest, and it is deleted
-   only after one of our commands retired it and the cool-down has passed. If the user
+   only after one of our commands retired it and the 30-minute cool-down has passed. If the user
    changes a Desktop's wallpaper by hand in System Settings, its old stamp stays (a few MB)
-   because the tool cannot see it. Suggested SC-006 wording: "...leaves no stamped copy
+   because the tool cannot see it. Suggested SC-006 wording: "...leaves no stamp
    except those still active or retired within the cool-down."
 2. **Undo on Desktops that share an image (FR-022).** Undo reverses the last change the tool
    made on that display, and only applies when the display's current wallpaper equals what
