@@ -1,5 +1,4 @@
 import ArgumentParser
-import DesktopNameCore
 
 /// The shared `--display` option (FR-023).
 struct DisplayOption: ParsableArguments {
