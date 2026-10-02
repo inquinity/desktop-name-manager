@@ -4,7 +4,7 @@ import Foundation
 
 /// Layout and drawing of a single-line label, ported from the prototype
 /// (plain, halo and frosted looks; the "pill" look and automatic position are not part of this spec).
-enum Painter {
+package enum Painter {
     static let opacity: CGFloat = 0.85
 
     /// Font size as a fraction of the display height.
@@ -16,14 +16,14 @@ enum Painter {
         }
     }
 
-    struct Layout {
-        var box: CGRect          // points, origin bottom-left
-        var textRect: CGRect
-        var font: NSFont
-        var alignment: NSTextAlignment
+    package struct Layout {
+        package var box: CGRect          // points, origin bottom-left
+        package var textRect: CGRect
+        package var font: NSFont
+        package var alignment: NSTextAlignment
     }
 
-    static func textAttributes(font: NSFont, alignment: NSTextAlignment) -> [NSAttributedString.Key: Any] {
+    package static func textAttributes(font: NSFont, alignment: NSTextAlignment) -> [NSAttributedString.Key: Any] {
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = alignment
         paragraph.lineBreakMode = .byClipping
@@ -40,7 +40,7 @@ enum Painter {
 
     /// Places the label's box. The box always stays on screen, clear of the menu bar and Dock;
     /// a label too wide for the display is scaled down to fit.
-    static func layout(text: String, position: Position, size: Size, geometry: DisplayGeometry, look: Look) -> Layout {
+    package static func layout(text: String, position: Position, size: Size, geometry: DisplayGeometry, look: Look) -> Layout {
         let width = CGFloat(geometry.pointWidth), height = CGFloat(geometry.pointHeight)
         let alignment = alignment(for: position)
         let backed = look == .frosted

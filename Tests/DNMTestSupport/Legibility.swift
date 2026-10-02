@@ -2,7 +2,6 @@ import AppKit
 import CoreGraphics
 import DesktopNameCore
 import Foundation
-@testable import DesktopNameCore
 
 /// The legibility measure from the spec (SC-002): in the finished image, the text has a contrast
 /// ratio of at least 3:1 against the pixels directly behind it, for at least 95% of them,
@@ -55,7 +54,7 @@ public enum Legibility {
         return channel <= 0.04045 ? channel / 12.92 : pow((channel + 0.055) / 1.055, 2.4)
     }
 
-    static func legibleShare(image: CGImage, label: Label, layout: Painter.Layout, geometry: DisplayGeometry) throws -> Double {
+    package static func legibleShare(image: CGImage, label: Label, layout: Painter.Layout, geometry: DisplayGeometry) throws -> Double {
         let text = label.text.value
         let width = image.width, height = image.height
         let scale = CGFloat(geometry.scale)
@@ -97,7 +96,7 @@ public enum Legibility {
         return total == 0 ? 0 : Double(legible) / Double(total)
     }
 
-    static func jpegDifference(backdrop: CGImage, finished: CGImage, layout: Painter.Layout, geometry: DisplayGeometry) throws -> Double {
+    package static func jpegDifference(backdrop: CGImage, finished: CGImage, layout: Painter.Layout, geometry: DisplayGeometry) throws -> Double {
         let data = try ImageWriter.encode(finished)
         guard let source = CGImageSourceCreateWithData(data as CFData, nil), let decoded = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
             throw DnmError.failure("cannot decode the encoded stamp")

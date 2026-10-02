@@ -37,6 +37,10 @@ jobs:
       - name: Build
         run: swift build
 
+      - name: Build (release)
+        # The documented build command; it caught a test-support target that broke it.
+        run: swift build -c release
+
       - name: Test
         # Snapshot tests report skipped here: wallpaper-samples/ is never in the repository.
         run: swift test

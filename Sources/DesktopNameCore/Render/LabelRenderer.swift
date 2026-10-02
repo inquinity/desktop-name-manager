@@ -3,13 +3,13 @@ import Foundation
 
 /// The whole rendering pipeline behind one function: sample the backdrop, choose the look and text
 /// color, lay the label out, and draw it.
-enum LabelRenderer {
-    struct Rendered {
-        var image: CGImage
-        var label: Label
+package enum LabelRenderer {
+    package struct Rendered {
+        package var image: CGImage
+        package var label: Label
     }
 
-    static func render(backdrop: CGImage, text: LabelText, options: LabelOptions, geometry: DisplayGeometry) throws -> Rendered {
+    package static func render(backdrop: CGImage, text: LabelText, options: LabelOptions, geometry: DisplayGeometry) throws -> Rendered {
         let sampler = Sampler(backdrop: backdrop)
         let position = options.position ?? .default
         let size = options.size ?? .default

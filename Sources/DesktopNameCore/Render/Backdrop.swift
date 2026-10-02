@@ -4,14 +4,14 @@ import Foundation
 import ImageIO
 
 /// Loading the wallpaper and composing it exactly as macOS shows it on a display.
-enum Backdrop {
+package enum Backdrop {
     /// The system's placement options as drawing values.
-    struct Placement {
+    package struct Placement {
         var scaling: NSImageScaling
         var clipping: Bool
         var fill: NSColor?
 
-        init(_ placement: WallpaperPlacement) {
+        package init(_ placement: WallpaperPlacement) {
             scaling = NSImageScaling(rawValue: placement.scaling) ?? .scaleProportionallyUpOrDown
             clipping = placement.clipping
             fill = placement.fillColor.flatMap { try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: $0) }
@@ -19,7 +19,7 @@ enum Backdrop {
     }
 
     /// Reads an image file with EXIF orientation applied. Access problems carry the system's message.
-    static func loadImage(at url: URL) throws -> CGImage {
+    package static func loadImage(at url: URL) throws -> CGImage {
         do {
             let handle = try FileHandle(forReadingFrom: url)
             try handle.close()
@@ -87,7 +87,7 @@ enum Backdrop {
     }
 
     /// The wallpaper exactly as macOS would show it on this display, at the display's pixel size.
-    static func compose(base: CGImage, placement: Placement, geometry: DisplayGeometry) throws -> CGImage {
+    package static func compose(base: CGImage, placement: Placement, geometry: DisplayGeometry) throws -> CGImage {
         let colorSpace = base.colorSpace.flatMap { $0.model == .rgb ? $0 : nil } ?? CGColorSpace(name: CGColorSpace.sRGB)!
         let context = try makeContext(width: geometry.pixelWidth, height: geometry.pixelHeight, colorSpace: colorSpace)
         let canvas = CGSize(width: geometry.pixelWidth, height: geometry.pixelHeight)
