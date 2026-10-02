@@ -7,11 +7,14 @@ public final class DesktopLabeler {
     let system: WallpaperSystem
     let store: Store
     let time: TimeSource
+    /// How long to wait for macOS to report a wallpaper it was just told to show.
+    let settleTimeout: TimeInterval
 
-    public init(system: WallpaperSystem, store: Store, time: TimeSource = SystemTimeSource()) {
+    public init(system: WallpaperSystem, store: Store, time: TimeSource = SystemTimeSource(), settleTimeout: TimeInterval = 3) {
         self.system = system
         self.store = store
         self.time = time
+        self.settleTimeout = settleTimeout
     }
 
     /// Every command starts here: delete stamps nobody needs (FR-018).
@@ -67,5 +70,23 @@ public final class DesktopLabeler {
         } catch {
             throw DnmError.failure("Could not set the wallpaper: \(error.localizedDescription)")
         }
+        try waitUntilShowing(url, on: display)
+    }
+
+    /// macOS reports a new wallpaper a moment after `setDesktopImageURL` returns. A command run straight
+    /// afterwards (a script, or `set` then `remove`) would read the old one and mistake our label for
+    /// someone else's wallpaper. Wait, briefly, until the system reports the file we just set. If it never
+    /// does within the timeout, carry on: the set itself succeeded.
+    private func waitUntilShowing(_ url: URL, on display: Display) throws {
+        let deadline = Date().addingTimeInterval(settleTimeout)
+        while Date() < deadline {
+            if let shown = try system.currentWallpaper(on: display).url, Self.isSameFile(shown, url) { return }
+            // Keep the run loop turning so AppKit can deliver the system's update.
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+    }
+
+    static func isSameFile(_ a: URL, _ b: URL) -> Bool {
+        a.resolvingSymlinksInPath().path == b.resolvingSymlinksInPath().path
     }
 }

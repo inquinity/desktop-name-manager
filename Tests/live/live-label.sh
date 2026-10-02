@@ -127,6 +127,11 @@ if ! "$dry_run"; then
 fi
 trap cleanup EXIT
 
+if ! "$dry_run"; then
+    main_display_name="$("$dnm_binary" displays | sed -n 's/^\(.*[^ ]\) *(main)$/\1/p')"
+    print_colored "$COLOR_BRIGHTYELLOW" "Labels go to the main display: ${main_display_name}. Watch THAT screen; other displays and Desktops are not labeled."
+fi
+
 # Small checks as functions, so the binary path is never pasted into a shell string.
 list_ends_with_scope_note() {
     local listing
@@ -158,7 +163,7 @@ if ! "$dry_run"; then
     start_seconds=$SECONDS
 fi
 run_step "$dnm_binary" set "Email"
-check "the label is readable, bottom-left, on this Desktop only (visit the others)" ask_to_look "Is 'Email' readable bottom-left here, and absent on your other Desktops?"
+check "the label is readable, bottom-left, on this Desktop only (visit the others)" ask_to_look "Look at the main display (${main_display_name:-the main display}): is 'Email' readable bottom-left there, and absent on your other Desktops?"
 
 # --- Scenario 2: show matches ----------------------------------------------------------------------
 print_colored "$COLOR_BRIGHTYELLOW" "Scenario 2: show matches what you see"

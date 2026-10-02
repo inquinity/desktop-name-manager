@@ -11,12 +11,12 @@ final class LabelerHarness {
     let display: Display
     let labeler: DesktopLabeler
 
-    init(extraDisplays: [Display] = []) throws {
+    init(extraDisplays: [Display] = [], settleTimeout: TimeInterval = 3) throws {
         root = try SyntheticImages.temporaryDirectory()
         store = Store(directory: root.appendingPathComponent("store", isDirectory: true))
         display = FakeWallpaperSystem.makeDisplay(name: "Built-in Display", uuid: "DISPLAY-A", isMain: true, width: 800, height: 500, scale: 1)
         system = FakeWallpaperSystem(displays: [display] + extraDisplays)
-        labeler = DesktopLabeler(system: system, store: store, time: clock)
+        labeler = DesktopLabeler(system: system, store: store, time: clock, settleTimeout: settleTimeout)
     }
 
     func cleanUp() { try? FileManager.default.removeItem(at: root) }

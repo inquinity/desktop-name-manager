@@ -16,6 +16,9 @@ final class FakeWallpaperSystem: WallpaperSystem {
     var setError: Error?
     /// Called just before a wallpaper is set, to test ordering.
     var beforeSet: (() -> Void)?
+    /// Like the real system, report a newly set wallpaper only after this many reads (0 = at once).
+    var readsBeforeSetShows = 0
+    private var pending: [String: (wallpaper: CurrentWallpaper, readsLeft: Int)] = [:]
 
     static let defaultPlacement = WallpaperPlacement(scaling: 3, clipping: true, fillColor: nil)
 
@@ -35,13 +38,27 @@ final class FakeWallpaperSystem: WallpaperSystem {
     func displays() throws -> [Display] { connectedDisplays }
 
     func currentWallpaper(on display: Display) throws -> CurrentWallpaper {
-        current[display.uuid] ?? CurrentWallpaper(url: nil, placement: Self.defaultPlacement)
+        if var waiting = pending[display.uuid] {
+            if waiting.readsLeft <= 0 {
+                current[display.uuid] = waiting.wallpaper
+                pending[display.uuid] = nil
+            } else {
+                waiting.readsLeft -= 1
+                pending[display.uuid] = waiting
+            }
+        }
+        return current[display.uuid] ?? CurrentWallpaper(url: nil, placement: Self.defaultPlacement)
     }
 
     func setWallpaper(_ url: URL, placement: WallpaperPlacement, on display: Display) throws {
         beforeSet?()
         if let setError { throw setError }
         setCalls.append(SetCall(url: url, placement: placement, displayUUID: display.uuid))
-        current[display.uuid] = CurrentWallpaper(url: url, placement: placement)
+        let shown = CurrentWallpaper(url: url, placement: placement)
+        if readsBeforeSetShows > 0 {
+            pending[display.uuid] = (shown, readsBeforeSetShows)
+        } else {
+            current[display.uuid] = shown
+        }
     }
 }
