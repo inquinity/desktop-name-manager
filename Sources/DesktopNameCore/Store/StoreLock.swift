@@ -7,7 +7,7 @@ final class StoreLock {
     private let descriptor: Int32
 
     init(at url: URL) throws {
-        descriptor = open(url.path, O_CREAT | O_RDWR, 0o600)
+        descriptor = open(url.path, O_CREAT | O_RDWR | O_NOFOLLOW, 0o600)   // never follow a planted symlink
         guard descriptor >= 0 else {
             throw DnmError.storeNotWritable("cannot open \(url.lastPathComponent): \(String(cString: strerror(errno)))")
         }

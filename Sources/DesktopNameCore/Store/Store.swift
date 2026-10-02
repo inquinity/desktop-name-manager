@@ -70,9 +70,16 @@ public final class Store: Sendable {
         if let version, version > Manifest.currentSchemaVersion {
             throw DnmError.newerManifest(found: version, supported: Manifest.currentSchemaVersion)
         }
-        do { return try Self.makeDecoder().decode(Manifest.self, from: data) } catch {
+        let manifest: Manifest
+        do { manifest = try Self.makeDecoder().decode(Manifest.self, from: data) } catch {
             throw DnmError.failure("The stored data is damaged and was left alone: \(error.localizedDescription)")
         }
+        // Every stamp file name must be one of ours. A name with a path in it (such as "../x") would let
+        // cleanup delete, or the tool set as wallpaper, a file outside the store.
+        guard manifest.stamps.allSatisfy({ Cleanup.isOurFileName($0.fileName) }) else {
+            throw DnmError.failure("The stored data refers to a file outside the store and was left alone.")
+        }
+        return manifest
     }
 
     /// Runs `body` on the manifest under the lock and saves the result atomically.
@@ -86,7 +93,7 @@ public final class Store: Sendable {
         var manifest = hasManifest ? try loadManifest() : Manifest()
         let result = try body(&manifest)
         do {
-            try Self.makeEncoder().encode(manifest).write(to: manifestURL, options: .atomic)
+            try writePrivately(Self.makeEncoder().encode(manifest), to: manifestURL)
         } catch {
             throw DnmError.storeNotWritable(error.localizedDescription)
         }
@@ -95,7 +102,9 @@ public final class Store: Sendable {
 
     private func ensureDirectory() throws {
         do {
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            // Owner-only: the store holds label text, original paths and copies of the user's wallpaper.
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
+                                                    attributes: [.posixPermissions: 0o700])
         } catch {
             throw DnmError.storeNotWritable(error.localizedDescription)
         }
@@ -104,17 +113,29 @@ public final class Store: Sendable {
     // MARK: - Stamp files
 
     public func writeStampFile(_ data: Data, named fileName: String) throws {
+        guard Cleanup.isOurFileName(fileName) else {
+            throw DnmError.failure("Refusing to write \"\(fileName)\": it is not a name this tool uses.")
+        }
         try ensureDirectory()
-        do { try data.write(to: fileURL(named: fileName), options: .atomic) } catch {
+        do { try writePrivately(data, to: fileURL(named: fileName)) } catch {
             throw DnmError.storeNotWritable(error.localizedDescription)
         }
     }
 
-    public func stampFileExists(named fileName: String) -> Bool {
-        FileManager.default.fileExists(atPath: fileURL(named: fileName).path)
+    /// Atomic write, then owner-only permissions.
+    private func writePrivately(_ data: Data, to url: URL) throws {
+        try data.write(to: url, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
     }
 
+    public func stampFileExists(named fileName: String) -> Bool {
+        Cleanup.isOurFileName(fileName) && FileManager.default.fileExists(atPath: fileURL(named: fileName).path)
+    }
+
+    /// Deletes one of our stamp files. Anything that is not exactly `<uuid>.dnm.<ext>` is ignored, so a
+    /// name carrying a path can never reach outside the store.
     public func removeFile(named fileName: String) {
+        guard Cleanup.isOurFileName(fileName) else { return }
         try? FileManager.default.removeItem(at: fileURL(named: fileName))
     }
 }

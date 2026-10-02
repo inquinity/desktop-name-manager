@@ -39,6 +39,41 @@ Scope: `Sources/`, `Tests/`, `scripts/` at commit `bc48d4e`. Findings and outcom
 Other results: `swift test` 124 tests pass; `scripts/periphery.sh` reports no unused code.
 
 
+### 2026-10-01: first security pass (author's static pass, `security-oss-app-reviewer` method)
+
+**Independence caveat:** run by the agent that wrote the code, so it is a first pass, not the independent
+security review required before release (T072). Static only; nothing was executed except the tool
+against scratch folders to confirm finding 1. Scope: `Sources/`, `Tests/`, `scripts/`, `.github/`,
+`Package.swift`, `Package.resolved`.
+
+**Findings**
+
+| # | Severity | Finding (evidence) | Outcome |
+|---|---|---|---|
+| 1 | medium | A stamp's `fileName` in `manifest.json` was trusted. A manifest edited by another process of the same user could carry `../x`, and cleanup would delete that file outside the store (confirmed in a scratch folder: a file one level above the store was deleted by `dnm displays`). `Store.removeFile` and `fileURL` joined the name unchecked | Fixed: manifests whose stamp names are not exactly `<uuid>.dnm.<ext>` are refused and left alone; `removeFile`, `stampFileExists` and `writeStampFile` reject any other name. Tests added; the scratch demonstration now exits 1 and the file survives |
+| 2 | low | The store directory and files were created with default permissions (0755 and 0644) and hold label text, original paths and copies of the wallpaper. The default location is under `~/Library` (0700), but `DNM_STORE_DIR` can point anywhere | Fixed: directory 0700, manifest and stamps 0600; test added |
+| 3 | low | The lock file was opened following symlinks, so a planted symlink in a shared `DNM_STORE_DIR` could make the tool open an unintended file | Fixed with `O_NOFOLLOW`; test added |
+| 4 | low | `Tests/live/live-label.sh` pasted the `--dnm` path into `bash -c` strings and deleted a stamp path read from the manifest | Fixed: checks are functions, and the deletion is limited to the private store |
+| 5 | low | CI (`.github/workflows/ci.yml`) runs pull-request code (`swift build` and `swift test`) on a GitHub runner. The workflow has read-only permissions, no secrets and no third-party actions, so the exposure is limited to the runner | Recommendation for the maintainer: in the repository settings require approval before workflows run for first-time contributors. Open until T006 is reviewed and approved |
+| 6 | info | `scripts/live-*.sh` leave the `Index.plist` backup in the temp folder (by design, for restore); it lists wallpaper paths | Documented; remove it yourself after a successful run |
+
+**Access map (reviewed evidence)**
+
+| Area | Observed | Notes |
+|---|---|---|
+| Network egress | None in `Sources/`; the only URL is the repository fetch in CI | Enforced by `PrivacyScanTests` and `LinkedLibrariesTests` (no networking framework linked) |
+| Telemetry | None | Same tests |
+| Credentials | None read, stored or forwarded | The only environment variable read is `DNM_STORE_DIR` |
+| Subprocesses | None in `Sources/` | Scripts call `sandbox-exec`, `plutil`, `shasum`, `git`, `codeql`, `python3` with fixed arguments |
+| Filesystem | Reads the wallpaper image the system reports and its recorded original; writes only inside the store; deletes only `<uuid>.dnm.<ext>` files named by a validated manifest or found in a folder that has our manifest | A denied read is reported, never worked around |
+| Private APIs | None | `PrivacyScanTests`, `LinkedLibrariesTests` |
+| Dependencies | `swift-argument-parser` exactly 1.8.2, revision pinned in the tracked `Package.resolved`; fetched over HTTPS at build time only | Release review should re-check the revision |
+| CI | Read-only token, no secrets, no third-party actions, no signing | Runner label `macos-26` unverified |
+
+**Not reviewed:** runtime behavior on the real wallpaper (live checks), the CodeQL scan (query tag not
+pinned yet), the built release binary's signature (spec 005), and macOS-level behavior of
+`NSWorkspace.setDesktopImageURL`.
+
 ## Measurements
 
 _Timing (T069), live-run results on macOS 26 and 27 (T070) and the image-quality check are

@@ -24,12 +24,13 @@ import Testing
         }
 
         func writeFile(_ name: String, ageMinutes: Double = 0) throws {
-            try store.writeStampFile(Data([1, 2, 3]), named: name)
+            // Raw write: the tests also need files with names the store itself would refuse.
+            try Data([1, 2, 3]).write(to: store.fileURL(named: name))
             try FileManager.default.setAttributes([.modificationDate: clock.now.addingTimeInterval(-ageMinutes * 60)],
                                                   ofItemAtPath: store.fileURL(named: name).path)
         }
 
-        func exists(_ name: String) -> Bool { store.stampFileExists(named: name) }
+        func exists(_ name: String) -> Bool { FileManager.default.fileExists(atPath: store.fileURL(named: name).path) }
         func run() throws { try Cleanup.run(store: store, now: clock.now) }
     }
 

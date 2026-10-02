@@ -127,6 +127,25 @@ if ! "$dry_run"; then
 fi
 trap cleanup EXIT
 
+# Small checks as functions, so the binary path is never pasted into a shell string.
+list_ends_with_scope_note() {
+    local listing
+    listing="$("$dnm_binary" list)"
+    [[ "$(tail -n 1 <<<"$listing")" == "Only labeled and current Desktops are shown." ]]
+}
+
+list_json_carries_scope() {
+    local document
+    document="$("$dnm_binary" list --json)"
+    grep -q '"scope"' <<<"$document"
+}
+
+show_flags_missing_stamp() {
+    local details
+    details="$("$dnm_binary" show)"
+    grep -qi 'missing' <<<"$details"
+}
+
 manifest_value() {
     # manifest_value <key path>: read one value from the private manifest with plutil.
     plutil -extract "$1" raw -o - "${DNM_STORE_DIR}/manifest.json"
@@ -208,16 +227,20 @@ fi
 print_colored "$COLOR_BRIGHTYELLOW" "Scenario 11: list"
 run_step "$dnm_binary" list
 if ! "$dry_run"; then
-    check "list ends with the scope note" bash -c "'$dnm_binary' list | tail -n 1 | grep -q 'Only labeled and current Desktops are shown.'"
-    check "list --json carries the scope" bash -c "'$dnm_binary' list --json | grep -q '\"scope\"'"
+    check "list ends with the scope note" list_ends_with_scope_note
+    check "list --json carries the scope" list_json_carries_scope
 fi
 
 # --- Scenario 19: missing stamp --------------------------------------------------------------------
 print_colored "$COLOR_BRIGHTYELLOW" "Scenario 19: a deleted stamp file"
 if ! "$dry_run"; then
     stamp_file="${DNM_STORE_DIR}/$(manifest_value "stamps.$(( $(plutil -extract stamps raw -o - "${DNM_STORE_DIR}/manifest.json") - 1 )).fileName")"
-    rm -f "$stamp_file"
-    check "show flags the missing stamp" bash -c "'$dnm_binary' show | grep -qi 'missing'"
+    # Only ever delete a stamp inside the private store this script created.
+    case "$stamp_file" in
+        "${DNM_STORE_DIR}"/*.dnm.*) rm -f "$stamp_file" ;;
+        *) print_colored "$COLOR_RED" "Refusing to delete ${stamp_file}: it is not inside the private store."; exit 1 ;;
+    esac
+    check "show flags the missing stamp" show_flags_missing_stamp
 fi
 run_step "$dnm_binary" set "Rebuilt"
 check "set rebuilds the stamp and the label shows" ask_to_look "Is 'Rebuilt' showing?"
