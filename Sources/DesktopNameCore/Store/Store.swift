@@ -86,18 +86,34 @@ public final class Store: Sendable {
     /// A store that cannot be written fails here, before the caller changes any wallpaper.
     @discardableResult
     public func transaction<T>(_ body: (inout Manifest) throws -> T) throws -> T {
+        try exclusive {
+            var manifest = hasManifest ? try loadManifest() : Manifest()
+            let result = try body(&manifest)
+            do {
+                try writePrivately(Self.makeEncoder().encode(manifest), to: manifestURL)
+            } catch {
+                throw DnmError.storeNotWritable(error.localizedDescription)
+            }
+            return result
+        }
+    }
+
+    /// Holds the store lock for the whole of `body`, so an operation can read the manifest, decide, change
+    /// the wallpaper and save as one step that no other run can interleave with. Re-entrant on the same
+    /// thread, so `transaction` and `Cleanup` can be used inside it.
+    public func exclusive<T>(_ body: () throws -> T) throws -> T {
+        let held = Thread.current.threadDictionary
+        let key = "dnm.store.lock.held." + directory.path
+        if held[key] != nil { return try body() }
         try ensureDirectory()
         let lock = try StoreLock(at: lockURL)
-        // Hold the lock until the manifest has been saved: the object must outlive the whole body.
-        defer { withExtendedLifetime(lock) {} }
-        var manifest = hasManifest ? try loadManifest() : Manifest()
-        let result = try body(&manifest)
-        do {
-            try writePrivately(Self.makeEncoder().encode(manifest), to: manifestURL)
-        } catch {
-            throw DnmError.storeNotWritable(error.localizedDescription)
+        held[key] = true
+        defer {
+            held.removeObject(forKey: key)
+            // The lock object must outlive the whole body.
+            withExtendedLifetime(lock) {}
         }
-        return result
+        return try body()
     }
 
     private func ensureDirectory() throws {

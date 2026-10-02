@@ -24,7 +24,7 @@ COLOR_RESET="\e[0m"          # Used to reset color formatting
 print_colored() {
     local color=$1
     local message=$2
-    printf "${color}${message}${COLOR_RESET}\n"
+    printf "%b%s%b\n" "$color" "$message" "$COLOR_RESET"
 }
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"

@@ -17,6 +17,12 @@ extension DesktopLabeler {
     /// The stamp is retired, not deleted, so `undo` can bring it back during the cool-down.
     @discardableResult
     public func removeLabel(on display: Display) throws -> RemoveLabelResult {
+        // Nothing stored yet means nothing to remove; do not create the store just to say so.
+        guard store.hasManifest else { return RemoveLabelResult(outcome: .noLabel, displayName: display.name) }
+        return try store.exclusive { try performRemoveLabel(on: display) }
+    }
+
+    private func performRemoveLabel(on display: Display) throws -> RemoveLabelResult {
         try cleanUp()
         let current = try system.currentWallpaper(on: display)
         let manifest = try store.readManifest()

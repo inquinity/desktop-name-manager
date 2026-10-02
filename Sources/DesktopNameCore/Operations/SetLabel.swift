@@ -14,6 +14,11 @@ extension DesktopLabeler {
     /// wallpaper set. A failure at the last step is rolled back, so nothing half-applied is left behind.
     @discardableResult
     public func setLabel(_ text: LabelText, options: LabelOptions = LabelOptions(), on display: Display) throws -> SetLabelResult {
+        // One run at a time: read, decide, write and set the wallpaper without another run interleaving.
+        try store.exclusive { try performSetLabel(text, options: options, on: display) }
+    }
+
+    private func performSetLabel(_ text: LabelText, options: LabelOptions, on display: Display) throws -> SetLabelResult {
         try cleanUp()
         let current = try system.currentWallpaper(on: display)
         let manifest = try store.readManifest()

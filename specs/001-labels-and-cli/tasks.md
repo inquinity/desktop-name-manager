@@ -96,7 +96,7 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 - [x] T034 [US1] Create `Sources/DesktopNameCore/Render/LabelRenderer.swift` combining backdrop, sampling, style choice and painting behind one function that returns the image and the chosen treatment (depends on T031, T032, T033)
 - [x] T035 [US1] Create `Sources/DesktopNameCore/Operations/SetLabel.swift`: refuse unsupported wallpaper before writing anything (T030); take the base image from the manifest's recorded `Original` when the current file is one of our stamps (even if that stamp file is missing), otherwise from the current wallpaper, recording a new `Original` (path, bookmark, scaling, clipping, archived fill color); render; write `<uuid>.dnm.<ext>`; save the manifest; set the wallpaper with scale-to-fill and the original fill color; retire any replaced stamp; update the display's `ChangeRecord` (depends on T014, T015, T030, T034)
 - [x] T036 [US1] Add `Sources/dnm/Commands/SetCommand.swift`: `dnm set <label>` with `--display`, running cleanup first and printing `Labeled "<label>" on <display> (<look>, <color> text, <position>).` (depends on T018, T035)
-- [ ] T037 [US1] Review: independent code review of Phases 1 to 3, recorded in `specs/001-labels-and-cli/review-notes.md`; resolve findings before continuing
+- [x] T037 [US1] Review: independent code review of Phases 1 to 3, recorded in `specs/001-labels-and-cli/review-notes.md`; resolve findings before continuing
 
 **Checkpoint**: Labels can be set and replaced from the command line, and unsupported wallpapers are refused. Do not run it live on your real wallpaper until US2 is done.
 
@@ -142,7 +142,7 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 
 - [x] T049 [US5] Map read and write permission errors to `DnmError` access-denied carrying the system's error text, never prompting and never retrying with a workaround, in `Sources/DesktopNameCore/Operations/SetLabel.swift` and `Sources/DesktopNameCore/Operations/RemoveLabel.swift` (FR-015)
 - [x] T050 [P] [US5] Write the live check script `Tests/live/live-safety.sh` (use the `shell-script-expert` skill): backs up `Index.plist`, sets `DNM_STORE_DIR`, runs scenarios 12 to 15 from quickstart.md including a network-off run, and restores everything on exit
-- [ ] T051 [US5] Review: independent code review and a first security pass of Phase 5 recorded in `review-notes.md`
+- [x] T051 [US5] Review: independent code review and a first security pass of Phase 5 recorded in `review-notes.md`
 
 **Checkpoint**: The tool never asks for permissions, and its privacy rules are enforced by tests.
 
@@ -165,7 +165,7 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 
 - [x] T056 [US3] Add `--position`, `--size`, `--style` and `--color` to `Sources/dnm/Commands/SetCommand.swift` with the values from contracts/cli.md, and pass them as explicit overrides to `Sources/DesktopNameCore/Operations/SetLabel.swift`
 - [x] T057 [US3] Make `Sources/DesktopNameCore/Render/LabelRenderer.swift` and `Sources/DesktopNameCore/Render/Painter.swift` honor explicit look, color, position and size, clamp the layout so the label never leaves the screen, and draw emoji through font fallback
-- [ ] T058 [US3] Review: independent code review of Phase 6 recorded in `review-notes.md`
+- [x] T058 [US3] Review: independent code review of Phase 6 recorded in `review-notes.md`
 
 **Checkpoint**: Labels can be styled by the user and the automatic choices are only defaults.
 
@@ -188,7 +188,7 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 - [x] T062 [P] [US4] Create `Sources/DesktopNameCore/Operations/ListDesktops.swift` returning labeled Desktops and each connected display's current Desktop, with the missing-stamp flag (depends on T014, T015)
 - [x] T063 [P] [US4] Create `Sources/DesktopNameCore/Operations/ShowLabel.swift` returning a label's text, look, color, position, size, automatic flags, `createdAt`, whether an original is recorded, and whether the stamp file is missing
 - [x] T064 [US4] Add `Sources/dnm/Commands/ListCommand.swift`, `Sources/dnm/Commands/ShowCommand.swift` and `Sources/dnm/Commands/DisplaysCommand.swift` with human and `--json` output per contracts/cli.md, ending human `list` output with `Only labeled and current Desktops are shown.` (depends on T018, T062, T063, T017)
-- [ ] T065 [US4] Review: independent code review of Phase 7 recorded in `review-notes.md`
+- [x] T065 [US4] Review: independent code review of Phase 7 recorded in `review-notes.md`
 
 **Checkpoint**: All five stories work independently.
 

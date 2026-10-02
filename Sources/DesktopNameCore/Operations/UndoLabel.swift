@@ -15,6 +15,13 @@ extension DesktopLabeler {
     /// wallpaper is still the one that change produced (FR-022). One level only.
     @discardableResult
     public func undoLastChange(on display: Display) throws -> UndoResult {
+        guard store.hasManifest else {
+            throw DnmError.cannotUndo("there is nothing to undo on \(display.name); changes can be undone for \(Int(Cleanup.coolDown / 60)) minutes")
+        }
+        return try store.exclusive { try performUndo(on: display) }
+    }
+
+    private func performUndo(on display: Display) throws -> UndoResult {
         try cleanUp()
         let current = try system.currentWallpaper(on: display)
         let manifest = try store.readManifest()

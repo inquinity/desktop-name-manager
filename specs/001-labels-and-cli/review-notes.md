@@ -39,6 +39,23 @@ Scope: `Sources/`, `Tests/`, `scripts/` at commit `bc48d4e`. Findings and outcom
 Other results: `swift test` 124 tests pass; `scripts/periphery.sh` reports no unused code.
 
 
+### 2026-10-01: independent code review (cloud `/code-review ultra`, review 1 of 3)
+
+An independent reviewer (the cloud multi-agent review) read the whole branch as of `main` when it was
+launched (94 files). It satisfies the constitution's "independent review" for the code up to that
+point; later changes (the fixes below and the security-pass fixes) were reviewed only by the author.
+
+| # | Severity | Finding | Outcome |
+|---|---|---|---|
+| 1 | normal | A display whose CoreGraphics UUID lookup fails got the empty string as its identity, so several such displays would share one identity | Fixed: fall back to the vendor, model, serial and display numbers. Not unit-testable (the lookup cannot be made to fail in tests); covered by review |
+| 2 | normal | Rollback after a failed wallpaper set overwrote the whole shared manifest with a stale snapshot, discarding a concurrent run's commit | Fixed together with 3: the whole operation now runs under the store lock |
+| 3 | normal | Set, remove and undo decided from a manifest read before taking the lock, so two runs on one display could both retire the same stamp and leave two active stamps and a lost change record (this repeats finding 3 of the author's pass, which had been accepted) | Fixed: `Store.exclusive` holds the lock for read, decide, write and the wallpaper set; it is re-entrant on a thread. Remove and undo skip the lock when nothing is stored. Tests: a second run waits for the lock; two concurrent replacements leave one active stamp |
+| 4 | nit | `print_colored` passed the message as a printf format string, so a `%` in a path or argument was mangled (in four scripts) | Fixed: `printf '%b%s%b\n'` |
+| 5 | nit | The color helper block is copied into four scripts instead of being sourced from one file | Not changed: the maintainer's shell-script convention is self-contained scripts with this block, and the helper is now a single trivial line |
+
+The earlier "accepted" decision on concurrency is withdrawn: it was wrong to defer once two reviewers
+rated it a real defect.
+
 ### 2026-10-01: first security pass (author's static pass, `security-oss-app-reviewer` method)
 
 **Independence caveat:** run by the agent that wrote the code, so it is a first pass, not the independent

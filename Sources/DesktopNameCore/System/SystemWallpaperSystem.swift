@@ -52,8 +52,12 @@ public struct SystemWallpaperSystem: WallpaperSystem {
 
     @MainActor
     private static func uuid(of id: CGDirectDisplayID) -> String {
-        guard let cfUUID = CGDisplayCreateUUIDFromDisplayID(id)?.takeRetainedValue() else { return "" }
-        return CFUUIDCreateString(nil, cfUUID) as String
+        if let cfUUID = CGDisplayCreateUUIDFromDisplayID(id)?.takeRetainedValue() {
+            return CFUUIDCreateString(nil, cfUUID) as String
+        }
+        // Some displays (virtual, headless, certain capture or eGPU setups) have no UUID. Never share one
+        // empty identity between displays: fall back to the vendor, model, serial and display numbers.
+        return "no-uuid-\(CGDisplayVendorNumber(id))-\(CGDisplayModelNumber(id))-\(CGDisplaySerialNumber(id))-\(id)"
     }
 
     @MainActor

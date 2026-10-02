@@ -73,3 +73,68 @@ import Testing
         #expect(try Data(contentsOf: target) == Data("untouched".utf8))
     }
 }
+
+/// Findings from the cloud review: decisions must be made under the lock, not from a manifest read before it.
+@Suite struct ExclusiveOperationTests {
+    @Test func anOperationHoldsTheLockForItsWholeRun() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        try h.showOriginal()
+
+        // A second run on another thread must wait for the lock this thread holds.
+        let finished = DispatchSemaphore(value: 0)
+        try h.store.exclusive {
+            let worker = Thread {
+                _ = try? h.labeler.setLabel(LabelText("Waits"), on: h.display)
+                finished.signal()
+            }
+            worker.start()
+            Thread.sleep(forTimeInterval: 0.4)
+            #expect(h.system.setCalls.isEmpty, "the second run must not proceed while the lock is held")
+        }
+        #expect(finished.wait(timeout: .now() + 20) == .success)
+        #expect(h.system.setCalls.count == 1)
+        #expect(try h.manifest().stamps.count == 1)
+    }
+
+    @Test func theLockIsReentrantOnTheSameThread() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        try h.store.exclusive {
+            try h.store.transaction { $0.changes.append(Fixtures.change()) }
+            try h.store.exclusive { _ = try h.store.readManifest() }
+        }
+        #expect(try h.manifest().changes.count == 1)
+    }
+
+    @Test func twoRunsLabelingTheSameDisplayLeaveExactlyOneActiveStamp() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        try h.showOriginal()
+        try h.labeler.setLabel(LabelText("First"), on: h.display)
+
+        // Two "processes" (two stores on the same directory, each its own thread) replace the label at once.
+        // The fake wallpaper system is shared, so run them one after the other through the lock.
+        let group = DispatchGroup()
+        for name in ["Second", "Third"] {
+            group.enter()
+            let thread = Thread {
+                let other = DesktopLabeler(system: h.system, store: Store(directory: h.store.directory), time: h.clock)
+                _ = try? other.setLabel(LabelText(name), on: h.display)
+                group.leave()
+            }
+            thread.start()
+        }
+        #expect(group.wait(timeout: .now() + 30) == .success)
+
+        let stamps = try h.manifest().stamps
+        #expect(stamps.filter(\.isActive).count == 1)
+        #expect(try h.manifest().changes.count == 1)
+        #expect(Set(stamps.map(\.fileName)).count == stamps.count)
+    }
+
+    @Test func removeAndUndoWithNothingStoredDoNotCreateTheStore() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        try h.showOriginal()
+        #expect(try h.labeler.removeLabel(on: h.display).outcome == .noLabel)
+        #expect(throws: DnmError.self) { try h.labeler.undoLastChange(on: h.display) }
+        #expect(!FileManager.default.fileExists(atPath: h.store.directory.path))
+    }
+}
