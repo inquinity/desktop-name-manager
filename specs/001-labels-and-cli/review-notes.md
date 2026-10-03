@@ -109,5 +109,10 @@ scenario 3 should be re-run. The automatic style on the dark leafy test wallpape
 looks like plain text on a dark picture (the glow is invisible there); a possible refinement is to prefer
 "plain" when the glow could not show. Not changed yet.
 
+Follow-up by hand on 2026-10-03 (same Mac): the large label was shown and compared with the medium one
+(`dnm set "Mail" --size large`, then `dnm remove`), result: pass, so scenario 3's size check is covered.
+The sequence `dnm set "Mail" --size large && dnm remove`, which failed before the wait for macOS to
+report the wallpaper, now labels and removes cleanly on the real system.
+
 Still to record here: timing (T069), the macOS 26 run (T070) and the image-quality check.
 
