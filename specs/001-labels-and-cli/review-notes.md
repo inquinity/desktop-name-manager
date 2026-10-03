@@ -93,5 +93,21 @@ pinned yet), the built release binary's signature (spec 005), and macOS-level be
 
 ## Measurements
 
-_Timing (T069), live-run results on macOS 26 and 27 (T070) and the image-quality check are
-recorded here._
+### Live run, 2026-10-03, macOS 27.0.1 (this Mac), main display, `Tests/live/live-label.sh`
+
+The first runs on 2026-10-01 and 2026-10-02 found two problems, both fixed before the passing run:
+(1) macOS reports a newly set wallpaper a moment late, so `remove`, `undo` and a second `set` run
+straight after `set` misjudged the Desktop (fixed by waiting for the system to report the file; tests
+reproduce each symptom); (2) the script did not say which display it labels, so a first "no" was the
+person watching another screen (the script now names the display).
+
+Passing run: scenarios 1, 2, 3, 5, 6, 7, 8, 9, 10, 11 and 19 passed, and the wallpaper was restored.
+Gaps: scenario 4 (restart, reorder, Show Desktop; needs a log out), 16 (30-minute cleanup;
+`--with-cooldown`), 17 (solid color) and 18 (image quality) were not run; macOS 26 was not available.
+In scenario 3 the large label was on screen too briefly to judge; the script now pauses on it, so
+scenario 3 should be re-run. The automatic style on the dark leafy test wallpaper was "halo", which
+looks like plain text on a dark picture (the glow is invisible there); a possible refinement is to prefer
+"plain" when the glow could not show. Not changed yet.
+
+Still to record here: timing (T069), the macOS 26 run (T070) and the image-quality check.
+
