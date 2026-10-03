@@ -173,6 +173,7 @@ check "show lists the label with its automatic style and color" ask_to_look "Doe
 # --- Scenario 3: replace resets options ------------------------------------------------------------
 print_colored "$COLOR_BRIGHTYELLOW" "Scenario 3: a replacement resets omitted options"
 run_step "$dnm_binary" set "Mail" --size large
+check "the first 'Mail' is large" ask_to_look "Is 'Mail' clearly LARGER than the earlier 'Email' label?"
 run_step "$dnm_binary" set "Mail"
 check "the second 'Mail' is medium again" ask_to_look "Is the second 'Mail' back to the normal size (not large)?"
 
