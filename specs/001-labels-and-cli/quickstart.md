@@ -13,16 +13,16 @@ How to prove the feature works end to end. Commands and options are defined in
 ## Build
 
 ```bash
-swift build -c release
+just release    # swift build -c release --scratch-path build.noindex
 ```
 
-The binary is `.build/release/dnm`. Put `desktop-name` beside it as a link to it to check
+The binary is `build.noindex/release/dnm`. Put `desktop-name` beside it as a link to it to check
 the alias.
 
 ## Automated checks (safe: do not touch the real wallpaper)
 
 ```bash
-swift test
+just test      # swift test --scratch-path build.noindex
 ```
 
 Covers validation, display resolution, set/remove/undo/list/show logic against a fake
@@ -79,7 +79,7 @@ cp "$TMPDIR/Index.plist.backup" \
 ## Timing check (SC-001)
 
 ```bash
-time .build/release/dnm set "Timing"
+time build.noindex/release/dnm set "Timing"
 ```
 
 Expected: under 1 s on a 5K display.

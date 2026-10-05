@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Scan the package for unused code with Periphery and fail on any finding.
-# Read-only: it builds into .build/ and prints a report; it changes no tracked file.
+# Read-only: it builds into build.noindex/ and prints a report; it changes no tracked file.
 #
 # Usage: scripts/periphery.sh [--help]
 
@@ -49,7 +49,7 @@ cd "$repository_root"
 print_colored "$COLOR_BRIGHTYELLOW" "Scanning for unused code (periphery $(periphery version))..."
 # Periphery reads the compiler's index store. With Xcode 27's default SwiftPM build system
 # that store is not written where Periphery looks, so the native build system is used.
-if periphery scan --strict -- --build-system native; then
+if periphery scan --strict -- --build-system native --scratch-path "${repository_root}/build.noindex"; then
     print_colored "$COLOR_GREEN" "No unused code found."
 else
     print_colored "$COLOR_RED" "Periphery failed or reported unused code (see above)."

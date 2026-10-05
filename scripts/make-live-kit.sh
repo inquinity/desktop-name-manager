@@ -59,14 +59,14 @@ if [[ -n "$(git -C "$repository_root" status --porcelain)" ]]; then
 fi
 
 if "$dry_run"; then
-    print_colored "$COLOR_CYAN" "[dry run] would build: swift build -c release --arch arm64 --arch x86_64 --product dnm"
+    print_colored "$COLOR_CYAN" "[dry run] would build: swift build -c release --arch arm64 --arch x86_64 --product dnm --scratch-path build.noindex"
     print_colored "$COLOR_CYAN" "[dry run] would write the kit for commit ${commit}${dirty} to ${output_directory}"
     exit 0
 fi
 
 print_colored "$COLOR_BRIGHTYELLOW" "Building a universal release of dnm (commit ${commit}${dirty})..."
-(cd "$repository_root" && swift build -c release --arch arm64 --arch x86_64 --product dnm)
-built_binary="${repository_root}/.build/out/Products/Release/dnm"
+(cd "$repository_root" && swift build -c release --arch arm64 --arch x86_64 --product dnm --scratch-path "${repository_root}/build.noindex")
+built_binary="${repository_root}/build.noindex/out/Products/Release/dnm"
 [[ -x "$built_binary" ]] || { print_colored "$COLOR_RED" "Cannot find the built binary at ${built_binary}"; exit 1; }
 architectures="$(lipo -archs "$built_binary")"
 [[ "$architectures" == *arm64* && "$architectures" == *x86_64* ]] || {

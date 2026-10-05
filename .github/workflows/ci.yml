@@ -35,12 +35,12 @@ jobs:
           xcodebuild -version
 
       - name: Build
-        run: swift build
+        run: swift build --scratch-path build.noindex
 
       - name: Build (release)
         # The documented build command; it caught a test-support target that broke it.
-        run: swift build -c release
+        run: swift build -c release --scratch-path build.noindex
 
       - name: Test
         # Snapshot tests report skipped here: wallpaper-samples/ is never in the repository.
-        run: swift test
+        run: swift test --scratch-path build.noindex

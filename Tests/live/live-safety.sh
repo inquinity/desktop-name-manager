@@ -28,7 +28,7 @@ print_colored() {
 }
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-dnm_binary="${repository_root}/.build/release/dnm"
+dnm_binary="${repository_root}/build.noindex/release/dnm"
 # In a copied test kit the binary sits next to the Tests folder.
 if [[ -x "${repository_root}/dnm" ]]; then
     dnm_binary="${repository_root}/dnm"
@@ -41,7 +41,7 @@ labels_applied=false
 
 usage() {
     print_colored "$COLOR_YELLOW" "Usage: Tests/live/live-safety.sh [--dnm PATH] [--dry-run] [--help]"
-    print_colored "$COLOR_YELLOW" "  --dnm PATH     the dnm binary to test (default: .build/release/dnm; build it first)"
+    print_colored "$COLOR_YELLOW" "  --dnm PATH     the dnm binary to test (default: build.noindex/release/dnm; build it first)"
     print_colored "$COLOR_YELLOW" "  --dry-run, -n  print the steps without touching the wallpaper"
     print_colored "$COLOR_YELLOW" "Changes the real wallpaper of the Desktop you are on. Run only while idle."
 }
@@ -104,7 +104,7 @@ if "$dry_run"; then
     exit 0
 fi
 
-[[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: swift build -c release"; exit 1; }
+[[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: just release"; exit 1; }
 [[ -f "$wallpaper_store_plist" ]] || { print_colored "$COLOR_RED" "Cannot find the wallpaper store: ${wallpaper_store_plist}"; exit 1; }
 command -v sandbox-exec >/dev/null 2>&1 || { print_colored "$COLOR_RED" "sandbox-exec is needed to block the network for scenario 14."; exit 1; }
 

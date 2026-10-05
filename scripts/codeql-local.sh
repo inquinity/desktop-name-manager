@@ -88,9 +88,9 @@ run_step() {
 
 run_step mkdir -p "$results_directory"
 # The build is traced so CodeQL sees the compiler calls. A clean build makes it see every file.
-run_step swift package clean
+run_step swift package clean --scratch-path "${repository_root}/build.noindex"
 run_step codeql database create "$database_directory" --language=swift --source-root="$repository_root" \
-    --command="swift build" --overwrite
+    --command="swift build --scratch-path ${repository_root}/build.noindex" --overwrite
 run_step codeql database analyze "$database_directory" "$suite_file" --search-path="$CODEQL_REPO" --no-download \
     --format=sarif-latest --output="$results_file"
 

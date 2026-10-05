@@ -13,7 +13,7 @@ enum CLI {
         var directory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         while directory.path != "/" {
             if FileManager.default.fileExists(atPath: directory.appendingPathComponent("Package.swift").path) {
-                let candidate = directory.appendingPathComponent(".build/debug/dnm")
+                let candidate = directory.appendingPathComponent("build.noindex/debug/dnm")
                 return FileManager.default.isExecutableFile(atPath: candidate.path) ? candidate : nil
             }
             directory = directory.deletingLastPathComponent()

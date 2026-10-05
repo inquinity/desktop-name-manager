@@ -22,9 +22,9 @@ The command-line tool is `dnm`.
 Not packaged yet; build it from source (macOS 26 or later, Xcode 27 command-line tools):
 
 ```sh
-swift build -c release
-.build/release/dnm set "Status Report"     # label the Desktop you are on
-.build/release/dnm remove                  # put the original wallpaper back
+swift build -c release --scratch-path build.noindex
+build.noindex/release/dnm set "Status Report"   # label the Desktop you are on
+build.noindex/release/dnm remove                # put the original wallpaper back
 ```
 
 A label is one line of 1 to 30 characters (emoji are fine). You must be on the Desktop you
@@ -64,10 +64,14 @@ yet. `prototype/` holds the proof of concept that validated the approach, and
 ## Development
 
 ```sh
-swift build         # build the library and the tool
-swift test          # unit and contract tests (they never change your real wallpaper)
-scripts/periphery.sh   # unused-code scan (needs `brew install periphery`)
+just build        # build the library and the tool (output goes to build.noindex/, not .build/)
+just test         # unit and contract tests (they never change your real wallpaper)
+just release      # optimized build: build.noindex/release/dnm
+just periphery    # unused-code scan (needs `brew install periphery`)
+just kit          # assemble the live-test kit to copy to another Mac
 ```
+
+Without `just`, add `--scratch-path build.noindex` to `swift build` and `swift test`.
 
 Live checks change your real wallpaper. They are listed in
 `specs/001-labels-and-cli/quickstart.md`; back up the wallpaper store first and use a private

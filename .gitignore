@@ -6,9 +6,10 @@ xcuserdata/
 *.xcuserstate
 DerivedData/
 
-# Swift Package Manager
+# Swift Package Manager (our builds go to build.noindex; .build is kept ignored in case a plain swift build is run)
 .build/
 .swiftpm/
+build.noindex/
 
 # Build output
 build/

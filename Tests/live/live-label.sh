@@ -28,7 +28,7 @@ print_colored() {
 }
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-dnm_binary="${repository_root}/.build/release/dnm"
+dnm_binary="${repository_root}/build.noindex/release/dnm"
 # In a copied test kit the binary sits next to the Tests folder.
 if [[ -x "${repository_root}/dnm" ]]; then
     dnm_binary="${repository_root}/dnm"
@@ -42,7 +42,7 @@ labels_applied=false
 
 usage() {
     print_colored "$COLOR_YELLOW" "Usage: Tests/live/live-label.sh [--dnm PATH] [--with-cooldown] [--dry-run] [--help]"
-    print_colored "$COLOR_YELLOW" "  --dnm PATH        the dnm binary to test (default: .build/release/dnm; build it first)"
+    print_colored "$COLOR_YELLOW" "  --dnm PATH        the dnm binary to test (default: build.noindex/release/dnm; build it first)"
     print_colored "$COLOR_YELLOW" "  --with-cooldown   also run scenario 16: wait 31 minutes and check the cleanup"
     print_colored "$COLOR_YELLOW" "  --dry-run, -n     print the steps without touching the wallpaper"
     print_colored "$COLOR_YELLOW" "Changes the real wallpaper of the Desktop you are on. Run only while idle."
@@ -119,7 +119,7 @@ while (($# > 0)); do
 done
 
 if ! "$dry_run"; then
-    [[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: swift build -c release"; exit 1; }
+    [[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: just release"; exit 1; }
     [[ -f "$wallpaper_store_plist" ]] || { print_colored "$COLOR_RED" "Cannot find the wallpaper store: ${wallpaper_store_plist}"; exit 1; }
     work_directory="$(mktemp -d "${TMPDIR:-/tmp}/dnm-live.XXXXXX")"
     cp "$wallpaper_store_plist" "${work_directory}/Index.plist.backup"
