@@ -23,6 +23,21 @@ enum SyntheticImages {
     static func dark(width: Int = 800, height: Int = 500) -> CGImage { solid(width: width, height: height, gray: 0.05) }
     static func midGray(width: Int = 800, height: Int = 500) -> CGImage { solid(width: width, height: height, gray: 0.5) }
 
+    /// Dark, finely textured noise (like foliage at night): near black, but busy enough to once get a halo.
+    static func darkTextured(width: Int = 800, height: Int = 500, seed: UInt64 = 7) -> CGImage {
+        var state = seed
+        var pixels = [UInt8](repeating: 255, count: width * height * 4)
+        for i in 0..<(width * height) {
+            state = state &* 6364136223846793005 &+ 1442695040888963407
+            let v = UInt8(truncatingIfNeeded: (state >> 33) % 36)   // 0...35 of 255
+            pixels[i * 4] = v; pixels[i * 4 + 1] = v; pixels[i * 4 + 2] = v
+        }
+        let provider = CGDataProvider(data: Data(pixels) as CFData)!
+        return CGImage(width: width, height: height, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: width * 4,
+                       space: srgb, bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+                       provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)!
+    }
+
     static func gradient(width: Int = 800, height: Int = 500) -> CGImage {
         let ctx = context(width: width, height: height)
         let colors = [CGColor(colorSpace: srgb, components: [0.05, 0.1, 0.4, 1])!,

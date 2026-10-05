@@ -48,4 +48,46 @@ import Testing
         let result = try render(SyntheticImages.bright(), options: LabelOptions(look: .plain, textColor: .light))
         #expect(result.share < Legibility.requiredShare)
     }
+
+    // MARK: - A halo that cannot show is reported as plain
+
+    func stats(mean: Double, busyness: Double, badWhite: Double, badBlack: Double) -> RegionStats {
+        RegionStats(meanLuminance: mean, busyness: busyness, badWhite: badWhite, badBlack: badBlack)
+    }
+
+    @Test func aDarkTexturedBackdropGetsPlainLightText() {
+        // Textured enough for a halo before, but near black: a dark glow behind white text cannot show.
+        let treatment = StylePicker.choose(stats(mean: 0.02, busyness: 0.05, badWhite: 0, badBlack: 1), options: LabelOptions())
+        #expect(treatment.look == .plain)
+        #expect(treatment.lightText)
+    }
+
+    @Test func aBrightTexturedBackdropGetsPlainDarkText() {
+        let treatment = StylePicker.choose(stats(mean: 0.8, busyness: 0.05, badWhite: 1, badBlack: 0), options: LabelOptions())
+        #expect(treatment.look == .plain)
+        #expect(!treatment.lightText)
+    }
+
+    @Test func aMidToneTexturedBackdropStillGetsAHalo() {
+        let treatment = StylePicker.choose(stats(mean: 0.25, busyness: 0.05, badWhite: 0.1, badBlack: 0.1), options: LabelOptions())
+        #expect(treatment.look == .halo)
+    }
+
+    @Test func aDarkBackdropWithWeakSpotsStillGetsAHalo() {
+        // Some pixels are bright enough to weaken white text, so the glow does help.
+        let treatment = StylePicker.choose(stats(mean: 0.04, busyness: 0.05, badWhite: 0.12, badBlack: 1), options: LabelOptions())
+        #expect(treatment.look == .halo)
+    }
+
+    @Test func anExplicitHaloIsNeverChangedToPlain() {
+        let treatment = StylePicker.choose(stats(mean: 0.02, busyness: 0.05, badWhite: 0, badBlack: 1), options: LabelOptions(look: .halo))
+        #expect(treatment.look == .halo)
+    }
+
+    @Test func aDarkTexturedImageRendersAsPlainAndStaysLegible() throws {
+        let result = try render(SyntheticImages.darkTextured())
+        #expect(result.label.look == .plain)
+        #expect(result.label.textColor == .light)
+        #expect(result.share >= Legibility.requiredShare)
+    }
 }

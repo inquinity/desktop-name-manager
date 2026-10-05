@@ -118,4 +118,13 @@ import Testing
         #expect(h.system.setCalls.isEmpty)
         #expect(try h.manifest().stamps.isEmpty)
     }
+
+    @Test func theConfirmationLineNamesTheSize() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        try h.showOriginal()
+        let large = try h.labeler.setLabel(LabelText("Mail"), options: LabelOptions(look: .halo, textColor: .light, size: .large), on: h.display)
+        #expect(large.confirmation == "Labeled \"Mail\" on Built-in Display (halo, light text, bottom-left, large).")
+        let medium = try h.labeler.setLabel(LabelText("Mail"), options: LabelOptions(look: .halo, textColor: .light), on: h.display)
+        #expect(medium.confirmation.hasSuffix("bottom-left, medium)."))
+    }
 }

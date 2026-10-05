@@ -31,8 +31,7 @@ struct SetCommand: ParsableCommand {
             let context = Context()
             let display = try context.resolveDisplay(target)
             let result = try context.labeler.setLabel(text, options: options, on: display)
-            let label = result.label
-            Output.out("Labeled \"\(label.text.value)\" on \(result.displayName) (\(label.look.rawValue), \(label.textColor) text, \(label.position.rawValue)).")
+            Output.out(result.confirmation)
         }
     }
 }

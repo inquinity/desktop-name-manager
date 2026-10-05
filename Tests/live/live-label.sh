@@ -29,6 +29,10 @@ print_colored() {
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 dnm_binary="${repository_root}/.build/release/dnm"
+# In a copied test kit the binary sits next to the Tests folder.
+if [[ -x "${repository_root}/dnm" ]]; then
+    dnm_binary="${repository_root}/dnm"
+fi
 wallpaper_store_plist="${HOME}/Library/Application Support/com.apple.wallpaper/Store/Index.plist"
 with_cooldown=false
 dry_run=false
@@ -126,6 +130,15 @@ if ! "$dry_run"; then
     [[ "$confirm" == [yY]* ]] || { print_colored "$COLOR_RED" "Cancelled."; exit 1; }
 fi
 trap cleanup EXIT
+
+print_run_environment() {
+    # So a log copied back from another Mac says what it ran on.
+    if "$dry_run"; then
+        return
+    fi
+    print_colored "$COLOR_YELLOW" "Run on: macOS $(sw_vers -productVersion) ($(sw_vers -buildVersion)), $(uname -m), dnm $("$dnm_binary" --version), $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+print_run_environment
 
 if ! "$dry_run"; then
     main_display_name="$("$dnm_binary" displays | sed -n 's/^\(.*[^ ]\) *(main)$/\1/p')"

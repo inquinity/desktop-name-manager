@@ -12,6 +12,11 @@ struct Treatment: Equatable {
 /// The decision rules, ported from the prototype: contrast first (can plain text be read here?),
 /// then texture (will it fight the letterforms?), then fall back to a backing.
 enum StylePicker {
+    /// Mean relative luminance below which a dark glow behind light text is invisible.
+    static let darkBackdrop = 0.05
+    /// Mean relative luminance above which a light glow behind dark text is invisible.
+    static let brightBackdrop = 0.6
+
     static func choose(_ stats: RegionStats, options: LabelOptions) -> Treatment {
         var automatic: Set<LabelOption> = []
         let lightText: Bool
@@ -43,6 +48,13 @@ enum StylePicker {
             return Treatment(look: .plain, lightText: lightText, textColor: textColor, automatic: automatic)
         }
         if weak < 0.20 && stats.busyness < 0.07 {
+            // A halo is a glow in the opposite shade of the text. Where the backdrop already is that shade
+            // (near black under light text, near white under dark text) the glow cannot show, so the label
+            // would read as plain text called "halo". Say what it looks like.
+            let glowCannotShow = lightText ? stats.meanLuminance < Self.darkBackdrop : stats.meanLuminance > Self.brightBackdrop
+            if glowCannotShow && weak < 0.05 {
+                return Treatment(look: .plain, lightText: lightText, textColor: textColor, automatic: automatic)
+            }
             return Treatment(look: .halo, lightText: lightText, textColor: textColor, automatic: automatic)
         }
         return Treatment(look: .frosted, lightText: lightText, textColor: textColor, automatic: automatic)

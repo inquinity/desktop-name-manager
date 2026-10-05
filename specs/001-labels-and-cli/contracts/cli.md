@@ -45,7 +45,7 @@ emoji are allowed and count as one character each (FR-006, FR-007).
 - Options the user leaves out use their default; they never inherit from a label being
   replaced (FR-009).
 - Output (human): one line naming the display, the label, and the style and color chosen,
-  for example `Labeled "Email" on Built-in Display (frosted, light text, bottom-left).`
+  for example `Labeled "Email" on Built-in Display (frosted, light text, bottom-left, medium).`
 - Replacing an existing label keeps the recorded original.
 - Exits `3` without changes on unsupported wallpaper (FR-014); `2` on invalid input.
 

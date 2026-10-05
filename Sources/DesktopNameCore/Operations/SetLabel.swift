@@ -7,6 +7,13 @@ public struct SetLabelResult: Equatable, Sendable {
     public var replaced: Bool
 }
 
+extension SetLabelResult {
+    /// The line `dnm set` prints, for example: Labeled "Email" on Built-in Display (halo, light text, bottom-left, large).
+    public var confirmation: String {
+        "Labeled \"\(label.text.value)\" on \(displayName) (\(label.look.rawValue), \(label.textColor) text, \(label.position.rawValue), \(label.size.rawValue))."
+    }
+}
+
 extension DesktopLabeler {
     /// Puts a label on the current Desktop of `display` (FR-001 to FR-009).
     ///

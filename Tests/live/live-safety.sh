@@ -29,6 +29,10 @@ print_colored() {
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 dnm_binary="${repository_root}/.build/release/dnm"
+# In a copied test kit the binary sits next to the Tests folder.
+if [[ -x "${repository_root}/dnm" ]]; then
+    dnm_binary="${repository_root}/dnm"
+fi
 wallpaper_store_plist="${HOME}/Library/Application Support/com.apple.wallpaper/Store/Index.plist"
 dry_run=false
 work_directory=""
@@ -111,6 +115,8 @@ print_colored "$COLOR_BRIGHTYELLOW" "Backed up the wallpaper store to ${work_dir
 read -r -p "This changes your real wallpaper. Are you idle, on the right Desktop, with 'Show on all Spaces' off? [y/N] " confirm
 [[ "$confirm" == [yY]* ]] || { print_colored "$COLOR_RED" "Cancelled."; exit 1; }
 trap cleanup EXIT
+
+print_colored "$COLOR_YELLOW" "Run on: macOS $(sw_vers -productVersion) ($(sw_vers -buildVersion)), $(uname -m), dnm $("$dnm_binary" --version), $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # --- Scenario 12: unsupported wallpaper ------------------------------------------------------------
 print_colored "$COLOR_BRIGHTYELLOW" "Scenario 12: unsupported wallpaper"
