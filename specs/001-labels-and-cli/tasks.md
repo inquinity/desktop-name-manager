@@ -208,7 +208,7 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 
 ---
 
-## Phase 9: Open issue KI-1 (a label becomes the default for new Desktops)
+## Phase 9: Open issue KI-1 (superseded 2026-10-05; see Phase 10)
 
 **Purpose**: Fix the issue recorded in [known-issues.md](known-issues.md). Needs the maintainer's go-ahead before the first task starts.
 
@@ -217,7 +217,26 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 - [x] T075 [US1] In `Sources/DesktopNameCore/Operations/SetLabel.swift`: before the first label on a Desktop, re-apply the wallpaper it already shows (after the store is written), so macOS's wide first set carries the original image (design change: undoing afterwards cannot repair a display default); after the stamp is set, read the store and, if the stamp also became a default or reached other Desktops, return a warning naming the display and the setting; an unreadable store gives no warning
 - [x] T076 [P] [US1] Test it in `Tests/DesktopNameCoreTests/NewDesktopDefaultTests.swift` with a fake system that models the quirk: the first label leaves the display default as the original; a replacement does not re-apply; the re-applied image and placement equal the Desktop's own; a label that still becomes the default produces the warning; an unreadable store neither warns nor blocks
 - [x] T077 [US1] Make `Sources/DesktopNameCore/Store/Cleanup.swift` keep any stamp the wallpaper store still references (retired stamps included), with a test in `Tests/DesktopNameCoreTests/CleanupTests.swift`; amend FR-018 in spec.md accordingly
-- [ ] T078 Re-check on a real display with "Show on all Spaces" ON and then OFF (live, with the `Index.plist` backup): the first label is refused and undone when it would spread, labeling works once the setting is off, new Desktops do not inherit a label, and the quickstart, README and `live-label.sh` prompt name the setting per display
+- [x] T078 (superseded by Phase 10, not done) Re-check on a real display with "Show on all Spaces" ON and then OFF (live, with the `Index.plist` backup): the first label is refused and undone when it would spread, labeling works once the setting is off, new Desktops do not inherit a label, and the quickstart, README and `live-label.sh` prompt name the setting per display
+
+---
+
+## Phase 10: Amendment 2026-10-05 (shared labeled images, `--desktop`, public interfaces only)
+
+**Purpose**: Implement the spec amendment (User Story 6, FR-008, FR-009, FR-018, FR-027 to FR-029) and remove private interfaces from the product. Research: R13 to R15 and `docs/research/desktop-association.md`.
+
+- [ ] T079 Remove the private wallpaper-store reader from the product: delete `Sources/DesktopNameCore/System/WallpaperStoreReader.swift`, the inspector in `DesktopLabeler`, the spread warning in `SetLabel.swift`, the store check in `Cleanup.swift`, their tests and the local real-store check, and the KI-1 "re-apply first" step; make the privacy scan forbid any mention of `com.apple.wallpaper` in `Sources/`
+- [ ] T080 [US2] Shared labeled images in `Sources/DesktopNameCore/Operations/`: any of our stamp files shown on the targeted Desktop is its label whatever its state; `set`, `remove` and `undo` change only that Desktop; a replacement gives the Desktop a new stamp and leaves the old one for other Desktops
+- [ ] T081 [P] [US2] Test it in `Tests/DesktopNameCoreTests/SharedStampTests.swift`: two Desktops (modelled as two displays in the fake) show one stamp; removing on one leaves the other recognized; `show` and `remove` work on the other; undo still works
+- [ ] T082 Cleanup in `Sources/DesktopNameCore/Store/Cleanup.swift` and the `applied` flag in `Model/Stamp.swift`: never delete an applied stamp; delete only never-applied `<uuid>.dnm.<ext>` files after 30 minutes; update `CleanupTests.swift` and SC-006
+- [ ] T083 [P] `dnm prune` in `Sources/DesktopNameCore/Operations/Prune.swift` and `Sources/dnm/Commands/PruneCommand.swift`: list retired applied stamps with sizes, warn, delete only with `--yes`, never one shown on a display's current Desktop; tests in `Tests/DesktopNameCoreTests/PruneTests.swift`
+- [ ] T084 [US6] `Sources/DesktopNameCore/Switching/DesktopNavigator.swift`: a `DesktopNavigator` protocol (go to Desktop N on a display, return to the start) and the public implementation from research R14: pointer to the display and back, Control-Left/Right with confirmation by `NSWorkspace.activeSpaceDidChangeNotification`, an accessory application event loop, `AXIsProcessTrusted` without prompting, the shortcut check from the symbolic hot keys preferences, and a stop on any unconfirmed step or outside change
+- [ ] T085 [P] [US6] Test the orchestration with a fake navigator in `Tests/DesktopNameCoreTests/DesktopNavigatorTests.swift`: reaching N from any start, a missing Desktop, no permission, shortcuts off, a failed step, always returning to the start, and no switching when N is already showing
+- [ ] T086 [US6] Full-screen app Spaces: find a public way to tell a full-screen Space from a Desktop during the steps (research, then code); until then stop when a step lands somewhere not confirmed as a Desktop
+- [ ] T087 [US6] Add `--desktop <n>` to `set`, `remove`, `undo` and `show` in `Sources/dnm/` (shared option, exit codes and messages per `contracts/cli.md`), name the Desktop in the confirmation, and add the Desktop 1 note (FR-028)
+- [ ] T088 [P] Documentation: the README section on sets of Desktops (the four-command example, the Accessibility opt-in, what you see) and the macOS first-Desktop rule; `known-issues.md` KI-1 resolution status
+- [ ] T089 Review: independent code review and security review of Phase 10 (permission handling, keystroke sending, pointer movement), recorded in `review-notes.md`
+- [ ] T090 Live: quickstart scenarios 21 to 23 on macOS 27 and macOS 26 (the kit), including timing for SC-008
 
 ---
 
@@ -283,6 +302,6 @@ T033 Painter.swift + ImageWriter.swift
 
 ## Notes
 
-- 72 tasks. The prototype in `prototype/` is reference only; port its algorithms, do not import it.
+- 90 tasks. The prototype in `prototype/` is reference only; port its algorithms, do not import it.
 - Live tasks (T044, T050, T068, T069, T070) touch the real wallpaper: follow the rules at the top.
 - Commit after each task or logical group, with signed Conventional Commits.

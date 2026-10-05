@@ -200,6 +200,41 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
 - **Why**: keeps almost all logic testable without touching the user's wallpaper, which
   matches the project's rule about protecting it during live tests.
 
+## R13. Desktops and labeled images (amendment 2026-10-05)
+
+- **Decision**: a labeled image (stamp) may be shown on any number of Desktops. Any of our stamp files
+  shown on the targeted Desktop counts as its label, whatever its record says; `set`, `remove` and `undo`
+  change only that Desktop; a stamp's record keeps `applied` (it was set on a Desktop at least once) and a
+  status for `prune`, but no status ever deletes an applied stamp automatically.
+- **Why**: macOS gives each new Desktop a copy of the first Desktop's wallpaper by reference to the same
+  file, and public interfaces cannot show which Desktops share it (`docs/research/desktop-association.md`).
+- **Alternatives**: reading the private wallpaper store or Space list (rejected: the product is public
+  only); refusing to label Desktop 1 (cannot be known without `--desktop`, and too restrictive).
+
+## R14. Reaching Desktop N with public interfaces (`--desktop`)
+
+- **Decision**: move the pointer to the display's centre (restored afterwards); press Control-Left until no
+  change is announced within 1 s (that is Desktop 1, and the count gives the starting position); press
+  Control-Right N-1 times, each confirmed by `NSWorkspace.activeSpaceDidChangeNotification`; act; return
+  the same way. The command runs briefly as a background application (accessory policy, never active),
+  because the notification arrives only through the application event loop. Keystrokes need the
+  Accessibility permission, checked without prompting (`AXIsProcessTrusted`); the "Move left/right a
+  space" shortcuts must be enabled (read from the public symbolic hot keys preferences).
+- **Why**: proven in the spike (on both displays, including landing on the right Desktop, detecting a
+  missing Desktop and returning), using public interfaces only.
+- **Alternatives**: private Space switching (rejected); "Switch to Desktop N" shortcuts (off by default
+  and numbered across the whole Mac, not per display); scripting Mission Control's interface (fragile).
+- **Open**: full-screen app Spaces are in the Control-arrow order but not numbered as Desktops; how to
+  detect them publicly is a task (T086); until then the tool stops if a step lands somewhere it cannot
+  confirm as a Desktop.
+
+## R15. Private interfaces leave the product
+
+- **Decision**: remove the wallpaper-store reader and the KI-1 "re-apply first" step from the product. The
+  research tools in `prototype/` keep reading private interfaces, read-only, and are never shipped.
+- **Why**: the maintainer's rule for the product is public interfaces only, and the re-apply step rested on
+  a wrong explanation.
+
 ## Open items carried to implementation
 
 - Solid-color wallpapers: what `desktopImageURL` returns (R6). Scheduled as live scenario 17.

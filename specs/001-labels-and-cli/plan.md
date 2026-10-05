@@ -17,6 +17,14 @@ display selection, JSON output, and a rule for unsupported wallpapers.
 
 Design decisions and their reasoning are in [research.md](research.md).
 
+## Amendment 2026-10-05
+
+After live use, spec 001 now treats a labeled image as possibly shown on several Desktops (macOS copies
+the first Desktop's wallpaper to new Desktops) and adds `--desktop N` and `prune`. `--desktop` uses only
+public interfaces: the standard shortcuts, the public Space-change notification and the pointer, with the
+Accessibility permission as an explicit opt-in (constitution III). The private wallpaper-store reader added
+for KI-1 leaves the product (research R13 to R15).
+
 ## Technical Context
 
 **Language/Version**: Swift 6.4 (Xcode 27 toolchain), Swift 6 language mode
@@ -54,7 +62,8 @@ background process, original wallpaper files never modified, every change revers
 |---|---|---|
 | I. Public APIs first | Pass | Wallpaper read/write through `NSWorkspace`; displays through `NSScreen` and CoreGraphics. No private interface is used in this feature. A future optional read-only Space-list module is out of scope. |
 | II. Never require SIP changes | Pass | Nothing here touches system processes or protected settings. |
-| III. Least permission | Pass | The tool requests none. If macOS denies a file read, it shows the error and stops (FR-015). Note that macOS itself may show a prompt for reads in protected folders; the tool never asks or works around it. |
+| III. Least permission | Pass (amended) | Labeling the current Desktop needs nothing. `--desktop` for another Desktop needs Accessibility, explained first and never prompted for by the tool. |
+| III (original row) | Pass | The tool requests none. If macOS denies a file read, it shows the error and stops (FR-015). Note that macOS itself may show a prompt for reads in protected folders; the tool never asks or works around it. |
 | IV. Local-only | Pass | No networking framework is imported. A test checks the sources and the linked libraries (research R10). The CLI dependency is used at build time only and makes no requests at run time. |
 | V. Reversible changes | Pass | The original record (path, bookmark, placement, fill color) is saved before the first change; originals are never written; stamps are separate files; undo and cool-down retain prior states. |
 | VI. Distributable via Homebrew | Pass | A plain SwiftPM executable that can be signed and notarized. Packaging is spec 005. |
@@ -97,6 +106,7 @@ Sources/
 │   ├── System/                       # WallpaperSystem protocol + NSWorkspace/NSScreen implementation
 │   ├── Displays/                     # display listing and --display resolution
 │   ├── Render/                       # backdrop composition, sampler, style picker, painter
+│   ├── Switching/                    # --desktop: pointer, shortcuts, public Space-change notification
 │   ├── Store/                        # manifest, stamp files, lock, cleanup
 │   └── Operations/                   # set, remove, undo, list, show (pure logic over the protocols)
 └── dnm/                              # executable: argument parsing, output, exit codes

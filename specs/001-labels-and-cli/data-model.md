@@ -58,7 +58,8 @@ What the Desktop showed before its first label.
 | `displayName` | The display's name at that time, so labels on a disconnected display can still be listed by name. |
 | `geometry` | Pixel size and insets at render time. |
 | `createdAt` | Time of the set operation. |
-| `state` | `active`, or `retired(at, reason)` with reason `replaced`, `removed` or `undone`. |
+| `state` | `active`, or `retired(at, reason)` with reason `replaced`, `removed` or `undone`. Since the 2026-10-05 amendment this is bookkeeping for `undo` and `prune` only: other Desktops may still show a retired stamp, so the state never decides whether a Desktop is labeled. |
+| `applied` | True once the stamp was set as a wallpaper. Applied stamps are deleted only by `prune`. |
 | `supersededBy` | Optional: the stamp that replaced it (helps `undo` and `show`). |
 
 ### Change record (stored; one per display)

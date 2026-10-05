@@ -4,10 +4,11 @@ The binary is `dnm`. The same binary is installed as `desktop-name` and behaves
 identically (FR-013). Commands never prompt and never read from standard input.
 
 ```text
-dnm set <label> [--display <name>] [--position <p>] [--size <s>] [--style <look>] [--color <c>]
-dnm remove [--display <name>]
-dnm undo   [--display <name>]
-dnm show   [--display <name>] [--json]
+dnm set <label> [--display <name>] [--desktop <n>] [--position <p>] [--size <s>] [--style <look>] [--color <c>]
+dnm remove [--display <name>] [--desktop <n>]
+dnm undo   [--display <name>] [--desktop <n>]
+dnm show   [--display <name>] [--desktop <n>] [--json]
+dnm prune  [--yes] [--json]
 dnm list   [--json]
 dnm displays [--json]
 dnm --help | dnm <command> --help | dnm --version
@@ -29,6 +30,31 @@ dnm --help | dnm <command> --help | dnm --version
   error. With `--json`, standard output holds exactly one JSON document and nothing else.
 - **No change on failure**: any command that exits non-zero leaves the wallpaper as it
   found it.
+
+## `--desktop <n>` (set, remove, undo, show)
+
+Acts on Desktop `n` of the chosen display, numbered as Mission Control numbers them, then returns to the
+Desktop the display started on (FR-027). Not given, or already showing: no switching and no permission.
+Otherwise it needs the Accessibility permission and the "Move left/right a space" shortcuts; the
+Desktops slide on screen and the person must not type meanwhile.
+
+| Situation | Exit | Message (standard error) |
+|---|---|---|
+| `n` is not a positive whole number | 2 | `--desktop takes a Desktop number, 1 or more.` |
+| The display has fewer than `n` Desktops | 2 | `<display> has <k> Desktops; there is no Desktop <n>. Nothing was changed.` |
+| Accessibility not granted | 1 | Says why it is needed and where to grant it (System Settings > Privacy & Security > Accessibility, for the app running `dnm`). Never prompts. |
+| Shortcuts turned off | 1 | Names the two shortcuts and where to turn them on. |
+| A step cannot be confirmed, or the Desktop changed meanwhile | 1 | Says so; the display is returned to its starting Desktop. |
+
+The `set` confirmation names the Desktop when `--desktop` was given, for example
+`Labeled "LABEL1" on DP, Desktop 2 (plain, light text, bottom-left, medium).` Labeling Desktop 1 adds a
+note to standard error that macOS copies the first Desktop's wallpaper to new Desktops on that display.
+
+## `dnm prune`
+
+Lists labeled images that are no longer an active label (removed, replaced or undone through `dnm`), with
+the space they use, and warns that a Desktop still showing one would lose its wallpaper. Deletes them only
+with `--yes`; never deletes an image shown on any display's current Desktop. Exit `0`.
 
 ## `dnm set <label>`
 
