@@ -4,7 +4,7 @@ import Testing
 
 /// The reader is exercised on small synthetic stores built here, never copied from a real machine.
 @Suite struct WallpaperStoreReaderTests {
-    let stampName = "11111111-2222-3333-4444-555555555555.dnm.jpg"
+    let stampName = "11111111-2222-3333-4444-555555555555.dnm.jpg"   // hygiene-allow: synthetic stamp name
 
     /// An entry shaped like macOS's: a nested property list, stored as data, holding a file URL.
     func entry(file: String) throws -> [String: Any] {

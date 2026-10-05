@@ -47,6 +47,10 @@ Exit codes: `0` success; `1` failure (for example macOS denied access to the wal
 or undo is not possible); `2` invalid input; `3` unsupported wallpaper (dynamic, aerial,
 catalog, shuffle, or none reported). Nothing is changed when a command fails.
 
+`dnm --version` says which build you have: a release prints the plain version (for example `0.1.0`);
+any other build prints the commit it was built from (for example `0.1.0-dev+9398ae4`, with `.dirty` added if
+there were uncommitted changes, and `-dev+unknown` if it was built without a stamp).
+
 Good to know:
 - The tool needs no macOS permissions and makes no network connections.
 - Turn off "Show on all Spaces" in System Settings > Wallpaper first, **for every display you label**
@@ -69,7 +73,7 @@ yet. `prototype/` holds the proof of concept that validated the approach, and
 ```sh
 just build        # build the library and the tool (output goes to build.noindex/, not .build/)
 just test         # unit and contract tests (they never change your real wallpaper)
-just release      # optimized build: build.noindex/release/dnm
+just release      # optimized build: build.noindex/release/dnm (the commit is stamped into the binary)
 just periphery    # unused-code scan (needs `brew install periphery`)
 just kit          # assemble the live-test kit to copy to another Mac
 ```

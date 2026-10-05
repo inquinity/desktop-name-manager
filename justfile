@@ -9,17 +9,18 @@ scratch := "build.noindex"
 default:
     @just --list
 
-# Debug build of the library and dnm.
+# Debug build of the library and dnm. Every build is stamped with its commit (see scripts/build-stamp.sh),
+# so `dnm --version` shows which commit you are running.
 build *args:
-    swift build --scratch-path {{ scratch }} {{ args }}
+    swift build --scratch-path {{ scratch }} $(scripts/build-stamp.sh) {{ args }}
 
 # Optimized build of dnm (build.noindex/release/dnm).
 release *args:
-    swift build -c release --scratch-path {{ scratch }} {{ args }}
+    swift build -c release --scratch-path {{ scratch }} $(scripts/build-stamp.sh) {{ args }}
 
 # Unit and contract tests (they never change your real wallpaper).
 test *args:
-    swift test --scratch-path {{ scratch }} {{ args }}
+    swift test --scratch-path {{ scratch }} $(scripts/build-stamp.sh) {{ args }}
 
 # Unused-code scan (needs `brew install periphery`).
 periphery:

@@ -54,3 +54,32 @@ import Testing
         #expect(help.output.contains("unsupported wallpaper"))
     }
 }
+
+/// A build says which commit it came from, so a tester knows what they are running.
+@Suite struct VersionStampTests {
+    static func headCommit() -> String? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["git", "rev-parse", "--short", "HEAD"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = Pipe()
+        guard (try? process.run()) != nil else { return nil }
+        let text = String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+        process.waitUntilExit()
+        let commit = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return commit.isEmpty ? nil : commit
+    }
+
+    @Test(.enabled(if: CLI.binary != nil))
+    func versionIsPlainOrNamesTheCommit() throws {
+        let output = try CLI.run(["--version"]).output.trimmingCharacters(in: .whitespacesAndNewlines)
+        // "0.1.0" (release), "0.1.0-dev+<commit>[.dirty]" (interim) or "0.1.0-dev+unknown" (unstamped build).
+        #expect(output.range(of: #"^\d+\.\d+\.\d+(-dev\+([0-9a-f]+(\.dirty)?|unknown))?$"#, options: .regularExpression) != nil, "got: \(output)")
+        // Built through `just`, the stamp names the commit that was checked out when it was built.
+        if let range = output.range(of: #"\+[0-9a-f]+"#, options: .regularExpression), let head = Self.headCommit() {
+            let stamped = String(output[range].dropFirst())
+            #expect(head.hasPrefix(stamped) || stamped.hasPrefix(head), "stamped \(stamped), HEAD \(head)")
+        }
+    }
+}
