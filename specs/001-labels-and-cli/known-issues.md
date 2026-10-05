@@ -1,50 +1,22 @@
 # Known issues: spec 001
 
-## KI-1: A label can become the default for new Desktops (and spread to other Desktops)
+## KI-1: A label on a display's first Desktop is copied to new Desktops
 
-**Status:** fix implemented 2026-10-05 (T073 to T077); live verification (T078) still open. Found 2026-10-05 in live use. **Severity:** medium (wrong wallpaper on new Desktops; a
-cleanup gap that can leave macOS pointing at a deleted image).
+**Status:** understood and redesigned (2026-10-05); the old "re-apply first" fix and the private store reader
+are being removed. Details: `docs/research/desktop-association.md`.
 
-**What was seen.** On an external display with two Desktops, labeling one Desktop ("set") made every
-**new** Desktop created on that display show the same label, whichever Desktop the new one was created from.
+**What happens.** macOS keeps, for each display, a default wallpaper for new Desktops that mirrors whichever
+Desktop is first in Mission Control (hover over + in Mission Control to see it). A new Desktop starts with
+that same image file. So a label on Desktop 1 appears on every new Desktop of that display, and reordering
+changes which label that is. This is macOS behavior; public interfaces cannot prevent it.
 
-**What the wallpaper store shows (macOS 27.0.1, read-only inspection of `Index.plist`).**
-- macOS keeps an entry per Desktop, a **default entry per display** (used for new Desktops), and a template
-  entry for new Desktops. A label set on the built-in display touched only that Desktop's own entries
-  (confirmed by a before and after comparison, then removed).
-- On the affected display, the first label was also written into that display's **default entry**. Later labels
-  on that display changed only their own Desktop's entries.
-- This matches a known macOS behavior (Apple Developer Forums report, cited in the research notes): with
-  "Show on all Spaces" on for a display, the first programmatic wallpaper set applies to every Desktop on
-  it, after which macOS turns the setting off. The setting is per display, so checking it for one display
-  does not protect another. That the setting was on for the affected display is an inference.
-- The built-in display's template entry for new Desktops still pointed at a stamp from an earlier test run
-  (in a temporary folder), so new Desktops there can also show an old label.
+**What was wrong in `dnm`.** It treated one labeled image as one Desktop, so removing the label on a new
+Desktop "retired" the image and the first Desktop then looked unlabeled ("No label"). An earlier fix
+(re-apply the wallpaper before the first label) rested on a wrong explanation and did not help; the
+warning and cleanup safety it added read a private macOS file.
 
-**Why `dnm` did not notice.** It sees only the current Desktop of each display through public APIs. It cannot
-see defaults or other Desktops, so its idea of "labeled Desktops" and of which stamps are "in use" is
-incomplete.
-
-**Related gap.** Cleanup deletes a retired stamp 30 minutes after a removal or replacement. If a default
-entry still points at that stamp, macOS is left pointing at a missing image.
-
-**Workaround today (no code).** For each display you label: System Settings > Wallpaper > choose the display,
-turn "Show on all Spaces" ON, pick the normal wallpaper (this resets that display's default and all its
-Desktops), turn it OFF, then label Desktops one at a time. The README now says to do this for every display.
-
-**Fix (tasks T073 to T078).** The design changed from the first plan: undoing after the fact cannot repair a
-display default once macOS has switched "Show on all Spaces" off, so the fix prevents the spread instead.
-0. Before the first label on a Desktop, `set` re-applies the wallpaper the Desktop already shows (invisible).
-   That wide, first set carries the original image, and the label that follows reaches only this Desktop.
-   Not repeated when replacing one of our labels.
-1. A read-only, optional reader of the wallpaper store, isolated in one module (constitution principle I allows
-   private reads that are read-only and optional; failure to read must never block labeling).
-2. After `set`, check whether the new stamp also appears in a default or template entry or on other
-   Desktops. If it does, undo (which restores the original everywhere the stamp landed) and tell the user to
-   turn off "Show on all Spaces" for that display and run again.
-3. Make cleanup keep any stamp the wallpaper store still references.
-4. Say which display and which setting in the first warning.
-5. Tests from small synthetic stores; a live check on a display with the setting on.
-
-**Spec effects when fixed.** Amendment to FR-018 ("in use" can then use the store), and an assumption change:
-"Show on all Spaces" is detected after the fact rather than only documented.
+**Resolution (spec 001 amended 2026-10-05).** A labeled image may be shown on any number of Desktops;
+every command acts only on the specified Desktop and never retires a shared image; labeled images are
+deleted only through `dnm prune`; `--desktop 1` labels come with a note; the README explains the macOS
+rule and the fix (`remove` or `set` on the new Desktop, or keep Desktop 1 unlabeled). The product reads
+no private interfaces.

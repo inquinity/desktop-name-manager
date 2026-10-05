@@ -40,3 +40,5 @@
   unreadable-wallpaper failure.
 - Left for planning: the exact cool-down (default 60 minutes), the concrete minimum macOS
   version (constitution rule applies), and how to identify "current Desktop" for the CLI.
+- Amended 2026-10-05: specified Desktop (`--desktop`, User Story 6, FR-027), shared labeled images
+  (FR-008, FR-009, FR-018, FR-029), macOS first-Desktop rule (FR-028), public interfaces only.

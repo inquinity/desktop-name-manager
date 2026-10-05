@@ -39,6 +39,20 @@
   CLI; a message box in the app, spec 002), makes no change, and exits with a failure code.
   It never asks for, works around or requires the permission itself.
 
+### Session 2026-10-05 (after live use and research, see `docs/research/desktop-association.md`)
+
+- Q: macOS gives every new Desktop a copy of the first Desktop's wallpaper (by reference to the same
+  image file), and an app cannot see which Desktops share an image. How does a label relate to a
+  Desktop? → A: A labeled image may be shown on any number of Desktops. Every command acts on the
+  specified Desktop only and never retires or deletes a labeled image because of what it did there;
+  labeled images are deleted only when the user asks (`dnm prune`).
+- Q: Can a user label a Desktop other than the current one? → A: Yes, with `--desktop N` (the Desktop's
+  number on that display, as Mission Control shows it), so sets of Desktops can be scripted across
+  displays. It uses only public interfaces: the standard "Move left/right a space" shortcuts, which need
+  the Accessibility permission as an explicit opt-in, and it returns to the Desktop it started on.
+- Q: May the product read macOS's private wallpaper store or Space list? → A: No. The product uses public
+  interfaces only. The research tools that do read them stay in `prototype/` and are never shipped.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Label the current Desktop (Priority: P1)
@@ -96,10 +110,14 @@ compare the settings and image with the recording. They are identical.
    current wallpaper untouched, and explains what the user can do.
 
 4. **Given** a Desktop whose label was just removed or replaced, **When** the user runs undo
-   within the cool-down, **Then** the Desktop returns to exactly what it showed before that
+   within the 30-minute undo window, **Then** the Desktop returns to exactly what it showed before that
    change (the previous label, or the original wallpaper if it had none).
-5. **Given** the cool-down has expired, or there is nothing to undo, **When** the user runs
+5. **Given** the undo window has passed, or there is nothing to undo, **When** the user runs
    undo, **Then** nothing changes and the tool says why.
+6. **Given** a labeled first Desktop and a new Desktop that macOS created with a copy of its labeled
+   image, **When** the user removes the label on the new Desktop, **Then** only the new Desktop returns
+   to the original image, and the first Desktop keeps its label, which `show` and `remove` there still
+   recognize.
 
 ---
 
@@ -189,6 +207,46 @@ and after labeling and removing; they are unchanged.
 
 ---
 
+### User Story 6 - Label a specified Desktop, to build sets across displays (Priority: P2)
+
+The user labels Desktops other than the one they are on, by number, so that a short script can give
+matching Desktops on each display the same label:
+
+```sh
+dnm set "LABEL1" --display main --desktop 2
+dnm set "LABEL1" --display DP   --desktop 2
+dnm set "LABEL2" --display main --desktop 3
+dnm set "LABEL2" --display DP   --desktop 3
+```
+
+The tool switches that display to the Desktop, labels it, and switches back. The person sees the
+Desktops slide and must not type while it runs.
+
+**Why this priority**: It turns single labels into sets of labeled Desktops, which is how the maintainer
+works, and prepares for groups (spec 004). Labeling the current Desktop (P1) works without it.
+
+**Independent Test**: Run the four commands above on a Mac with two displays and at least three Desktops
+on each. Each display ends on the Desktop it started on; visiting Desktops 2 and 3 on each display shows
+the expected labels; the other Desktops are unchanged.
+
+**Acceptance Scenarios**:
+
+1. **Given** Accessibility is granted, **When** the user runs `set` with `--desktop 2` on a display that
+   is showing Desktop 3, **Then** Desktop 2 gets the label and the display is back on Desktop 3 when the
+   command ends.
+2. **Given** the display has three Desktops, **When** the user asks for `--desktop 5`, **Then** nothing is
+   labeled, the display is back where it started, and the tool says the display has three Desktops.
+3. **Given** Accessibility is not granted, **When** the user passes `--desktop`, **Then** nothing changes
+   and the tool explains how to grant the permission and why it is needed; it never prompts on its own.
+4. **Given** `--desktop` is the Desktop already showing, **When** the command runs, **Then** no switching
+   happens and no permission is needed.
+5. **Given** `--desktop` is used with `remove`, `undo` or `show`, **When** the command runs, **Then** it
+   acts on that Desktop in the same way and returns.
+6. **Given** the user labels Desktop 1 of a display, **When** the command finishes, **Then** the tool also
+   notes that macOS copies the first Desktop's wallpaper to new Desktops on that display.
+
+---
+
 ### Edge Cases
 
 - The Desktop's wallpaper is a solid color rather than an image.
@@ -210,7 +268,18 @@ and after labeling and removing; they are unchanged.
   `remove` still restores the original.
 - The user changes the wallpaper by hand in System Settings after labeling; the tool
   treats the new wallpaper as the new original and does not later restore an outdated one.
-- Labeling the same Desktop repeatedly does not accumulate stamp files without bound.
+- macOS copies the first Desktop's wallpaper (a labeled image included) to every new Desktop on that
+  display, and rewrites that default when Desktops are reordered. The tool cannot prevent it; it
+  documents it, notes it when `--desktop 1` is labeled, and lets the user fix a new Desktop with
+  `remove` or `set` there.
+- Labeled images accumulate, because the tool cannot tell whether other Desktops still show one;
+  `dnm prune` lists them and deletes them only when the user confirms.
+- A full-screen app occupies a Space between Desktops: `--desktop` counts only Desktops, as Mission
+  Control numbers them; if it cannot be sure it has reached a Desktop, it stops, returns, and says so.
+- The "Move left/right a space" shortcuts are turned off, or something else is bound to them: `--desktop`
+  stops with a message and changes nothing.
+- The display changes Desktop while a `--desktop` command runs (the person switches or creates one):
+  the tool stops and reports it rather than labeling the wrong Desktop.
 - Set is run while the user is on a Desktop in a full-screen app or another situation where
   the current Desktop cannot be determined; the tool reports it and changes nothing.
 
@@ -218,11 +287,12 @@ and after labeling and removing; they are unchanged.
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST let a user attach a text label to the current Desktop of a
-  chosen display by producing a labeled copy of that Desktop's wallpaper and setting it as
-  that Desktop's wallpaper.
+- **FR-001**: The system MUST let a user attach a text label to a Desktop of a chosen display (the
+  current one, or the one given with `--desktop`, FR-027) by producing a labeled copy of that
+  Desktop's wallpaper and setting it as that Desktop's wallpaper.
 - **FR-002**: Setting a label MUST change only the targeted Desktop's wallpaper and MUST NOT
-  alter any other Desktop, display, or the original wallpaper file.
+  alter any other Desktop, display, or the original wallpaper file. (macOS itself copies the first
+  Desktop's wallpaper to new Desktops; that is documented, FR-028.)
 - **FR-003**: The label MUST persist with its Desktop across restarts, Desktop reordering
   and Show Desktop, without any background process running.
 - **FR-004**: The system MUST choose a label style (plain, halo, or frosted) and a text
@@ -236,44 +306,46 @@ and after labeling and removing; they are unchanged.
   clear message and no change to the wallpaper. A label MUST have at least one visible
   character, contain no line break, and be at most 30 characters (each emoji counts as one
   character).
-- **FR-008**: Removing a label MUST restore the Desktop's original image, placement mode and
-  background color exactly as they were before the first label was applied.
+- **FR-008**: Removing a label MUST restore the targeted Desktop's original image, placement mode and
+  background color exactly as they were before the first label was applied. It MUST affect only that
+  Desktop: other Desktops that show the same labeled image keep it, and the tool MUST still recognize
+  the label there.
 - **FR-009**: Replacing a label MUST NOT change the recorded original; only the first
   labeling of an unlabeled Desktop records it. A replacement MUST apply the automatic
   default to every option the user does not give, and MUST NOT inherit values from the
-  label it replaces.
+  label it replaces. Setting a label on a Desktop that shows a labeled image gives that Desktop a new
+  image of its own; other Desktops showing the old one keep it.
 - **FR-010**: The system MUST retain the information needed to restore and to list labels in
   local storage under the user's account, and MUST NOT modify the original wallpaper file.
 - **FR-011**: The system MUST provide a command to list Desktops with their labels and mark the
-  current Desktop on each display, with human-readable output or JSON (FR-025). Only
-  labeled Desktops and the current Desktop of each display are listed, and the output MUST
-  say so: the human-readable output MUST end with a visible note that only labeled and
-  current Desktops are shown, and the JSON output MUST carry the same note as a
-  field, so a reader never mistakes the list for every Desktop.
+  current Desktop on each display, with human-readable output or JSON (FR-025). It lists the labels
+  the tool has made and what each display's current Desktop shows; it cannot know which other
+  Desktops show a label. The output MUST say so: the human-readable output MUST end with a visible note
+  that only dnm's labels and the current Desktops are shown, and the JSON output MUST carry the same
+  note as a field, so a reader never mistakes the list for every Desktop.
 - **FR-012**: The system MUST provide a command to show one label's full details.
-- **FR-013**: The command-line tool (set, remove, undo, list, show, displays) MUST be invocable as both `dnm` and `desktop-name` with
+- **FR-013**: The command-line tool (set, remove, undo, list, show, displays, prune) MUST be invocable as both `dnm` and `desktop-name` with
   identical behavior, and MUST return distinct, documented exit codes for success, invalid
   input, unsupported wallpaper, and failure.
 - **FR-014**: The system MUST decline, without changing anything, to label a Desktop that uses
   a dynamic, aerial, catalog or shuffling wallpaper, or one for which the system reports no
   wallpaper file, and MUST say why. Detection is by the wallpaper file itself.
-- **FR-015**: Labeling MUST require no macOS permissions and no elevated privileges, and the
-  tool MUST NOT request any. If macOS denies access to a file the tool needs (for example a
+- **FR-015**: Labeling the current Desktop MUST require no macOS permissions and no elevated
+  privileges, and the tool MUST NOT request any. Only `--desktop` for a Desktop that is not showing
+  needs a permission (Accessibility, FR-027). If macOS denies access to a file the tool needs (for example a
   wallpaper image in a protected folder), the tool MUST show the system's error, make no
   change, and exit with a failure code (FR-013); it MUST NOT try to work around the denial.
 - **FR-016**: The system MUST NOT make network connections and MUST NOT collect telemetry.
 - **FR-017**: The system MUST NOT require disabling System Integrity Protection or any other
   system security setting.
-- **FR-018**: The system MUST clean up stamps that no Desktop uses, so storage does not grow
-  without bound, subject to these rules:
-  - it MUST never delete a stamp that any Desktop still uses, nor one that macOS's wallpaper store still
-    references (for example as the default for new Desktops), when the store can be read (read-only);
-  - it MUST keep every unused stamp for a fixed cool-down of 30 minutes so a removed or
-    replaced label can still be recovered;
-  - cleanup MUST happen only while a command is running, using each stamp's age. No
-    background process, scheduled job or service is allowed for it;
-  - it MUST delete only files the tool itself created (recognizable by name, FR-026) and
-    MUST NOT delete any other file, whatever folder the store is placed in.
+- **FR-018**: The system MUST keep its storage tidy without risking a wallpaper:
+  - it MUST NOT delete a labeled image that was ever applied to a Desktop, except through `prune`
+    (FR-029), because other Desktops may still show it;
+  - it MUST delete, only while a command is running and after a fixed cool-down of 30 minutes, files
+    it wrote but never applied (for example after a crash);
+  - it MUST delete only files the tool itself created (recognizable by name, FR-026) and MUST NOT delete
+    any other file, whatever folder the store is placed in; no background process, scheduled job or
+    service is allowed.
 - **FR-019**: Setting a label MUST complete in under one second for a typical 5K wallpaper on
   an Apple-silicon Mac.
 - **FR-020**: The label-rendering logic MUST be usable by later features (the app, Quick
@@ -281,15 +353,16 @@ and after labeling and removing; they are unchanged.
 - **FR-021**: The tracked repository MUST NOT contain personal paths, user names, display or
   Desktop identifiers, or personal images in tests, fixtures, docs or examples.
 - **FR-022**: The system MUST provide an `undo` command that reverses the most recent label
-  change (set, replace or remove) on the current Desktop of a chosen display, restoring its
-  exact previous state, as long as the cool-down in FR-018 has not expired for that change.
+  change (set, replace or remove) on a chosen display, acting on the specified Desktop (FR-027), restoring its
+  exact previous state, within 30 minutes of that change (the undo window).
   Undo is one level only: after an undo there is nothing further to undo for that Desktop.
   Undo acts on the most recent change made on the display, and only while the display's
   current wallpaper is still the one that change produced.
   When undo is not possible (expired, nothing to undo, or the needed copy is gone), it MUST
   change nothing and say why.
-- **FR-023**: Commands that act on a Desktop (set, remove, undo, show) MUST act on the current
-  Desktop of the main display unless the user passes `--display`. The option MUST accept
+- **FR-023**: Commands that act on a Desktop (set, remove, undo, show) MUST act on the main display
+  unless the user passes `--display`, and on that display's current Desktop unless the user passes
+  `--desktop` (FR-027). The option MUST accept
   `main`, a display's name exactly as macOS shows it, or a case-insensitive partial name that
   matches exactly one connected display. A value that matches no display or more than one
   MUST be rejected with the candidates listed and no change made. Numbered displays and
@@ -307,17 +380,37 @@ and after labeling and removing; they are unchanged.
   `<id>` is a random identifier and `<ext>` is the image format's extension, so the tool can
   tell its own files from any other file. The tool MUST recognize its files by this name
   pattern together with its manifest, never by the image format alone.
+- **FR-027**: `--desktop N` MUST select the Nth Desktop of the chosen display, numbered as Mission
+  Control numbers them (full-screen app Spaces are not Desktops). The tool MUST use only public
+  interfaces: it moves the pointer to that display (and back), uses the "Move left a space" and
+  "Move right a space" shortcuts, and confirms each step with the system's public notification that the
+  active Desktop changed. It MUST end on the Desktop it started on, also when it fails. If the Desktop is
+  already showing, it MUST NOT switch or need any permission. Otherwise it needs the Accessibility
+  permission: when it is missing, the tool MUST change nothing, say why it is needed and how to grant it,
+  and MUST NOT trigger a permission prompt on its own. A Desktop number that does not exist, shortcuts
+  that are off, a step that cannot be confirmed, or a change made by the person during the command MUST
+  stop the command with a message, return to the starting Desktop and label nothing.
+- **FR-028**: The documentation MUST explain the macOS behavior that a display's first Desktop provides
+  the wallpaper for new Desktops (and that reordering changes which Desktop that is), with the fix
+  (`remove` or `set` on the new Desktop, or keep Desktop 1 unlabeled). When `--desktop 1` is labeled,
+  the tool MUST say so in its output.
+- **FR-029**: The system MUST provide `dnm prune`, which lists the labeled images that are no longer an
+  active label (removed, replaced or undone through the tool), with the space they use, and deletes them
+  only when the user confirms (`--yes`). It MUST warn that a Desktop still showing one of them would lose
+  its wallpaper, and MUST never delete an image currently shown on any display's current Desktop.
 
 ### Key Entities
 
-- **Desktop**: One Space on one display, identified by the system and stable across
-  restarts and reordering. Has a current wallpaper and at most one label.
+- **Desktop**: One Space on one display. The system identifies it internally, but public interfaces do
+  not expose that identity: the tool can see each display's current Desktop and its wallpaper file, and
+  reach another Desktop only by its current number on that display (FR-027).
 - **Label**: The text and look for a Desktop: text (one line), style, position,
   size, text color, and whether each was chosen automatically or by the user.
 - **Original wallpaper record**: What the Desktop showed before its first label: the image
   reference, placement mode, and background color. Used to restore exactly.
-- **Stamp**: The labeled copy of the original image that the system currently shows for a
-  labeled Desktop. Owned by this tool; safe to delete once unused.
+- **Stamp**: A labeled copy of an original image, made by `set`. It may be shown on any number of
+  Desktops (macOS copies the first Desktop's wallpaper to new Desktops), so it is never deleted
+  automatically once applied (FR-018, FR-029).
 
 ## Success Criteria *(mandatory)*
 
@@ -337,19 +430,21 @@ and after labeling and removing; they are unchanged.
   connections are made, and the original wallpaper files are byte-for-byte unchanged.
 - **SC-005**: A first-time user can label a Desktop by following the README's one example,
   in under one minute, without consulting other documentation.
-- **SC-006**: Thirty minutes after the last label change, the next command run leaves no stamp
-  on disk except those still active or retired within the cool-down, even after 100
-  consecutive relabelings of one Desktop.
-- **SC-007**: In 100% of test runs, undoing a removal or replacement within the cool-down
+- **SC-006**: No applied labeled image is ever deleted except through a confirmed `prune`, and files
+  written but never applied are gone 30 minutes later, at the next command.
+- **SC-007**: In 100% of test runs, undoing a removal or replacement within the undo window
   returns the Desktop to a state identical to the one before the change.
+- **SC-008**: The four-command script in User Story 6 labels exactly Desktops 2 and 3 on both displays
+  in 100% of live runs on macOS 26 and 27, each display ends on the Desktop it started on, and each
+  command takes under 8 seconds.
 
 ## Assumptions
 
 - Target users are individuals on a personal Mac who use several Desktops and one or more
   displays; the tool is run from Terminal or a launcher, not by a system administrator.
-- Because macOS lets an app change the wallpaper only of the Desktop currently on screen,
-  this feature labels the current Desktop of a display; labeling a Desktop that is not
-  current is handled by later features (Quick View and switching, spec 003).
+- macOS lets an app change the wallpaper only of the Desktop currently on screen, so `--desktop` switches
+  to the Desktop first (FR-027). Quick View and switching by label (spec 003) build on the same
+  mechanism.
 - Decided (2026-09-28): listing shows every Desktop this tool has labeled, plus the current
   Desktop of each display, using public interfaces only. Unlabeled, non-current Desktops are
   not listed by this feature. A full Desktop list depends on reading the system's Space list
@@ -362,16 +457,15 @@ and after labeling and removing; they are unchanged.
   display roles and sites are out of scope (spec 004); packaging and release are spec 005.
 - Defaults from the hand-off: bottom-left corner, single-line labels (30 characters) and emoji allowed, SF Pro
   Semibold font, accent color and Mission Control "large" preset deferred.
-- Removing or replacing a label does not delete its stamp. It stays for the cool-down
-  period in FR-018, which is what makes the one-level undo in FR-022 possible ("I didn't
-  mean to clear that label").
-- A Desktop is recognized by the wallpaper file it currently shows; macOS keeps that file
-  with its Space across restarts and reordering. This feature reads no Space identifiers.
-  Because it cannot see Desktops that are not current, a stamp counts as in use while it is
-  the active stamp of a label, and a wallpaper changed by hand in System Settings leaves its
-  old stamp on disk.
-- Known limitation (FR-022), to revisit later: if two Desktops on one display show the
-  identical image, undo cannot tell them apart and acts on the most recent change.
+- Removing or replacing a label does not delete its stamp, which is what makes the one-level undo in
+  FR-022 possible ("I didn't mean to clear that label"); the undo window itself is 30 minutes.
+- How macOS ties Desktops to wallpapers is documented in `docs/research/desktop-association.md`
+  (observed on macOS 27.0.1, and reported the same on 26.7): each Desktop has its own entry; each
+  display's default for new Desktops mirrors its first Desktop; new Desktops copy that image at creation;
+  switching writes nothing.
+- Known limitation (FR-022): undo acts on the most recent change made on the display, and only while the
+  specified Desktop still shows what that change produced; it cannot tell apart Desktops that show the
+  same image.
 - Intel Macs are deferred, not excluded. The code has no architecture dependency, and macOS 26
   is, to my knowledge, the last release that supports Intel Macs. Correct behavior on
   Apple silicon comes first. Intel support (a universal build) and testing on the
