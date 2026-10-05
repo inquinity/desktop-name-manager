@@ -25,3 +25,10 @@ desktop-level, per-Space overlay window survive Show Desktop? It runs for N seco
 swiftc -O -o overlay-harness overlay-harness.swift && ./overlay-harness 20
 ``` What testing it showed is in
 [../docs/research/findings.md](../docs/research/findings.md).
+
+`space-observer.swift` is a research tool for how macOS associates Desktops (Spaces) with wallpaper images.
+It reads Mission Control's Space list through a private SkyLight call and macOS's private wallpaper store,
+both read-only, and names `dnm`'s stamps from its manifest. You describe an action, do it, and it prints
+what changed; it logs to the untracked `working-notes/research/`. Run it with `just observe`
+(`just observe --once` for a single snapshot). It is never part of the product.
+

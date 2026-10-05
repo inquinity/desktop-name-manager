@@ -30,6 +30,12 @@ periphery:
 kit:
     scripts/make-live-kit.sh
 
+# RESEARCH ONLY: watch how macOS ties Desktops to wallpapers (private, read-only calls; never shipped).
+observe *args:
+    mkdir -p {{ scratch }}/research
+    swiftc -O -o {{ scratch }}/research/space-observer prototype/space-observer.swift
+    {{ scratch }}/research/space-observer {{ args }}
+
 # Remove build output.
 clean:
     swift package clean --scratch-path {{ scratch }}
