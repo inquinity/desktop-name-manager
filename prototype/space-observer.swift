@@ -134,7 +134,7 @@ func takeSnapshot() -> Snapshot {
     // Settings that change how Spaces behave (public preferences).
     let mru = CFPreferencesCopyAppValue("mru-spaces" as CFString, "com.apple.dock" as CFString) as? Bool
     let spans = CFPreferencesCopyAppValue("spans-displays" as CFString, "com.apple.spaces" as CFString) as? Bool
-    facts.append(("setting: rearrange Spaces by recent use (mru-spaces)", mru.map { $0 ? "on" : "off" } ?? "default (on)"))
+    facts.append(("setting: rearrange Spaces by recent use (mru-spaces)", mru.map { $0 ? "on" : "off" } ?? "not set (check System Settings > Desktop & Dock)"))
     facts.append(("setting: displays have separate Spaces", spans.map { $0 ? "off (spans displays)" : "on" } ?? "default (on)"))
 
     // Each display's Desktops in Mission Control order, joined with the store.
