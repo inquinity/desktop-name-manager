@@ -49,8 +49,9 @@ catalog, shuffle, or none reported). Nothing is changed when a command fails.
 
 Good to know:
 - The tool needs no macOS permissions and makes no network connections.
-- Turn off "Show on all Spaces" in System Settings > Wallpaper first. With it on, macOS may
-  apply the first label to every Desktop.
+- Turn off "Show on all Spaces" in System Settings > Wallpaper first, **for every display you label**
+  (the setting is per display). With it on, macOS applies the first label to every Desktop on that
+  display and makes it the default for new Desktops. See `specs/001-labels-and-cli/known-issues.md`.
 - Removing or replacing a label keeps its labeled image for 30 minutes, so `undo` works; a
   later command cleans it up.
 
