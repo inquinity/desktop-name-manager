@@ -114,5 +114,20 @@ Follow-up by hand on 2026-10-03 (same Mac): the large label was shown and compar
 The sequence `dnm set "Mail" --size large && dnm remove`, which failed before the wait for macOS to
 report the wallpaper, now labels and removes cleanly on the real system.
 
-Still to record here: timing (T069), the macOS 26 run (T070) and the image-quality check.
+### Timing (T069), 2026-10-05, macOS 27.0.1, Apple M5 Pro, release build, SC-001 and FR-019
+
+`dnm set "Timing"` then `dnm remove`, wall-clock time including the wait for macOS to report the change:
+
+| Display | Pixels | `set` | `remove` |
+|---|---|---|---|
+| Built-in Liquid Retina XDR (main), 3 runs | 3456 x 2234 | 0.35, 0.32, 0.33 s | 0.20, 0.19, 0.25 s |
+| External DP, 1 run | 5120 x 2880 (5K) | 0.40 s | 0.22 s |
+
+The budget is under one second on a 5K display on an Apple-silicon Mac; it is met with wide margin. The
+automatic style on this wallpaper is now "plain" (the dark-backdrop rule: a halo could not show).
+
+### Still to record
+
+The macOS 26 run (T070), the image-quality check (scenario 18) and scenario 4.
+
 
