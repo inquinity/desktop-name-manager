@@ -65,6 +65,7 @@ Then, on Desktop 2, run the scenarios below and look at the screen each time.
 | 16 | Cool-down cleanup | After scenario 6, wait 31 minutes, run `dnm list` | Retired stamp files are gone from `$DNM_STORE_DIR`; active ones remain; no other file in the folder was touched (SC-006, FR-026). |
 | 17 | Solid color | Set the Desktop to a solid color in System Settings, `dnm set "Test"` | Either labeled as an image or declined with exit 3; record which (research R6). |
 | 18 | Image quality | Label a wallpaper with fine detail and flat color areas, compare to the original | No visible loss away from the label; record the difference measurement (research R7). |
+| 20 | Show on all Spaces (known issue KI-1) | With "Show on all Spaces" ON for a display, `dnm set "Test" --display <that display>`; then create a new Desktop on it (and one from another Desktop) | The label is on this Desktop only; new Desktops show your normal wallpaper, not the label; no warning is printed. Turn the setting back as it was afterwards. |
 | 19 | Missing stamp | Delete the stamp file for a labeled Desktop, run `dnm show`, then `dnm set "Email"` | `show` says the stamp is missing; `set` rebuilds it from the original; `remove` also works (spec edge case). |
 
 Restore when finished:
@@ -92,6 +93,6 @@ contrast threshold, and you look at every rendering once. The images stay out of
 ## Exit criteria for this feature
 
 - `swift test` passes.
-- Live scenarios 1 to 19 pass on macOS 26 and macOS 27 (scenario 4 by hand).
+- Live scenarios 1 to 20 pass on macOS 26 and macOS 27 (scenario 4 by hand).
 - Code review and security review of the changes are recorded before any release
   (constitution, Development Workflow).

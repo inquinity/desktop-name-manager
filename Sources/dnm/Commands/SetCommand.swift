@@ -32,6 +32,7 @@ struct SetCommand: ParsableCommand {
             let display = try context.resolveDisplay(target)
             let result = try context.labeler.setLabel(text, options: options, on: display)
             Output.out(result.confirmation)
+            for warning in result.warnings { Output.err("dnm: warning: \(warning)") }
         }
     }
 }

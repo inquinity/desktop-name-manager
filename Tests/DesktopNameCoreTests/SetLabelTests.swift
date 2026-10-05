@@ -13,8 +13,9 @@ import Testing
 
         try h.labeler.setLabel(LabelText("Email"), on: h.display)
 
-        #expect(h.system.setCalls.count == 1)
-        #expect(h.system.setCalls[0].displayUUID == "DISPLAY-A")
+        // A first label re-applies the current wallpaper (see KI-1), then sets the stamp: both on the target display.
+        #expect(h.system.setCalls.count == 2)
+        #expect(h.system.setCalls.allSatisfy { $0.displayUUID == "DISPLAY-A" })
         #expect(try h.system.currentWallpaper(on: other).url == originalB)
         #expect(try SyntheticImages.pixelSize(of: originalA) == (800, 500))   // original untouched
     }
@@ -30,8 +31,8 @@ import Testing
         #expect(stamp.isActive)
         #expect(stamp.pixelWidth == 800 && stamp.pixelHeight == 500)
         #expect(try SyntheticImages.pixelSize(of: h.store.fileURL(named: stamp.fileName)) == (800, 500))
-        #expect(h.system.setCalls[0].url.lastPathComponent == stamp.fileName)
-        #expect(h.system.setCalls[0].placement.scaling == 3)   // scale proportionally up or down (fill)
+        #expect(h.system.setCalls.last?.url.lastPathComponent == stamp.fileName)
+        #expect(h.system.setCalls.last?.placement.scaling == 3)   // scale proportionally up or down (fill)
         #expect(result.label.text.value == "Email")
         #expect(!result.replaced)
         #expect(result.displayName == "Built-in Display")

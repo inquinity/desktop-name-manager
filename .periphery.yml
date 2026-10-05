@@ -5,3 +5,5 @@ retain_codable_properties: true
 # Report findings in shipping code only; test helpers are not the target of this gate.
 report_exclude:
   - "Tests/**"
+  # SwiftPM checkouts of dependencies live in the scratch folder, not in .build
+  - "build.noindex/**"

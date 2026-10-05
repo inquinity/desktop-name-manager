@@ -2,7 +2,7 @@
 
 ## KI-1: A label can become the default for new Desktops (and spread to other Desktops)
 
-**Status:** open, found 2026-10-05 in live use. **Severity:** medium (wrong wallpaper on new Desktops; a
+**Status:** fix implemented 2026-10-05 (T073 to T077); live verification (T078) still open. Found 2026-10-05 in live use. **Severity:** medium (wrong wallpaper on new Desktops; a
 cleanup gap that can leave macOS pointing at a deleted image).
 
 **What was seen.** On an external display with two Desktops, labeling one Desktop ("set") made every
@@ -32,7 +32,11 @@ entry still points at that stamp, macOS is left pointing at a missing image.
 turn "Show on all Spaces" ON, pick the normal wallpaper (this resets that display's default and all its
 Desktops), turn it OFF, then label Desktops one at a time. The README now says to do this for every display.
 
-**Planned fix (tasks T073 to T078).**
+**Fix (tasks T073 to T078).** The design changed from the first plan: undoing after the fact cannot repair a
+display default once macOS has switched "Show on all Spaces" off, so the fix prevents the spread instead.
+0. Before the first label on a Desktop, `set` re-applies the wallpaper the Desktop already shows (invisible).
+   That wide, first set carries the original image, and the label that follows reaches only this Desktop.
+   Not repeated when replacing one of our labels.
 1. A read-only, optional reader of the wallpaper store, isolated in one module (constitution principle I allows
    private reads that are read-only and optional; failure to read must never block labeling).
 2. After `set`, check whether the new stamp also appears in a default or template entry or on other

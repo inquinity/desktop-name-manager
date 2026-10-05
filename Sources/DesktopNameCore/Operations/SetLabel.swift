@@ -5,6 +5,8 @@ public struct SetLabelResult: Equatable, Sendable {
     public var displayName: String
     /// True when the Desktop already had a label that this one replaced.
     public var replaced: Bool
+    /// Things the user should know, for example that macOS also made the label the default for new Desktops.
+    public var warnings: [String] = []
 }
 
 extension SetLabelResult {
@@ -86,6 +88,15 @@ extension DesktopLabeler {
         }
 
         do {
+            // Known issue KI-1: on a display where "Show on all Spaces" is on, macOS applies the first wallpaper
+            // set to every Desktop and to the default for new Desktops, then turns the setting off. Re-apply
+            // the wallpaper this Desktop already shows, which is invisible, so that wide first set carries the
+            // original image; the label then reaches only this Desktop. Not needed when replacing one of our
+            // labels: that Desktop already has its own entry. Done after the store is written, so a store
+            // that cannot be written changes nothing.
+            if replacing == nil {
+                try apply(baseURL, placement: Self.placement(of: original), on: display)
+            }
             try apply(stampURL, placement: Self.stampPlacement(fill: original.fillColor), on: display)
         } catch {
             // Undo the bookkeeping so a failed set leaves nothing behind.
@@ -93,6 +104,26 @@ extension DesktopLabeler {
             store.removeFile(named: fileName)
             throw error
         }
-        return SetLabelResult(label: rendered.label, displayName: display.name, replaced: replacing != nil)
+        return SetLabelResult(label: rendered.label, displayName: display.name, replaced: replacing != nil,
+                              warnings: spreadWarnings(for: fileName, on: display))
+    }
+
+    /// After a label is set, check (read-only, best effort) that macOS did not also make it the default for new
+    /// Desktops or show it on other Desktops. An unreadable store gives no warning.
+    private func spreadWarnings(for fileName: String, on display: Display) -> [String] {
+        guard let inspector else { return [] }
+        // macOS writes its store a moment after reporting the change; wait briefly for the label to appear in it.
+        var references = inspector.references(to: fileName)
+        let deadline = Date().addingTimeInterval(min(settleTimeout, 1.5))
+        while (references?.isReferenced ?? true) == false && Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+            references = inspector.references(to: fileName)
+        }
+        guard let references, references.spreadsBeyondOneDesktop else { return [] }
+
+        var effects: [String] = []
+        if references.displayDefault || references.newDesktopTemplate { effects.append("made it the default for new Desktops") }
+        if references.desktopCount > 1 { effects.append("showed it on other Desktops too") }
+        return ["macOS also \(effects.joined(separator: " and ")) on \(display.name). In System Settings > Wallpaper, choose \(display.name), turn on \"Show on all Spaces\", pick your normal wallpaper, turn it off again, then label your Desktops one at a time. Until then new Desktops there may show this label."]
     }
 }

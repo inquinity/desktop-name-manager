@@ -92,7 +92,7 @@ import Testing
             #expect(h.system.setCalls.isEmpty, "the second run must not proceed while the lock is held")
         }
         #expect(finished.wait(timeout: .now() + 20) == .success)
-        #expect(h.system.setCalls.count == 1)
+        #expect(h.system.setCalls.count == 2)   // the first label: re-apply the wallpaper, then the stamp
         #expect(try h.manifest().stamps.count == 1)
     }
 

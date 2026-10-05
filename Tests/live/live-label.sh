@@ -126,7 +126,7 @@ if ! "$dry_run"; then
     export DNM_STORE_DIR="${work_directory}/store"
     print_colored "$COLOR_BRIGHTYELLOW" "Backed up the wallpaper store to ${work_directory}"
     print_colored "$COLOR_BRIGHTYELLOW" "Using a private store: ${DNM_STORE_DIR}"
-    read -r -p "This changes your real wallpaper. Are you idle, on the right Desktop, with 'Show on all Spaces' off? [y/N] " confirm
+    read -r -p "This changes your real wallpaper. Are you idle, on the right Desktop, with 'Show on all Spaces' off for the display you are labeling? [y/N] " confirm
     [[ "$confirm" == [yY]* ]] || { print_colored "$COLOR_RED" "Cancelled."; exit 1; }
 fi
 trap cleanup EXIT

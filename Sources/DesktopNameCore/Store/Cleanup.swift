@@ -18,7 +18,7 @@ public enum Cleanup {
         name.wholeMatch(of: /[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\.dnm\.[A-Za-z0-9]+/) != nil
     }
 
-    public static func run(store: Store, now: Date) throws {
+    public static func run(store: Store, now: Date, inspector: WallpaperStoreInspector? = nil) throws {
         guard store.hasManifest else { return }
         let fileManager = FileManager.default
         let cutoff = now.addingTimeInterval(-coolDown)
@@ -27,10 +27,16 @@ public enum Cleanup {
         // commands work even on a store that cannot be written.
         let current = try store.readManifest()
         let knownNames = Set(current.stamps.map(\.fileName))
-        let hasExpiredStamp = current.stamps.contains { stamp in
-            if case .retired(let at, _) = stamp.state { return at <= cutoff }
-            return false
+        // Retired and old enough, and nothing in macOS's wallpaper store still points at it. A default for new
+        // Desktops can keep pointing at a stamp after its label was removed or replaced (known issue KI-1);
+        // deleting it then would leave macOS pointing at a missing image. If the store cannot be read, the
+        // cool-down alone decides.
+        func deletable(_ stamp: Stamp) -> Bool {
+            guard case .retired(let at, _) = stamp.state, at <= cutoff else { return false }
+            if let references = inspector?.references(to: stamp.fileName), references.isReferenced { return false }
+            return true
         }
+        let hasExpiredStamp = current.stamps.contains(where: deletable)
         let hasExpiredRecord = current.changes.contains { $0.at <= cutoff }
         let strayFiles = ((try? fileManager.contentsOfDirectory(at: store.directory, includingPropertiesForKeys: nil)) ?? []).filter {
             isOurFileName($0.lastPathComponent) && !knownNames.contains($0.lastPathComponent)
@@ -40,7 +46,7 @@ public enum Cleanup {
         try store.transaction { manifest in
             // Retired stamps past the cool-down: delete the file and the entry.
             manifest.stamps.removeAll { stamp in
-                guard case .retired(let at, _) = stamp.state, at <= cutoff else { return false }
+                guard deletable(stamp) else { return false }
                 store.removeFile(named: stamp.fileName)
                 return true
             }

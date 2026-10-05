@@ -266,7 +266,8 @@ and after labeling and removing; they are unchanged.
   system security setting.
 - **FR-018**: The system MUST clean up stamps that no Desktop uses, so storage does not grow
   without bound, subject to these rules:
-  - it MUST never delete a stamp that any Desktop still uses;
+  - it MUST never delete a stamp that any Desktop still uses, nor one that macOS's wallpaper store still
+    references (for example as the default for new Desktops), when the store can be read (read-only);
   - it MUST keep every unused stamp for a fixed cool-down of 30 minutes so a removed or
     replaced label can still be recovered;
   - cleanup MUST happen only while a command is running, using each stamp's age. No
