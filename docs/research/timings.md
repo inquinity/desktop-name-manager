@@ -40,8 +40,8 @@ steps). Max: every step, the confirmation run plus every gap.
 | **M5 Pro, 27.0.1, 3 displays (baseline)** | 2026-10-06 | Built-in | 1006 ms | 1023 ms | **100%** | **100%** | 0 / 0 |
 | M5 Pro, 27.0.1, 2 displays | 2026-10-06 | Built-in | 986 ms | 1000 ms | 98.0% | 97.8% | 0 / 0 |
 | M5 Pro, 27.0.1, 2 displays, Reduce Motion on (once, for information) | 2026-10-06 | Built-in | 978 ms | 998 ms | 97.2% | 97.6% | 0 / 0 |
-| Intel MacBook Pro 16" (2019), 26.x, 2 displays | pending | | | | | | |
-| Intel MacBook Pro 16" (2019), 26.x, 3 displays | pending | | | | | | |
+| Intel i9-9980HK (MacBook Pro 16", 2019), 26.7.1 (25G241), 3 displays | 2026-10-06 | Built-in | 560 ms | 586 ms | 55.7% | 57.3% | 0 / 0 |
+| Intel i9-9980HK, 26.7.1, 2 displays | pending | | | | | | |
 
 Other displays measured (not the slowest in their setup):
 
@@ -50,6 +50,8 @@ Other displays measured (not the slowest in their setup):
 | M5 Pro, 27.0.1, 2 displays | DP (external) | 552 ms | 578 ms | 54.9% |
 | M5 Pro, 27.0.1, 2 displays, Reduce Motion on | DP (external) | 554 ms | 582 ms | 55.1% |
 | M5 Pro, 27.0.1, 3 displays | LG ULTRAFINE, LG Ultra HD | pending (the run stopped: LG ULTRAFINE had one Desktop) | | |
+| Intel, 26.7.1, 3 displays | LG ULTRAFINE | 552 ms | 577 ms | 54.9% |
+| Intel, 26.7.1, 3 displays | LG Ultra HD | 556 ms | 577 ms | 55.3% |
 
 Gap and edge tests, every setup so far: no lost or doubled steps at any gap, including 0 ms; no late
 notifications at the edge.
@@ -65,6 +67,39 @@ notifications at the edge.
    and an external one about 550 ms; adding a third monitor moved the built-in display by about 2%.
 5. Caveat: the two- and three-display setups used different external monitors (DP against the two LG
    monitors), so the 2% also includes the change of monitors.
+6. **The CPU is not what is slow.** The Intel Mac (macOS 26.7.1) confirms in about 560 ms on every display,
+   like every external monitor on the M5. Only the M5's built-in display on macOS 27 takes about 1000 ms.
+   Whether that is the display or macOS 27 is open: an Apple silicon Mac on macOS 26 would tell.
+
+## End-to-end time of a `--desktop` command
+
+`live-timing.sh` times `dnm show --desktop` (read-only) for each start Desktop and target, with three
+Desktops per display. The Intel run (26.7.1, three displays, 3 runs each) fits, within 1%:
+
+```
+time ≈ 1.38 s + 0.83 s × steps
+```
+
+- **1.38 s fixed:** the press at the edge, which never moves and waits the whole 1.0 s `confirmTimeout`,
+  plus about 0.38 s to start, point at the display and read.
+- **0.83 s per step:** about 0.56 s confirmation, 0.25 s `settleTime`, 0.02 s for the key press.
+- **Steps** for start `s` and target `t`: `(s − 1)` to walk left, `2` more when `s = 1` (the shortcut probe),
+  `(t − 1)` to walk right, `|t − s|` to return.
+
+| Steps | Example (start → target) | Median |
+|---|---|---|
+| 2 | 1 → 1, 2 → 2, 2 → 1 | 3.03 s |
+| 4 | 1 → 2, 2 → 3, 3 → any | 4.69 s |
+| 6 | 1 → 3 | 6.33 s |
+
+Consequences:
+
+- `settleTime` is 30% of each step and has never been needed (no lost steps at a 0 ms gap).
+- The probe adds 2 steps whenever the display starts on Desktop 1, though for a target of 2 or more the
+  first step toward it already proves the shortcuts work.
+- The worst case grows with the number of Desktops `D`: `2 × (D − 1)` steps. With the M5's built-in display
+  (about 1.25 s per step today), five Desktops take about 11 s. A fixed 8 s in SC-008 cannot hold for
+  every Desktop count; it should be stated per step or for a given number of Desktops.
 
 ## Choosing the delay
 
