@@ -4,13 +4,14 @@ import DesktopNameCore
 struct SetCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "set",
-        abstract: "Label the current Desktop.",
+        abstract: "Label the current Desktop, or the one given with --desktop.",
         discussion: "A label is one line of 1 to 30 characters. Options you leave out use their defaults; they never inherit from a label being replaced.")
 
     @Argument(help: "The label: one line, 1 to 30 characters (emoji count as one).")
     var label: String
 
     @OptionGroup var target: DisplayOption
+    @OptionGroup var place: DesktopOption
 
     @Option(name: .long, help: "plain, halo or frosted. Default: chosen from the wallpaper.")
     var style: String?
@@ -30,8 +31,12 @@ struct SetCommand: ParsableCommand {
             let options = try LabelOptions.parse(style: style, color: color, position: position, size: size)
             let context = Context()
             let display = try context.resolveDisplay(target)
-            let result = try context.labeler.setLabel(text, options: options, on: display)
+            var result = try context.onDesktop(place, of: display) { try context.labeler.setLabel(text, options: options, on: display) }
+            result.displayName = place.describe(result.displayName)
             Output.out(result.confirmation)
+            if place.desktop == 1 {
+                Output.err("dnm: note: macOS gives every new Desktop on \(display.name) a copy of Desktop 1's wallpaper, so new Desktops there will show this label too. Run `dnm remove` on such a Desktop, or keep Desktop 1 unlabeled.")
+            }
             for warning in result.warnings { Output.err("dnm: warning: \(warning)") }
         }
     }

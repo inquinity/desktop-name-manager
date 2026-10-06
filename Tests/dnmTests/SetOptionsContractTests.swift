@@ -19,6 +19,13 @@ import Testing
         ["set"],
         ["set", "x", "--bogus"],
         ["frobnicate"],
+        ["set", "x", "--desktop", "0"],
+        ["set", "x", "--desktop", "two"],
+        ["remove", "--desktop", "0"],
+        ["undo", "--desktop", "0"],
+        ["show", "--desktop", "0"],
+        // The display is checked before any switching, so a bad name fails without the permission.
+        ["set", "x", "--display", "no-such-display-anywhere", "--desktop", "2"],
     ])
     func invalidInputExitsTwoWithAMessageOnStandardError(_ arguments: [String]) throws {
         let result = try CLI.run(arguments)
@@ -45,6 +52,24 @@ import Testing
         let version = try CLI.run(["--version"])
         #expect(version.status == 0)
         #expect(!version.output.isEmpty)
+    }
+
+    @Test(.enabled(if: CLI.binary != nil))
+    func desktopZeroSaysWhatItTakes() throws {
+        let result = try CLI.run(["set", "x", "--desktop", "0"])
+        #expect(result.errors.contains("--desktop takes a Desktop number, 1 or more."))
+    }
+
+    @Test(.enabled(if: CLI.binary != nil), arguments: ["set", "remove", "undo", "show"])
+    func desktopIsOfferedWhereADesktopIsTargeted(_ command: String) throws {
+        let help = try CLI.run([command, "--help"])
+        #expect(help.output.contains("--desktop <n>"))
+        #expect(help.output.contains("Accessibility"))
+    }
+
+    @Test(.enabled(if: CLI.binary != nil))
+    func setHelpMentionsTheFullScreenEdgeCase() throws {
+        #expect(try CLI.run(["set", "--help"]).output.contains("full-screen"))
     }
 
     @Test(.enabled(if: CLI.binary != nil))

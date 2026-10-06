@@ -5,9 +5,10 @@ import Foundation
 struct ShowCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "show",
-        abstract: "Show the details of the label on the current Desktop.")
+        abstract: "Show the details of the label on the current Desktop, or the one given with --desktop.")
 
     @OptionGroup var target: DisplayOption
+    @OptionGroup var place: DesktopOption
 
     @Flag(name: .long, help: "Print one JSON document instead of text.")
     var json = false
@@ -16,11 +17,12 @@ struct ShowCommand: ParsableCommand {
         try Self.guarded {
             let context = Context()
             let display = try context.resolveDisplay(target)
-            let result = try context.labeler.showLabel(on: display)
+            var result = try context.onDesktop(place, of: display) { try context.labeler.showLabel(on: display) }
             if json {
                 Output.out(try Reports.json(Reports.show(result)))
                 return
             }
+            result.displayName = place.describe(result.displayName)
             guard let label = result.label else {
                 Output.out("No label on \(result.displayName).")
                 return

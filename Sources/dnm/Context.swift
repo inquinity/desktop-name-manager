@@ -16,4 +16,16 @@ struct Context {
     func resolveDisplay(_ option: DisplayOption) throws -> Display {
         try DisplayResolver.resolve(option.display, in: try system.displays())
     }
+
+    /// Runs `body` on the Desktop chosen with `--desktop`, switching there and back, or on the current Desktop.
+    /// The CLI runs synchronously on the main thread, so `body` never leaves it.
+    func onDesktop<T: Sendable>(_ option: DesktopOption, of display: Display, _ body: () throws -> T) throws -> T {
+        guard let target = option.desktop else { return try body() }
+        nonisolated(unsafe) let body = body
+        return try MainActor.assumeIsolated {
+            let switcher = SystemDesktopSwitcher()
+            defer { switcher.stop() }
+            return try DesktopNavigator(switcher: switcher).visit(desktop: target, on: display, body)
+        }
+    }
 }

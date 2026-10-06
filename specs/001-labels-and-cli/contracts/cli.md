@@ -36,8 +36,8 @@ dnm --help | dnm <command> --help | dnm --version
 ## `--desktop <n>` (set, remove, undo, show)
 
 Acts on Desktop `n` of the chosen display, numbered as Mission Control numbers them, then returns to the
-Desktop the display started on (FR-027). Not given, or already showing: no switching and no permission.
-Otherwise it needs the Accessibility permission and the "Move left/right a space" shortcuts; the
+Desktop the display started on (FR-027). Not given: no switching and no permission. Given, it always
+switches (to learn where the display is), so it needs the Accessibility permission and the "Move left/right a space" shortcuts; the
 Desktops slide on screen and the person must not type meanwhile.
 
 | Situation | Exit | Message (standard error) |
