@@ -166,6 +166,25 @@ the wallpaper was restored. The automatic style chose dark text on this wallpape
 label, so a second style path was exercised live. This is the first evidence that the Intel build works;
 Intel support is still decided at packaging (spec 005).
 
+### Live run, 2026-10-06, macOS 27.0.1, Apple silicon, three displays, `Tests/live/live-desktops.sh`, `dnm 0.1.0-dev+ed72078`
+
+Earlier label names (LABEL1, LABEL2, First). Log kept locally (`working-notes/`).
+
+- Pre-check: all three displays reached Desktop 3 read-only. An earlier attempt correctly stopped
+  ("Built-in Retina Display has 2 Desktops; there is no Desktop 3") after macOS moved Desktops between
+  displays when the monitors changed.
+- Scenario 21: all six `set --desktop` commands succeeded and `show --desktop` found every label. Times
+  3.4 to 6.9 s, except **9.3 s** for main Desktop 3 (over the 8 s of SC-008). Two LOOK checks were answered
+  "no" (each display back where it started; labels on the right Desktops) without a description; the
+  script now asks what was seen.
+- Scenario 22: the Desktop 1 note was printed. The run then stopped at the new-Desktop number prompt (a
+  non-number was typed); the prompt now asks again. Scenario 23 did not run.
+- Found afterwards: known issue KI-2 (`prune --yes` earlier deleted images still used by Desktops of the
+  two-monitor arrangement).
+
+Script changes since: labels name their place ("Display N - Desktop M"), a display legend, every display
+covered, a read-only Desktop 3 pre-check, the number prompt re-asks, and failed LOOKs record what was seen.
+
 ### Still to record
 
 The full quickstart (T070): scenarios 4, 16, 17 and 18 on both versions, and 20 to 23 after Phase 10.

@@ -10,6 +10,11 @@
 # It backs up the wallpaper store first, uses a private store directory, and removes its labels when it
 # finishes. Scenario 22 asks you to create a Desktop in Mission Control, and to delete it at the end.
 #
+# Displays are numbered for the run: Display 1 is the main display, then the others in `dnm displays`
+# order. Every label names where it belongs ("Display 2 - Desktop 3"), so a label in the wrong place is
+# obvious. Run it once in each display configuration you have (one, two and three displays); it covers
+# every connected display.
+#
 # Usage: Tests/live/live-desktops.sh [--dnm PATH] [--dry-run] [--help]
 
 set -euo pipefail
@@ -87,9 +92,15 @@ ask_to_look() {
         print_colored "$COLOR_CYAN" "[dry run] look: ${question}"
         return 0
     fi
-    local answer
-    read -r -p "$(printf "${COLOR_BRIGHTYELLOW}LOOK: %s [y/N] ${COLOR_RESET}" "$question")" answer
-    [[ "$answer" == [yY]* ]]
+    local answer seen
+    read -r -p "$(printf "%bLOOK: %s [y/N] %b" "$COLOR_BRIGHTYELLOW" "$question" "$COLOR_RESET")" answer
+    if [[ "$answer" == [yY]* ]]; then
+        return 0
+    fi
+    # Keep the person's description in the log, so the failure can be understood later.
+    read -r -p "$(printf "%bWhat did you see? %b" "$COLOR_BRIGHTYELLOW" "$COLOR_RESET")" seen
+    printf "SEEN: %s\n" "$seen"
+    return 1
 }
 
 wait_for_person() {
@@ -110,6 +121,19 @@ now_milliseconds() {
 # Every display the scenarios label: main, then every other connected display.
 target_displays() {
     printf "%s\n" "$display_list"
+}
+
+label_for() {
+    # label_for <display number> <desktop number>: the label that belongs on that Desktop.
+    printf "Display %s - Desktop %s" "$1" "$2"
+}
+
+print_display_legend() {
+    local display_number=0 display_name
+    while IFS= read -r display_name; do
+        display_number=$((display_number + 1))
+        print_colored "$COLOR_BRIGHTYELLOW" "  Display ${display_number}: ${display_name}"
+    done < <(target_displays)
 }
 
 find_displays() {
@@ -254,10 +278,18 @@ if ! "$dry_run"; then
 fi
 trap cleanup EXIT
 
+if "$dry_run" && [[ -x "$dnm_binary" ]]; then
+    # Listing displays is read-only, so a dry run can show the real plan.
+    find_displays
+    print_colored "$COLOR_CYAN" "[dry run] $(target_displays | wc -l | tr -d ' ') display(s):"
+    print_display_legend
+fi
+
 if ! "$dry_run"; then
     # So a log copied back from another Mac says what it ran on.
     print_colored "$COLOR_YELLOW" "Run on: macOS $(sw_vers -productVersion) ($(sw_vers -buildVersion)), $(uname -m), dnm $("$dnm_binary" --version), $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    print_colored "$COLOR_BRIGHTYELLOW" "Displays: $(target_displays | paste -sd ',' - | sed 's/,/, /g')."
+    print_colored "$COLOR_BRIGHTYELLOW" "Configuration: $(target_displays | wc -l | tr -d ' ') display(s). Labels name their place:"
+    print_display_legend
     check_three_desktops_each
 fi
 
@@ -265,29 +297,37 @@ fi
 print_colored "$COLOR_BRIGHTYELLOW" "Scenario 21: label Desktops 2 and 3 on every display"
 wait_for_person "Note which Desktop each display is showing now. Don't type or switch while the Desktops slide."
 set_labels_applied=true
+display_number=0
 while IFS= read -r display_name; do
-    timed_set "LABEL1" "$display_name" 2
-    timed_set "LABEL2" "$display_name" 3
+    display_number=$((display_number + 1))
+    timed_set "$(label_for "$display_number" 2)" "$display_name" 2
+    timed_set "$(label_for "$display_number" 3)" "$display_name" 3
 done < <(target_displays)
 if ! "$dry_run"; then
+    display_number=0
     while IFS= read -r display_name; do
-        check "show finds LABEL1 on ${display_name}, Desktop 2" shows_label "LABEL1" "$display_name" 2
-        check "show finds LABEL2 on ${display_name}, Desktop 3" shows_label "LABEL2" "$display_name" 3
+        display_number=$((display_number + 1))
+        for desktop_number in 2 3; do
+            expected_label="$(label_for "$display_number" "$desktop_number")"
+            check "show finds '${expected_label}' on ${display_name}, Desktop ${desktop_number}" \
+                shows_label "$expected_label" "$display_name" "$desktop_number"
+        done
     done < <(target_displays)
 fi
 check "each display is back on the Desktop it started on" ask_to_look "Is every display showing the Desktop it showed before?"
-check "Desktops 2 and 3 show LABEL1 and LABEL2" ask_to_look "Open Mission Control: do Desktops 2 and 3 of each display show LABEL1 and LABEL2 (and no other Desktop)?"
+check "every label is on the Desktop it names" ask_to_look "Open Mission Control on each display: does each label match its place (Display N - Desktop M, numbered as listed above), with no label on any other Desktop?"
 print_colored "$COLOR_YELLOW" "Removing the scenario 21 labels..."
 run_step remove_set_labels
 set_labels_applied=false
 
 # --- Scenario 22: a label shared with a new Desktop (KI-1) -----------------------------------------
+first_label="$(label_for 1 1)"
 print_colored "$COLOR_BRIGHTYELLOW" "Scenario 22: a label on Desktop 1 is shared with a new Desktop"
 first_desktop_labeled=true
 if "$dry_run"; then
-    run_step "$dnm_binary" set "First" --display main --desktop 1
+    run_step "$dnm_binary" set "$first_label" --display main --desktop 1
 else
-    note_output="$("$dnm_binary" set "First" --display main --desktop 1 2>&1)"
+    note_output="$("$dnm_binary" set "$first_label" --display main --desktop 1 2>&1)"
     printf "%s\n" "$note_output"
     check "labeling Desktop 1 prints the new-Desktop note" grep -q "copy of Desktop 1's wallpaper" <<<"$note_output"
 fi
@@ -295,23 +335,27 @@ wait_for_person "Open Mission Control, click + on the main display to add a Desk
 if "$dry_run"; then
     new_desktop_number=4
 else
-    read -r -p "$(printf "%bWhich number is the new Desktop (it is the last one)? %b" "$COLOR_BRIGHTYELLOW" "$COLOR_RESET")" new_desktop_number
-    [[ "$new_desktop_number" =~ ^[0-9]+$ ]] || { print_colored "$COLOR_RED" "Not a number: ${new_desktop_number}"; exit 1; }
+    # Ask until the answer is a Desktop number; a stray "yes" must not end the run with the label shared.
+    while true; do
+        read -r -p "$(printf "%bWhich number is the new Desktop on the main display (it is the last one)? Type the number: %b" "$COLOR_BRIGHTYELLOW" "$COLOR_RESET")" new_desktop_number
+        [[ "$new_desktop_number" =~ ^[0-9]+$ ]] && ((new_desktop_number >= 2)) && break
+        print_colored "$COLOR_RED" "Please type the Desktop's number, for example 4."
+    done
 fi
-check "the new Desktop shares the label (macOS copied Desktop 1)" shows_label "First" main "$new_desktop_number"
+check "the new Desktop shares the label (macOS copied Desktop 1)" shows_label "$first_label" main "$new_desktop_number"
 run_step "$dnm_binary" remove --display main --desktop "$new_desktop_number"
-check "the new Desktop shows the original wallpaper" ask_to_look "Open Mission Control: is Desktop ${new_desktop_number} back to the normal wallpaper, with Desktop 1 still labeled 'First'?"
-check "show --desktop 1 still recognizes the label" shows_label "First" main 1
+check "the new Desktop shows the original wallpaper" ask_to_look "Open Mission Control: is Desktop ${new_desktop_number} back to the normal wallpaper, with Desktop 1 still labeled '${first_label}'?"
+check "show --desktop 1 still recognizes the label" shows_label "$first_label" main 1
 
 # --- Scenario 23: prune ----------------------------------------------------------------------------
 print_colored "$COLOR_BRIGHTYELLOW" "Scenario 23: prune lists, and deletes only images no current Desktop shows"
-# Make an image that is retired yet still on screen: put 'First' back on the new Desktop, then remove it
+# Make an image that is retired yet still on screen: put Desktop 1's label back on the new Desktop, then remove it
 # from Desktop 1, and show the new Desktop.
 run_step "$dnm_binary" undo --display main --desktop "$new_desktop_number"
-check "undo --desktop brought 'First' back on the new Desktop" shows_label "First" main "$new_desktop_number"
+check "undo --desktop brought '${first_label}' back on the new Desktop" shows_label "$first_label" main "$new_desktop_number"
 run_step "$dnm_binary" remove --display main --desktop 1
 first_desktop_labeled=false
-wait_for_person "Switch the main display to Desktop ${new_desktop_number} (the new one, showing 'First')."
+wait_for_person "Switch the main display to Desktop ${new_desktop_number} (the new one, showing '${first_label}')."
 if "$dry_run"; then
     run_step "$dnm_binary" prune
 else
@@ -319,12 +363,12 @@ else
     prune_listing="$("$dnm_binary" prune 2>&1)"
     printf "%s\n" "$prune_listing"
     check "the listing deletes nothing" test "$(store_file_count)" -eq "$files_before"
-    check "the listing names the scenario 21 labels" grep -q '"LABEL1"' <<<"$prune_listing"
-    check "the listing leaves out 'First', which is on screen" lacks_label "First" "$prune_listing"
+    check "the listing names the scenario 21 labels" grep -qF "\"$(label_for 1 2)\"" <<<"$prune_listing"
+    check "the listing leaves out '${first_label}', which is on screen" lacks_label "$first_label" "$prune_listing"
 fi
 run_step "$dnm_binary" prune --yes
 check "the image on screen survived prune --yes" shows_no_missing_image
-check "the label on screen is intact" ask_to_look "Is 'First' still showing on this Desktop?"
+check "the label on screen is intact" ask_to_look "Is '${first_label}' still showing on this Desktop?"
 run_step "$dnm_binary" remove --display main
 wait_for_person "Delete the Desktop you created (Desktop ${new_desktop_number}) in Mission Control, and go back to the Desktop you were on."
 new_desktop_number=""

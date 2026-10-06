@@ -19,4 +19,5 @@ Ideas recorded for later. None is part of a current spec.
   example `dnm prune --all`) and the app (spec 002) need a way to delete every labeled image and record.
   Public interfaces only see each display's current Desktop, so it must: keep any image a current Desktop
   shows, warn that a Desktop still showing one would lose its wallpaper, and require confirmation (`--yes`
-  in the CLI). The README should describe the manual reset it follows.
+  in the CLI). The README should describe the manual reset it follows. It must also warn about Desktops of
+  display arrangements not connected now (known issue KI-2), which it cannot see.
