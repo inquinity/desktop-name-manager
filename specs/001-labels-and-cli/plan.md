@@ -60,7 +60,8 @@ background process, original wallpaper files never modified, every change revers
 
 | Principle | Status | How the plan meets it |
 |---|---|---|
-| I. Public APIs first | Pass | Wallpaper read/write through `NSWorkspace`; displays through `NSScreen` and CoreGraphics. No private interface is used in this feature. A future optional read-only Space-list module is out of scope. |
+| I. Public APIs only (constitution 2.0.0) | Pass (after T079) | No private calls and no undocumented files or preferences in the product; research tools in `prototype/` only. |
+| I (original row) | Pass | Wallpaper read/write through `NSWorkspace`; displays through `NSScreen` and CoreGraphics. No private interface is used in this feature. A future optional read-only Space-list module is out of scope. |
 | II. Never require SIP changes | Pass | Nothing here touches system processes or protected settings. |
 | III. Least permission | Pass (amended) | Labeling the current Desktop needs nothing. `--desktop` for another Desktop needs Accessibility, explained first and never prompted for by the tool. |
 | III (original row) | Pass | The tool requests none. If macOS denies a file read, it shows the error and stops (FR-015). Note that macOS itself may show a prompt for reads in protected folders; the tool never asks or works around it. |

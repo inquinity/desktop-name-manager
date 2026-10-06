@@ -20,7 +20,9 @@ it first.
 - **Nothing may require disabling SIP.**
   - Labeling must need no macOS permissions.
   - Any Accessibility use must be explicit and opt-in.
-  - Private macOS interfaces must be read-only and optional.
+  - No private macOS interfaces in the product (no SkyLight calls, no undocumented system files or
+    preferences, not even read-only); the App Store is a goal. Research tools in `prototype/` may use
+    them and are never shipped.
 - **No network access and no telemetry** in the app or CLI.
 - **Protect the user's wallpaper during live tests.** Tests change the real wallpaper:
   back up `~/Library/Application Support/com.apple.wallpaper/Store/Index.plist` first,

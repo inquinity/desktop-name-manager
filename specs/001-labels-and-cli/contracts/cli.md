@@ -9,6 +9,8 @@ dnm remove [--display <name>] [--desktop <n>]
 dnm undo   [--display <name>] [--desktop <n>]
 dnm show   [--display <name>] [--desktop <n>] [--json]
 dnm prune  [--yes] [--json]
+dnm about  [--json]
+dnm check  [--json]
 dnm list   [--json]
 dnm displays [--json]
 dnm --help | dnm <command> --help | dnm --version

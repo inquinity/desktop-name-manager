@@ -52,6 +52,12 @@
   the Accessibility permission as an explicit opt-in, and it returns to the Desktop it started on.
 - Q: May the product read macOS's private wallpaper store or Space list? → A: No. The product uses public
   interfaces only. The research tools that do read them stay in `prototype/` and are never shipped.
+  This includes undocumented system preferences (constitution 2.0.0): the tool cannot check whether the
+  Desktop-switching shortcuts are on, so `check` says so and `--desktop` reports it when they fail.
+- Q: How does a user see what the tool is and whether their Mac is set up for it? → A: `dnm about` (who
+  the tool is, its version and build, and why it asks for any permission) and `dnm check` (this Mac's
+  setup, with fixes). The app (spec 002) shows the same content in its About window and in Help >
+  Configuration.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -225,6 +231,8 @@ Desktops slide and must not type while it runs.
 **Why this priority**: It turns single labels into sets of labeled Desktops, which is how the maintainer
 works, and prepares for groups (spec 004). Labeling the current Desktop (P1) works without it.
 
+Before the first run, `dnm check` shows whether the Mac is ready for it (FR-031).
+
 **Independent Test**: Run the four commands above on a Mac with two displays and at least three Desktops
 on each. Each display ends on the Desktop it started on; visiting Desktops 2 and 3 on each display shows
 the expected labels; the other Desktops are unchanged.
@@ -325,7 +333,7 @@ the expected labels; the other Desktops are unchanged.
   that only dnm's labels and the current Desktops are shown, and the JSON output MUST carry the same
   note as a field, so a reader never mistakes the list for every Desktop.
 - **FR-012**: The system MUST provide a command to show one label's full details.
-- **FR-013**: The command-line tool (set, remove, undo, list, show, displays, prune) MUST be invocable as both `dnm` and `desktop-name` with
+- **FR-013**: The command-line tool (set, remove, undo, list, show, displays, prune, about, check) MUST be invocable as both `dnm` and `desktop-name` with
   identical behavior, and MUST return distinct, documented exit codes for success, invalid
   input, unsupported wallpaper, and failure.
 - **FR-014**: The system MUST decline, without changing anything, to label a Desktop that uses
@@ -400,6 +408,20 @@ the expected labels; the other Desktops are unchanged.
   active label (removed, replaced or undone through the tool), with the space they use, and deletes them
   only when the user confirms (`--yes`). It MUST warn that a Desktop still showing one of them would lose
   its wallpaper, and MUST never delete an image currently shown on any display's current Desktop.
+- **FR-030**: The system MUST provide `dnm about`: the tool's name, its version as `--version` prints it
+  (with the build commit for interim builds), license and source location, where it keeps its data,
+  and a plain statement of permissions: labeling the current Desktop needs none; Accessibility is used
+  only to switch Desktops (`--desktop`) by pressing macOS's own "Move left/right a space" shortcuts,
+  because macOS offers apps no public way to switch Desktops; nothing else is typed or read; no network,
+  no telemetry.
+- **FR-031**: The system MUST provide `dnm check`, a configuration report using public interfaces only,
+  one line per item with its state and, when something is missing, how to fix it: macOS version and
+  chip; whether displays have separate Spaces; the connected displays (main marked); whether the app
+  running `dnm` has Accessibility; the "Move left/right a space" shortcuts (their state cannot be read
+  publicly: the report says so, says where to check them, and that `--desktop` reports it if they are
+  off); a one-line reminder of the first-Desktop rule (FR-028); and the stored labels, their space and
+  what `prune` could free. It MUST change nothing and MUST NOT trigger a permission prompt. `--json`
+  prints the same as one document.
 
 ### Key Entities
 
@@ -449,10 +471,8 @@ the expected labels; the other Desktops are unchanged.
   mechanism.
 - Decided (2026-09-28): listing shows every Desktop this tool has labeled, plus the current
   Desktop of each display, using public interfaces only. Unlabeled, non-current Desktops are
-  not listed by this feature. A full Desktop list depends on reading the system's Space list
-  through an optional, read-only private interface, and comes with Quick View (spec 003)
-  once spike S2 proves it. Because of this gap, the list output always carries a caveat
-  saying so (FR-011).
+  not listed by this feature. Public interfaces cannot list every Desktop, so the list output always
+  carries a caveat saying so (FR-011); a full list is in the backlog's full-featured build idea.
 - Backlog candidate (not in any current spec): multi-line labels.
 - Dynamic, aerial and shuffling wallpapers are out of scope here and refused (spec 006).
 - The graphical app, menu-bar item, hotkeys and editor are out of scope (spec 002); groups,

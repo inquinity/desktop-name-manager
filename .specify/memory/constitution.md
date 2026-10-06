@@ -2,13 +2,15 @@
 
 ## Core Principles
 
-### I. Public APIs First
-Labeling MUST use public macOS APIs only (stamping the label into a copy of a Desktop's
-wallpaper and applying it with `NSWorkspace.setDesktopImageURL`). Private interfaces
-(SkyLight) MAY be used only to read state (for example, the Space list), MUST be optional,
-and MUST be isolated behind a single module. The app and CLI MUST keep working, with
-reduced features, when a private interface is missing or changes.
-Rationale: private APIs break across macOS releases and are unacceptable to Homebrew.
+### I. Public APIs Only
+The product (app and CLI) MUST use public, documented macOS interfaces only. It MUST NOT call
+private frameworks (such as SkyLight) or read undocumented system files or preferences (such
+as the wallpaper store or the keyboard-shortcut settings), not even read-only. Research tools
+MAY use private interfaces to learn how macOS behaves; they live outside the product's
+sources and are never shipped.
+Rationale: private interfaces break across macOS releases, are unacceptable to Homebrew, and
+would rule out the App Store, which remains a goal. A separate full-featured build that uses
+private interfaces is a backlog idea, not part of the product.
 
 ### II. Never Require SIP Changes
 No feature, install step, or workaround may require disabling or weakening System
@@ -53,6 +55,8 @@ keychain profile names, credentials, or personal images. `wallpaper-samples/` an
 ## Platform & Distribution Constraints
 
 - macOS app plus the `dnm` CLI (alias `desktop-name`), sharing one core library.
+- App Store compatibility is a goal: designs MUST NOT depend on anything the App Store forbids
+  without recording it as a known gap to resolve before an App Store build.
 - Bundle ID `com.altmansoftwaredesign.desktop-name-manager` (`.dev` suffix for dev builds).
 - Releases are hosted on this repository's GitHub Releases; the cask ships first in
   `inquinity/homebrew-tap`.
@@ -91,4 +95,4 @@ for adding or materially expanding one, PATCH for clarifications. Every plan and
 MUST verify compliance; any deviation MUST be justified in the plan's complexity
 tracking and approved by the maintainer. Runtime guidance for agents lives in `CLAUDE.md`.
 
-**Version**: 1.1.1 | **Ratified**: 2026-09-28 | **Last Amended**: 2026-09-28
+**Version**: 2.0.0 | **Ratified**: 2026-09-28 | **Last Amended**: 2026-10-05

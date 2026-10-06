@@ -235,8 +235,10 @@ description: "Task list for spec 001: desktop labels and the dnm command-line to
 - [ ] T086 [US6] Document the full-screen edge case (decided: not handled): a full-screen app Space among the Desktops can shift the `--desktop` count; say so in the README and in `dnm set --help`
 - [ ] T087 [US6] Add `--desktop <n>` to `set`, `remove`, `undo` and `show` in `Sources/dnm/` (shared option, exit codes and messages per `contracts/cli.md`), name the Desktop in the confirmation, and add the Desktop 1 note (FR-028)
 - [ ] T088 [P] Documentation: the README section on sets of Desktops (the four-command example, the Accessibility opt-in, what you see) and the macOS first-Desktop rule; `known-issues.md` KI-1 resolution status
-- [ ] T089 Review: independent code review and security review of Phase 10 (permission handling, keystroke sending, pointer movement), recorded in `review-notes.md`
-- [ ] T090 Live: quickstart scenarios 21 to 23 on macOS 27 and macOS 26 (the kit), including timing for SC-008
+- [ ] T089 [P] `dnm about` (FR-030): `Sources/DesktopNameCore/Operations/About.swift` and `Sources/dnm/Commands/AboutCommand.swift`, with the permissions statement; contract test in `Tests/dnmTests/`
+- [ ] T090 [P] `dnm check` (FR-031): `Sources/DesktopNameCore/Operations/Check.swift` and `Sources/dnm/Commands/CheckCommand.swift`, public interfaces only (`NSScreen.screensHaveSeparateSpaces`, `AXIsProcessTrusted` without prompting, displays, store totals); the shortcut line says it cannot be checked and where to look; human and `--json` output; tests with fakes
+- [ ] T091 Review: independent code review and security review of Phase 10 (permission handling, keystroke sending, pointer movement), recorded in `review-notes.md`
+- [ ] T092 Live: quickstart scenarios 21 to 23 on macOS 27 and macOS 26 (the kit), including timing for SC-008
 
 ---
 
@@ -302,6 +304,6 @@ T033 Painter.swift + ImageWriter.swift
 
 ## Notes
 
-- 90 tasks. The prototype in `prototype/` is reference only; port its algorithms, do not import it.
+- 92 tasks. The prototype in `prototype/` is reference only; port its algorithms, do not import it.
 - Live tasks (T044, T050, T068, T069, T070) touch the real wallpaper: follow the rules at the top.
 - Commit after each task or logical group, with signed Conventional Commits.
