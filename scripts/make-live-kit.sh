@@ -174,7 +174,9 @@ notarized, and not for installing.
    Tests/live/live-desktops.sh 2>&1 | tee results/live-desktops.txt
    ```
 
-7. Run the timing check. It switches Desktops for about 10 to 15 minutes but changes no wallpaper. Leave
+7. Run the timing check. It needs the same setup as step 6 (Accessibility, the two shortcuts, at least three
+   Desktops on every display) and checks it first. It switches Desktops for about 10 to 15 minutes but
+   changes no wallpaper; don't type meanwhile. Leave
    System Settings as they are (don't change Reduce Motion or other settings for it). Run it once with two
    displays and, if you can, once with three.
 
