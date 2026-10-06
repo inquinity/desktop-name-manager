@@ -15,6 +15,9 @@ public enum About {
     public static let source = "https://github.com/inquinity/desktop-name-manager"
 
     /// Where the Accessibility permission is granted; macOS 27 renamed the panel.
+    /// Where the "Move left/right a space" shortcuts are turned on. They are only in the Keyboard pane.
+    public static let shortcutSettings = "System Settings > Keyboard (near the bottom of the sidebar) > Keyboard Shortcuts… > Mission Control, then expand the Mission Control group and turn on \"Move left a space\" and \"Move right a space\". Desktop & Dock > Shortcuts… does not list them"
+
     public static let accessibilitySettings = "System Settings > Privacy & Security > Accessibility (macOS 26) or Device Control and Data Access (macOS 27)"
 
     /// The permissions statement, shared with the app's About window.

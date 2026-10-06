@@ -62,8 +62,8 @@ public struct DesktopNavigator {
             } else {
                 throw DnmError.failure("""
                     No Desktop change happened on \(display.name). Either it has only one Desktop (then leave out --desktop), \
-                    or the "Move left a space" and "Move right a space" shortcuts are off (System Settings > Keyboard > \
-                    Keyboard Shortcuts > Mission Control). Nothing was changed.
+                    or the "Move left a space" and "Move right a space" shortcuts are off. To turn them on: \
+                    \(About.shortcutSettings). Nothing was changed.
                     """)
             }
         }

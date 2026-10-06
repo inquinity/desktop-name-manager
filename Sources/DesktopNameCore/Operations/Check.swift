@@ -92,7 +92,7 @@ extension DesktopLabeler {
                         fix: "\(About.accessibilitySettings): turn on the app you run dnm from (your terminal)."))
         items.append(CheckItem(name: "Space shortcuts", state: .unknown,
                                detail: "macOS offers no public way to read whether \"Move left a space\" and \"Move right a space\" are on. --desktop says so if they are off.",
-                               fix: "To look: System Settings > Keyboard > Keyboard Shortcuts > Mission Control > Mission Control."))
+                               fix: "To look: \(About.shortcutSettings)."))
         items.append(CheckItem(name: "First Desktop", state: .info,
                                detail: "macOS gives each new Desktop a copy of the first Desktop's wallpaper on that display, so a label on Desktop 1 also appears on new Desktops."))
         items.append(storeItem())

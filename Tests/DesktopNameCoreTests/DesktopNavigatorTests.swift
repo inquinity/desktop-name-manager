@@ -136,6 +136,7 @@ final class FakeSwitcher: DesktopSwitching {
             } catch let error as DnmError {
                 let text = error.errorDescription ?? ""
                 #expect(text.contains("only one Desktop") && text.contains("shortcuts are off"))
+                #expect(text.contains("Keyboard (near the bottom of the sidebar)") && text.contains("expand the Mission Control group"))
             }
             #expect(!ran)
             #expect(fake.pointerRestored)

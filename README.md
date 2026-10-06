@@ -68,7 +68,9 @@ Desktop it started on. The pointer moves to that display and returns. Don't type
   Accessibility item there). Quit and reopen the app after turning it on. macOS gives apps no public way to switch Desktops, so `dnm` presses
   macOS's own "Move left a space" and "Move right a space" shortcuts. Nothing else is typed or read.
   `dnm` never asks for the permission itself; without it, `--desktop` stops and changes nothing.
-- **The shortcuts turned on**: System Settings > Keyboard > Keyboard Shortcuts > Mission Control.
+- **The shortcuts turned on**: System Settings > **Keyboard** (near the bottom of the sidebar) >
+  Keyboard Shortcuts… > Mission Control, then **expand** the Mission Control group and turn on "Move left
+  a space" and "Move right a space". The Shortcuts… button in Desktop & Dock does not list them.
   Their state cannot be read publicly; if nothing moves, `dnm` says the display has one Desktop or
   the shortcuts are off, and changes nothing.
 
