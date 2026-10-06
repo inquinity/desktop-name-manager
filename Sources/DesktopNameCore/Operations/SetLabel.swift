@@ -37,7 +37,9 @@ extension DesktopLabeler {
         let original: Original
         if let ours = stamp(for: current.url, in: manifest) {
             original = ours.original
-            replacing = ours.isActive ? ours : nil
+            // Any of our labels showing here counts, whatever its record says: macOS gives new Desktops a
+            // copy of the first Desktop's image, so one labeled image can be on several Desktops.
+            replacing = ours
         } else {
             // A file named like ours that this store does not know (another store, a lost manifest) must not
             // become an "original": it would stack labels and be deleted by that store's cleanup.
@@ -68,8 +70,10 @@ extension DesktopLabeler {
         do {
             snapshot = try store.transaction { manifest in
                 let before = manifest
+                // Bookkeeping only (for undo and prune): other Desktops may still show the old image, which
+                // stays untouched on disk.
                 if let replacing, let index = manifest.stamps.firstIndex(where: { $0.id == replacing.id }) {
-                    manifest.stamps[index].state = .retired(at: now, reason: .replaced)
+                    if manifest.stamps[index].isActive { manifest.stamps[index].state = .retired(at: now, reason: .replaced) }
                     manifest.stamps[index].supersededBy = id
                 }
                 manifest.stamps.append(Stamp(id: id, fileName: fileName, label: rendered.label, original: original,

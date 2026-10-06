@@ -47,13 +47,15 @@ import Testing
         #expect(try h.store.readManifest().stamps.count == 1)
     }
 
-    @Test func retiredStampsAreDeletedAfterTheCoolDown() throws {
+    @Test func retiredStampsAreKeptBecauseOtherDesktopsMayShowThem() throws {
+        // macOS gives new Desktops a copy of the first Desktop's image, so a removed or replaced label may still
+        // be on screen elsewhere. Cleanup never deletes a stamp that has a manifest entry; only prune does.
         let h = try Harness(); defer { h.cleanUp() }
         let stamp = try h.add(Fixtures.stamp(state: .retired(at: h.clock.now, reason: .replaced)))
-        h.clock.advance(minutes: 31)
+        h.clock.advance(minutes: 60 * 24)
         try h.run()
-        #expect(!h.exists(stamp.fileName))
-        #expect(try h.store.readManifest().stamps.isEmpty)
+        #expect(h.exists(stamp.fileName))
+        #expect(try h.store.readManifest().stamps.count == 1)
     }
 
     @Test func activeStampsAreNeverDeleted() throws {
@@ -111,9 +113,8 @@ import Testing
         #expect(try h.store.readManifest().changes.isEmpty)
     }
 
-    @Test func manyRelabelingsLeaveOnlyActiveAndRecentStamps() throws {
+    @Test func manyRelabelingsKeepEveryAppliedStampUntilPruned() throws {
         let h = try Harness(); defer { h.cleanUp() }
-        // 100 consecutive relabelings, one per minute; each replaces the previous stamp.
         var active: Stamp?
         for _ in 0..<100 {
             h.clock.advance(minutes: 1)
@@ -128,11 +129,10 @@ import Testing
         }
         h.clock.advance(minutes: 31)
         try h.run()
-        let remaining = try h.store.readManifest().stamps
-        #expect(remaining.count == 1)
-        #expect(remaining.first?.id == active?.id)
+        // Every applied stamp stays (SC-006): they are deleted only through a confirmed prune.
+        #expect(try h.store.readManifest().stamps.count == 100)
         let files = try FileManager.default.contentsOfDirectory(atPath: h.store.directory.path).filter(Cleanup.isOurFileName)
-        #expect(files == [active!.fileName])
+        #expect(files.count == 100)
     }
 
     @Test func whenNothingIsDueCleanupNeitherLocksNorWrites() throws {

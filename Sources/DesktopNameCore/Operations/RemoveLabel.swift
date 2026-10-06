@@ -27,7 +27,8 @@ extension DesktopLabeler {
         let current = try system.currentWallpaper(on: display)
         let manifest = try store.readManifest()
 
-        guard let stamp = stamp(for: current.url, in: manifest), stamp.isActive else {
+        // Any of our labels showing here counts, whatever its record says (a shared image, see SetLabel).
+        guard let stamp = stamp(for: current.url, in: manifest) else {
             return RemoveLabelResult(outcome: .noLabel, displayName: display.name)
         }
         // Fail before changing anything if the original cannot be found.
@@ -36,7 +37,8 @@ extension DesktopLabeler {
         let now = time.now
         let snapshot = try store.transaction { manifest -> Manifest in
             let before = manifest
-            if let index = manifest.stamps.firstIndex(where: { $0.id == stamp.id }) {
+            // Bookkeeping only: other Desktops may still show this image, so it stays on disk.
+            if let index = manifest.stamps.firstIndex(where: { $0.id == stamp.id }), manifest.stamps[index].isActive {
                 manifest.stamps[index].state = .retired(at: now, reason: .removed)
             }
             manifest.changes.removeAll { $0.displayUUID == display.uuid }

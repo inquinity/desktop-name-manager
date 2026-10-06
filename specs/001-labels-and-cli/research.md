@@ -204,8 +204,8 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
 
 - **Decision**: a labeled image (stamp) may be shown on any number of Desktops. Any of our stamp files
   shown on the targeted Desktop counts as its label, whatever its record says; `set`, `remove` and `undo`
-  change only that Desktop; a stamp's record keeps `applied` (it was set on a Desktop at least once) and a
-  status for `prune`, but no status ever deletes an applied stamp automatically.
+  change only that Desktop; a stamp's state is bookkeeping for `undo` and `prune`, and no state ever
+  deletes a stamp automatically: every manifest entry was applied (failed sets are rolled back).
 - **Why**: macOS gives each new Desktop a copy of the first Desktop's wallpaper by reference to the same
   file, and public interfaces cannot show which Desktops share it (`docs/research/desktop-association.md`).
 - **Alternatives**: reading the private wallpaper store or Space list (rejected: the product is public

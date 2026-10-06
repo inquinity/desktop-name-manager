@@ -31,7 +31,7 @@ extension DesktopLabeler {
         // Connected displays, main first, each with its current Desktop first.
         for display in displays.sorted(by: { $0.isMain && !$1.isMain }) {
             let current = try system.currentWallpaper(on: display)
-            if let stamp = stamp(for: current.url, in: manifest), stamp.isActive {
+            if let stamp = stamp(for: current.url, in: manifest) {
                 shown.insert(stamp.id)
                 entries.append(DesktopEntry(displayName: display.name, connected: true, current: true, label: stamp.label.text.value,
                                             stampMissing: !store.stampFileExists(named: stamp.fileName)))

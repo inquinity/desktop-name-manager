@@ -18,7 +18,7 @@ extension DesktopLabeler {
         try cleanUp()
         let current = try system.currentWallpaper(on: display)
         let manifest = try store.readManifest()
-        guard let stamp = stamp(for: current.url, in: manifest), stamp.isActive else {
+        guard let stamp = stamp(for: current.url, in: manifest) else {
             return ShowLabelResult(displayName: display.name, isMain: display.isMain, label: nil, createdAt: nil,
                                    originalRecorded: false, stampMissing: false)
         }
