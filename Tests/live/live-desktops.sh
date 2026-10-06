@@ -4,13 +4,13 @@
 # wallpaper.
 #
 # This switches Desktops and changes their wallpapers. Run it only while you are idle, with at least three
-# Desktops on the main display (and on the second display, if there is one), all with normal image
+# Desktops on every connected display (it checks this first, without changing anything), all with normal image
 # wallpapers and "Show on all Spaces" off. The app you run it from needs the Accessibility permission
 # (`dnm check` says whether it has it), and the "Move left/right a space" shortcuts must be on.
 # It backs up the wallpaper store first, uses a private store directory, and removes its labels when it
 # finishes. Scenario 22 asks you to create a Desktop in Mission Control, and to delete it at the end.
 #
-# Usage: Tests/live/live-desktops.sh [--dnm PATH] [--second-display NAME] [--dry-run] [--help]
+# Usage: Tests/live/live-desktops.sh [--dnm PATH] [--dry-run] [--help]
 
 set -euo pipefail
 
@@ -40,7 +40,8 @@ fi
 wallpaper_store_plist="${HOME}/Library/Application Support/com.apple.wallpaper/Store/Index.plist"
 # The budget for one --desktop command (SC-008).
 command_budget_milliseconds=8000
-second_display=""
+# Every connected display, one name per line: "main" first, then the others by name. Filled in at start.
+display_list="main"
 dry_run=false
 work_directory=""
 failures=0
@@ -50,9 +51,8 @@ first_desktop_labeled=false
 new_desktop_number=""
 
 usage() {
-    print_colored "$COLOR_YELLOW" "Usage: Tests/live/live-desktops.sh [--dnm PATH] [--second-display NAME] [--dry-run] [--help]"
+    print_colored "$COLOR_YELLOW" "Usage: Tests/live/live-desktops.sh [--dnm PATH] [--dry-run] [--help]"
     print_colored "$COLOR_YELLOW" "  --dnm PATH              the dnm binary to test (default: build.noindex/release/dnm; build it first)"
-    print_colored "$COLOR_YELLOW" "  --second-display NAME   the other display for scenario 21 (default: the first one that is not main)"
     print_colored "$COLOR_YELLOW" "  --dry-run, -n           print the steps without switching Desktops or touching the wallpaper"
     print_colored "$COLOR_YELLOW" "Switches Desktops and changes real wallpapers. Run only while idle, and don't type while it runs."
 }
@@ -107,12 +107,33 @@ now_milliseconds() {
     perl -MTime::HiRes=time -e 'printf "%d\n", time * 1000'
 }
 
-# Every display the scenarios label: main, plus the second display when there is one.
+# Every display the scenarios label: main, then every other connected display.
 target_displays() {
-    printf "%s\n" "main"
-    if [[ -n "$second_display" ]]; then
-        printf "%s\n" "$second_display"
+    printf "%s\n" "$display_list"
+}
+
+find_displays() {
+    # dnm displays pads names; the main one ends in "(main)" and is addressed as "main".
+    local listing other_names
+    listing="$("$dnm_binary" displays)"
+    other_names="$(grep -v '(main)$' <<<"$listing" | sed 's/ *$//' || true)"
+    if [[ -n "$other_names" ]]; then
+        display_list="$(printf "main\n%s" "$other_names")"
     fi
+}
+
+check_three_desktops_each() {
+    # Reaching Desktop 3 read-only (show switches there and back) proves each display has enough Desktops,
+    # before anything is labeled. macOS moves Desktops between displays when monitors change.
+    local display_name problem
+    while IFS= read -r display_name; do
+        print_colored "$COLOR_YELLOW" "Checking that ${display_name} has a Desktop 3..."
+        if ! problem="$("$dnm_binary" show --display "$display_name" --desktop 3 2>&1 >/dev/null)"; then
+            print_colored "$COLOR_RED" "${problem}"
+            print_colored "$COLOR_RED" "Give every display at least three Desktops (Mission Control, +), then run this again. Nothing was labeled."
+            return 1
+        fi
+    done < <(target_displays)
 }
 
 remove_set_labels() {
@@ -207,7 +228,6 @@ timed_set() {
 while (($# > 0)); do
     case "$1" in
         --dnm) dnm_binary="${2:?--dnm needs a path}"; shift 2 ;;
-        --second-display) second_display="${2:?--second-display needs a name}"; shift 2 ;;
         -n|--dry-run) dry_run=true; shift ;;
         -h|--help) usage; exit 0 ;;
         *) print_colored "$COLOR_RED" "Unknown option: $1"; usage; exit 2 ;;
@@ -223,10 +243,7 @@ if ! "$dry_run"; then
         print_colored "$COLOR_RED" "Grant it in System Settings > Privacy & Security > Accessibility (macOS 26) or Device Control and Data Access (macOS 27), then run this again. Nothing was changed."
         exit 1
     fi
-    if [[ -z "$second_display" ]]; then
-        # dnm displays pads names; the main one ends in "(main)".
-        second_display="$("$dnm_binary" displays | grep -v '(main)$' | sed 's/ *$//' | head -n 1 || true)"
-    fi
+    find_displays
     work_directory="$(mktemp -d "${TMPDIR:-/tmp}/dnm-live.XXXXXX")"
     cp "$wallpaper_store_plist" "${work_directory}/Index.plist.backup"
     export DNM_STORE_DIR="${work_directory}/store"
@@ -240,11 +257,8 @@ trap cleanup EXIT
 if ! "$dry_run"; then
     # So a log copied back from another Mac says what it ran on.
     print_colored "$COLOR_YELLOW" "Run on: macOS $(sw_vers -productVersion) ($(sw_vers -buildVersion)), $(uname -m), dnm $("$dnm_binary" --version), $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    if [[ -n "$second_display" ]]; then
-        print_colored "$COLOR_BRIGHTYELLOW" "Displays: main and ${second_display}."
-    else
-        print_colored "$COLOR_YELLOW" "Only one display: scenario 21 runs on the main display alone."
-    fi
+    print_colored "$COLOR_BRIGHTYELLOW" "Displays: $(target_displays | paste -sd ',' - | sed 's/,/, /g')."
+    check_three_desktops_each
 fi
 
 # --- Scenario 21: sets across displays (User Story 6) ----------------------------------------------
