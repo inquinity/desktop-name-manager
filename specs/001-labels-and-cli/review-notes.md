@@ -138,6 +138,14 @@ superseded) store check warned that macOS also made it the default for new Deskt
 behavior found on 27 (`docs/research/desktop-association.md`): the first Desktop provides the default on
 macOS 26 as well. The warning's advice ("Show on all Spaces") is wrong and the check is removed in T079.
 
+### Live run, 2026-10-06, macOS 26.7 (25G229), **Intel (x86_64)**, one display, `dnm 0.1.0-dev+90fc96f`
+
+Run by the maintainer on a 2019 Intel MacBook Pro with the universal live-test kit, log reviewed. Scenarios
+1, 2, 3 (both sizes), 5 (original byte-identical and placement back), 6, 7, 8, 9, 10, 11 and 19 passed, and
+the wallpaper was restored. The automatic style chose dark text on this wallpaper, and halo for the large
+label, so a second style path was exercised live. This is the first evidence that the Intel build works;
+Intel support is still decided at packaging (spec 005).
+
 ### Still to record
 
 The full quickstart (T070): scenarios 4, 16, 17 and 18 on both versions, and 20 to 23 after Phase 10.

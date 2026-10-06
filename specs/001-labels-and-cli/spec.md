@@ -492,8 +492,9 @@ the expected labels; the other Desktops are unchanged.
   is, to my knowledge, the last release that supports Intel Macs. Correct behavior on
   Apple silicon comes first. Intel support (a universal build) and testing on the
   maintainer's 2019 16-inch MacBook Pro (which, to my knowledge, is on macOS 26's support list)
-  are revisited at packaging (spec 005). Until it is tested, Intel support is
-  not claimed.
+  are revisited at packaging (spec 005). A universal test build passed the main live checks on that
+  Mac on macOS 26.7 (2026-10-06, see review-notes.md); Intel support is still not claimed until spec 005
+  decides on a universal release build.
 - Cleanup is opportunistic: it runs at the start or end of ordinary commands. If the tool is
   not run for days, old copies simply wait until the next run.
 - The minimum supported macOS version follows the constitution's minimum-macOS rule (oldest
