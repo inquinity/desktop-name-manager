@@ -34,7 +34,7 @@ import Testing
 
         #expect(throws: DnmError.self) { try h.labeler.setLabel(LabelText("Mail"), on: h.display) }
         #expect(try h.manifest() == before)
-        #expect(h.system.setCalls.count == 2)   // the first label: re-apply the wallpaper, then the stamp
+        #expect(h.system.setCalls.count == 1)
     }
 
     @Test func theToolNeverRetriesWithAWorkaround() throws {

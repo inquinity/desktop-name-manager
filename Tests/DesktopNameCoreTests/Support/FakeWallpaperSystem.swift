@@ -19,11 +19,6 @@ final class FakeWallpaperSystem: WallpaperSystem {
     /// Like the real system, report a newly set wallpaper only after this many reads (0 = at once).
     var readsBeforeSetShows = 0
     private var pending: [String: (wallpaper: CurrentWallpaper, readsLeft: Int)] = [:]
-    /// Models macOS's "Show on all Spaces" quirk per display: while on, a set also writes the display's default
-    /// (used for new Desktops); with `flipsAllSpacesAfterFirstSet`, macOS then turns the setting off.
-    var showOnAllSpaces: [String: Bool] = [:]
-    var flipsAllSpacesAfterFirstSet = true
-    private(set) var displayDefaultFile: [String: String] = [:]
 
     static let defaultPlacement = WallpaperPlacement(scaling: 3, clipping: true, fillColor: nil)
 
@@ -59,10 +54,6 @@ final class FakeWallpaperSystem: WallpaperSystem {
         beforeSet?()
         if let setError { throw setError }
         setCalls.append(SetCall(url: url, placement: placement, displayUUID: display.uuid))
-        if showOnAllSpaces[display.uuid] == true {
-            displayDefaultFile[display.uuid] = url.lastPathComponent
-            if flipsAllSpacesAfterFirstSet { showOnAllSpaces[display.uuid] = false }
-        }
         let shown = CurrentWallpaper(url: url, placement: placement)
         if readsBeforeSetShows > 0 {
             pending[display.uuid] = (shown, readsBeforeSetShows)

@@ -15,7 +15,8 @@ import Testing
         ("dlopen", "private framework loading"), ("dlsym", "private framework loading"),
         ("SkyLight", "private framework"), ("PrivateFrameworks", "private framework"),
         ("CGSConnection", "private framework"), ("SLSCopy", "private framework"),
-        ("CoreSymbolication", "private framework"), ("Telemetry", "telemetry"), ("Analytics", "telemetry"),
+        ("CoreSymbolication", "private framework"), ("com.apple.wallpaper", "private file (wallpaper store)"),
+        ("symbolichotkeys", "undocumented preference"), ("com.apple.spaces", "undocumented preference"), ("Telemetry", "telemetry"), ("Analytics", "telemetry"),
     ]
 
     static func swiftFiles() -> [URL] {
@@ -54,24 +55,6 @@ import Testing
         #expect(!Self.findings(in: line, file: "x").isEmpty)
         #expect(Self.findings(in: "let c = 1 // mentions URLSession in a comment", file: "x").isEmpty)
         #expect(Self.findings(in: "let d = \"URLSession\"", file: "x").isEmpty)
-    }
-
-    /// The wallpaper store is private to macOS. The tool may only read it, in one isolated file (constitution
-    /// principle I, known issue KI-1): no other file may mention it, and that file may not write anything.
-    @Test(.enabled(if: PrivacyScanTests.sourcesDirectory != nil))
-    func onlyTheStoreReaderTouchesTheWallpaperStoreAndOnlyToRead() throws {
-        var mentioning: [String] = []
-        for file in Self.swiftFiles() {
-            let text = try String(contentsOf: file, encoding: .utf8)
-            let code = text.split(separator: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("//") }.joined(separator: "\n")
-            if code.contains("com.apple.wallpaper") { mentioning.append(file.lastPathComponent) }
-            if file.lastPathComponent == "WallpaperStoreReader.swift" {
-                for writer in [".write(", "removeItem", "createFile", "setAttributes", "moveItem", "copyItem", "replaceItem", "setDesktopImageURL", "FileHandle(forWriting", "FileHandle(forUpdating"] {
-                    #expect(!code.contains(writer), "the store reader must not write: found \(writer)")
-                }
-            }
-        }
-        #expect(mentioning == ["WallpaperStoreReader.swift"], "files mentioning the wallpaper store: \(mentioning)")
     }
 
     @Test func theScanFindsWhatItShouldFind() {

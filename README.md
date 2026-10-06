@@ -53,11 +53,9 @@ there were uncommitted changes, and `-dev+unknown` if it was built without a sta
 
 Good to know:
 - The tool needs no macOS permissions and makes no network connections.
-- Turn off "Show on all Spaces" in System Settings > Wallpaper first, **for every display you label**
-  (the setting is per display). With it on, macOS applies the first wallpaper change to every Desktop on
-  that display and makes it the default for new Desktops. `dnm set` re-applies the wallpaper a Desktop
-  already shows before its first label to keep that from happening, and prints a warning with the fix if
-  macOS still made the label a default. See `specs/001-labels-and-cli/known-issues.md`.
+- macOS gives every new Desktop a copy of the **first** Desktop's wallpaper on that display (hover over +
+  in Mission Control to see it). A label on Desktop 1 therefore appears on new Desktops too; run
+  `dnm remove` on the new Desktop, or keep Desktop 1 unlabeled. See `docs/research/desktop-association.md`.
 - Removing or replacing a label keeps its labeled image for 30 minutes, so `undo` works; a
   later command cleans it up.
 

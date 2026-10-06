@@ -9,21 +9,17 @@ public final class DesktopLabeler {
     let time: TimeSource
     /// How long to wait for macOS to report a wallpaper it was just told to show.
     let settleTimeout: TimeInterval
-    /// Optional, read-only view of where macOS references a stamp (known issue KI-1).
-    let inspector: WallpaperStoreInspector?
 
-    public init(system: WallpaperSystem, store: Store, time: TimeSource = SystemTimeSource(), settleTimeout: TimeInterval = 3,
-                inspector: WallpaperStoreInspector? = WallpaperStoreReader()) {
+    public init(system: WallpaperSystem, store: Store, time: TimeSource = SystemTimeSource(), settleTimeout: TimeInterval = 3) {
         self.system = system
         self.store = store
         self.time = time
         self.settleTimeout = settleTimeout
-        self.inspector = inspector
     }
 
     /// Every command starts here: delete stamps nobody needs (FR-018).
     public func cleanUp() throws {
-        try Cleanup.run(store: store, now: time.now, inspector: inspector)
+        try Cleanup.run(store: store, now: time.now)
     }
 
     /// The wallpaper placement used for a stamp. The image already matches the display exactly,

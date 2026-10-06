@@ -13,9 +13,8 @@ import Testing
 
         try h.labeler.setLabel(LabelText("Email"), on: h.display)
 
-        // A first label re-applies the current wallpaper (see KI-1), then sets the stamp: both on the target display.
-        #expect(h.system.setCalls.count == 2)
-        #expect(h.system.setCalls.allSatisfy { $0.displayUUID == "DISPLAY-A" })
+        #expect(h.system.setCalls.count == 1)
+        #expect(h.system.setCalls[0].displayUUID == "DISPLAY-A")
         #expect(try h.system.currentWallpaper(on: other).url == originalB)
         #expect(try SyntheticImages.pixelSize(of: originalA) == (800, 500))   // original untouched
     }
