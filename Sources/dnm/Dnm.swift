@@ -13,7 +13,8 @@ struct Dnm: ParsableCommand {
         2 invalid input (bad label, option or display); 3 unsupported wallpaper.
         """,
         version: DesktopNameCoreInfo.displayVersion,
-        subcommands: [SetCommand.self, RemoveCommand.self, UndoCommand.self, ShowCommand.self, ListCommand.self, DisplaysCommand.self])
+        subcommands: [SetCommand.self, RemoveCommand.self, UndoCommand.self, ShowCommand.self, ListCommand.self, DisplaysCommand.self,
+                      PruneCommand.self])
 
     /// Parsing failures exit 2 (invalid input), as documented, instead of ArgumentParser's default.
     static func main() {

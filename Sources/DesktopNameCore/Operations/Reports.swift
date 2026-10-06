@@ -70,6 +70,19 @@ public enum Reports {
         public var displays: [Display]
     }
 
+    public struct PruneEntry: Codable, Equatable, Sendable {
+        public var label: String
+        public var reason: String
+        public var retiredAt: Date
+        public var bytes: Int64
+    }
+
+    public struct Prune: Codable, Equatable, Sendable {
+        public var candidates: [PruneEntry]
+        public var totalBytes: Int64
+        public var deleted: Bool
+    }
+
     // MARK: - Builders
 
     public static func list(_ listing: DesktopListing) -> List {
@@ -89,6 +102,11 @@ public enum Reports {
 
     public static func displays(_ displays: [DesktopNameCore.Display]) -> Displays {
         Displays(displays: displays.map { Display(name: $0.name, isMain: $0.isMain) })
+    }
+
+    public static func prune(_ result: PruneResult) -> Prune {
+        Prune(candidates: result.candidates.map { PruneEntry(label: $0.label, reason: $0.reason.rawValue, retiredAt: $0.retiredAt, bytes: $0.bytes) },
+              totalBytes: result.totalBytes, deleted: result.deleted)
     }
 
     /// One JSON document, sorted keys, ISO 8601 dates.
