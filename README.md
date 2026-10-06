@@ -27,8 +27,9 @@ build.noindex/release/dnm set "Status Report"   # label the Desktop you are on
 build.noindex/release/dnm remove                # put the original wallpaper back
 ```
 
-A label is one line of 1 to 30 characters (emoji are fine). You must be on the Desktop you
-want to label: macOS lets an app change only the Desktop currently on screen.
+A label is one line of 1 to 30 characters (emoji are fine). Commands act on the Desktop on
+screen, because macOS lets an app change only that one; `--desktop <n>` switches to another
+Desktop for you (see below).
 
 | Command | What it does |
 |---|---|
@@ -38,10 +39,43 @@ want to label: macOS lets an app change only the Desktop currently on screen.
 | `dnm show` | Show the label on the current Desktop. |
 | `dnm list` | List labeled Desktops and the current Desktop of each display. Only those are shown. |
 | `dnm displays` | List the connected displays, as `--display` accepts them. |
+| `dnm prune` | List labeled images no longer in use as a label, and with `--yes` delete them. |
+| `dnm about` | Version, where data is kept, and what permissions the tool uses and why. |
+| `dnm check` | How this Mac is set up for labels and `--desktop`, and how to fix what is missing. |
 
 `--display <name>` picks another display: its name as macOS shows it, or part of the name if
-it matches only one display. `main` always works, and it is the default. `show`, `list` and
-`displays` accept `--json`.
+it matches only one display. `main` always works, and it is the default. `show`, `list`,
+`displays`, `prune`, `about` and `check` accept `--json`.
+
+## Label sets of Desktops
+
+`set`, `remove`, `undo` and `show` accept `--desktop <n>`: the Nth Desktop of the display, numbered as
+Mission Control numbers them. A script can then label the same position on every display:
+
+```sh
+dnm set "Mail"     --display main --desktop 2
+dnm set "Mail"     --display DP   --desktop 2
+dnm set "Projects" --display main --desktop 3
+dnm set "Projects" --display DP   --desktop 3
+```
+
+What you see: the display slides to that Desktop, the label is applied, and it slides back to the
+Desktop it started on. The pointer moves to that display and returns. Don't type while it runs.
+
+`--desktop` is opt-in and needs two things, which `dnm check` reports:
+- **Accessibility** for the app you run `dnm` from (your terminal): System Settings > Privacy &
+  Security > Accessibility. macOS gives apps no public way to switch Desktops, so `dnm` presses
+  macOS's own "Move left a space" and "Move right a space" shortcuts. Nothing else is typed or read.
+  `dnm` never asks for the permission itself; without it, `--desktop` stops and changes nothing.
+- **The shortcuts turned on**: System Settings > Keyboard > Keyboard Shortcuts > Mission Control.
+  Their state cannot be read publicly; if nothing moves, `dnm` says the display has one Desktop or
+  the shortcuts are off, and changes nothing.
+
+Without `--desktop` there is no switching and no permission.
+
+A full-screen app takes a place among the Desktops in Mission Control, so it can shift the count:
+with one open, `--desktop 3` may land on a different Desktop than you expect. This edge case is not
+handled; leave full-screen apps or count them in.
 
 Exit codes: `0` success; `1` failure (for example macOS denied access to the wallpaper file,
 or undo is not possible); `2` invalid input; `3` unsupported wallpaper (dynamic, aerial,
@@ -52,12 +86,14 @@ any other build prints the commit it was built from (for example `0.1.0-dev+9398
 there were uncommitted changes, and `-dev+unknown` if it was built without a stamp).
 
 Good to know:
-- The tool needs no macOS permissions and makes no network connections.
+- Labeling the Desktop on screen needs no macOS permissions; only `--desktop` needs Accessibility.
+  The tool makes no network connections and collects no telemetry.
 - macOS gives every new Desktop a copy of the **first** Desktop's wallpaper on that display (hover over +
-  in Mission Control to see it). A label on Desktop 1 therefore appears on new Desktops too; run
-  `dnm remove` on the new Desktop, or keep Desktop 1 unlabeled. See `docs/research/desktop-association.md`.
-- Removing or replacing a label keeps its labeled image for 30 minutes, so `undo` works; a
-  later command cleans it up.
+  in Mission Control to see it), and reordering Desktops changes which one that is. A label on Desktop 1
+  therefore appears on new Desktops too; run `dnm remove` or `dnm set` on the new Desktop, or keep
+  Desktop 1 unlabeled. See `docs/research/desktop-association.md`.
+- For the same reason one labeled image can be on several Desktops, so removing or replacing a label
+  never deletes its image: `dnm prune` lists the ones no longer in use and deletes them with `--yes`.
 
 ## Status
 

@@ -2,8 +2,9 @@
 
 ## KI-1: A label on a display's first Desktop is copied to new Desktops
 
-**Status:** understood and redesigned (2026-10-05); the old "re-apply first" fix and the private store reader
-are being removed. Details: `docs/research/desktop-association.md`.
+**Status:** resolved in spec 001 (2026-10-05): shared images, `prune`, `--desktop`, the Desktop 1 note and the
+README section are in; the "re-apply first" fix and the private store reader are removed. The macOS behavior
+itself remains. Details: `docs/research/desktop-association.md`.
 
 **What happens.** macOS keeps, for each display, a default wallpaper for new Desktops that mirrors whichever
 Desktop is first in Mission Control (hover over + in Mission Control to see it). A new Desktop starts with

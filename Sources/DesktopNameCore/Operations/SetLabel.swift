@@ -5,8 +5,6 @@ public struct SetLabelResult: Equatable, Sendable {
     public var displayName: String
     /// True when the Desktop already had a label that this one replaced.
     public var replaced: Bool
-    /// Things the user should know, for example that macOS also made the label the default for new Desktops.
-    public var warnings: [String] = []
 }
 
 extension SetLabelResult {

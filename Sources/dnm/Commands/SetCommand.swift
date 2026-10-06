@@ -37,7 +37,6 @@ struct SetCommand: ParsableCommand {
             if place.desktop == 1 {
                 Output.err("dnm: note: macOS gives every new Desktop on \(display.name) a copy of Desktop 1's wallpaper, so new Desktops there will show this label too. Run `dnm remove` on such a Desktop, or keep Desktop 1 unlabeled.")
             }
-            for warning in result.warnings { Output.err("dnm: warning: \(warning)") }
         }
     }
 }
