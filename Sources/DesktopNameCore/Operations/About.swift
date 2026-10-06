@@ -14,6 +14,9 @@ public struct AboutInfo: Equatable, Sendable, Encodable {
 public enum About {
     public static let source = "https://github.com/inquinity/desktop-name-manager"
 
+    /// Where the Accessibility permission is granted; macOS 27 renamed the panel.
+    public static let accessibilitySettings = "System Settings > Privacy & Security > Accessibility (macOS 26) or Device Control and Data Access (macOS 27)"
+
     /// The permissions statement, shared with the app's About window.
     public static let permissions = [
         "Labeling the current Desktop needs no permissions.",

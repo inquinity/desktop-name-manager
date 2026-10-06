@@ -41,7 +41,8 @@ import Testing
         let spaces = try item("Separate Spaces", in: report)
         #expect(spaces.state == .attention && spaces.fix?.contains("Displays have separate Spaces") == true)
         let access = try item("Accessibility", in: report)
-        #expect(access.state == .attention && access.fix?.contains("Privacy & Security > Accessibility") == true)
+        #expect(access.state == .attention && access.fix?.contains("Privacy & Security > Accessibility (macOS 26)") == true
+            && access.fix?.contains("Device Control and Data Access (macOS 27)") == true)
         #expect(access.detail.contains("Only --desktop needs it"))
     }
 

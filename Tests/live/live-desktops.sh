@@ -217,7 +217,7 @@ if ! "$dry_run"; then
     command -v perl >/dev/null || { print_colored "$COLOR_RED" "perl is needed to time the commands."; exit 1; }
     if ! accessibility_granted; then
         print_colored "$COLOR_RED" "The app running this script does not have the Accessibility permission, which --desktop needs."
-        print_colored "$COLOR_RED" "Grant it in System Settings > Privacy & Security > Accessibility, then run this again. Nothing was changed."
+        print_colored "$COLOR_RED" "Grant it in System Settings > Privacy & Security > Accessibility (macOS 26) or Device Control and Data Access (macOS 27), then run this again. Nothing was changed."
         exit 1
     fi
     if [[ -z "$second_display" ]]; then

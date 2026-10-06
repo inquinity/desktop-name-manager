@@ -44,7 +44,7 @@ Desktops slide on screen and the person must not type meanwhile.
 |---|---|---|
 | `n` is not a positive whole number | 2 | `--desktop takes a Desktop number, 1 or more.` |
 | The display has fewer than `n` Desktops | 2 | `<display> has <k> Desktops; there is no Desktop <n>. Nothing was changed.` |
-| Accessibility not granted | 1 | Says why it is needed and where to grant it (System Settings > Privacy & Security > Accessibility, for the app running `dnm`). Never prompts. |
+| Accessibility not granted | 1 | Says why it is needed and where to grant it (System Settings > Privacy & Security > Accessibility on macOS 26, Device Control and Data Access on macOS 27, for the app running `dnm`). Never prompts. |
 | Shortcuts turned off | 1 | Names the two shortcuts and where to turn them on. |
 | A step cannot be confirmed | 1 | Says so; the display is returned to its starting Desktop. |
 | The person (or another app) switched Desktops meanwhile | 1 | Says so and that `dnm` did not switch back (the position is unknown); if it happened while labeling, says to check with `dnm show`. |

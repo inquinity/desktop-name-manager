@@ -149,7 +149,8 @@ notarized, and not for installing.
    ```
 
 6. Run the Desktop-switching check (scenarios 21 to 23). First give Terminal the Accessibility permission
-   (System Settings > Privacy & Security > Accessibility) and make sure each display has at least three
+   (System Settings > Privacy & Security > Accessibility on macOS 26, or Device Control and Data Access on
+   macOS 27; on 27 there is no Accessibility item in that list) and make sure each display has at least three
    Desktops; `./dnm check` shows what is set up. Don't type while the Desktops slide. It asks you to add a
    Desktop in Mission Control and to delete it at the end. Remove Terminal's Accessibility afterwards if
    you like.

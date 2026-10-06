@@ -64,7 +64,8 @@ Desktop it started on. The pointer moves to that display and returns. Don't type
 
 `--desktop` is opt-in and needs two things, which `dnm check` reports:
 - **Accessibility** for the app you run `dnm` from (your terminal): System Settings > Privacy &
-  Security > Accessibility. macOS gives apps no public way to switch Desktops, so `dnm` presses
+  Security > Accessibility on macOS 26, or **Device Control and Data Access** on macOS 27 (which has no
+  Accessibility item there). Quit and reopen the app after turning it on. macOS gives apps no public way to switch Desktops, so `dnm` presses
   macOS's own "Move left a space" and "Move right a space" shortcuts. Nothing else is typed or read.
   `dnm` never asks for the permission itself; without it, `--desktop` stops and changes nothing.
 - **The shortcuts turned on**: System Settings > Keyboard > Keyboard Shortcuts > Mission Control.
