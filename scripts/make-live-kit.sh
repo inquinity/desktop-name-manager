@@ -79,7 +79,8 @@ architectures="$(lipo -archs "$built_binary")"
 rm -rf "$output_directory"
 mkdir -p "${output_directory}/Tests/live" "${output_directory}/results"
 cp "$built_binary" "${output_directory}/dnm"
-cp "${repository_root}/Tests/live/live-label.sh" "${repository_root}/Tests/live/live-safety.sh" "${output_directory}/Tests/live/"
+cp "${repository_root}/Tests/live/live-label.sh" "${repository_root}/Tests/live/live-safety.sh" \
+    "${repository_root}/Tests/live/live-desktops.sh" "${output_directory}/Tests/live/"
 cp "${repository_root}/specs/001-labels-and-cli/quickstart.md" "${output_directory}/quickstart.md"
 chmod +x "${output_directory}/dnm" "${output_directory}"/Tests/live/*.sh
 
@@ -147,14 +148,25 @@ notarized, and not for installing.
    Tests/live/live-safety.sh 2>&1 | tee results/live-safety.txt
    ```
 
-6. Optional, from `quickstart.md`: scenario 4 (reorder Desktops, use Show Desktop, then log out and in and
+6. Run the Desktop-switching check (scenarios 21 to 23). First give Terminal the Accessibility permission
+   (System Settings > Privacy & Security > Accessibility) and make sure each display has at least three
+   Desktops; `./dnm check` shows what is set up. Don't type while the Desktops slide. It asks you to add a
+   Desktop in Mission Control and to delete it at the end. Remove Terminal's Accessibility afterwards if
+   you like.
+
+   ```sh
+   Tests/live/live-desktops.sh 2>&1 | tee results/live-desktops.txt
+   ```
+
+7. Optional, from `quickstart.md`: scenario 4 (reorder Desktops, use Show Desktop, then log out and in and
    confirm a label is still on the same Desktop), scenario 17 (a solid-color wallpaper) and scenario 18
-   (look closely for any loss of picture quality away from the label). Write your results in
+   (look closely for any loss of picture quality away from the label) and scenario 20 (the first-Desktop
+   rule, by hand). Write your results in
    `results/notes.txt`.
 
    To label by hand: `./dnm set "Test"`, wait a few seconds, then `./dnm remove`.
 
-7. Copy the whole folder back (the `results` folder matters most).
+8. Copy the whole folder back (the `results` folder matters most).
 
 ## If something looks wrong
 
@@ -166,6 +178,6 @@ if you like.
 `BUILD-INFO.txt` says which source commit this build came from.
 EOF
 
-(cd "$output_directory" && shasum -a 256 dnm Tests/live/live-label.sh Tests/live/live-safety.sh >SHA256SUMS)
+(cd "$output_directory" && shasum -a 256 dnm Tests/live/live-label.sh Tests/live/live-safety.sh Tests/live/live-desktops.sh >SHA256SUMS)
 print_colored "$COLOR_GREEN" "Kit written to ${output_directory}"
 print_colored "$COLOR_GREEN" "Copy that whole folder to the other Mac and follow README-FIRST.md inside it."

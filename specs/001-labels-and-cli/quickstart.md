@@ -65,11 +65,15 @@ Then, on Desktop 2, run the scenarios below and look at the screen each time.
 | 16 | Cool-down cleanup | After scenario 6, wait 31 minutes, run `dnm list` | Retired stamp files are gone from `$DNM_STORE_DIR`; active ones remain; no other file in the folder was touched (SC-006, FR-026). |
 | 17 | Solid color | Set the Desktop to a solid color in System Settings, `dnm set "Test"` | Either labeled as an image or declined with exit 3; record which (research R6). |
 | 18 | Image quality | Label a wallpaper with fine detail and flat color areas, compare to the original | No visible loss away from the label; record the difference measurement (research R7). |
+| 19 | Missing stamp | Delete the stamp file for a labeled Desktop, run `dnm show`, then `dnm set "Email"` | `show` says the stamp is missing; `set` rebuilds it from the original; `remove` also works (spec edge case). |
+| 20 | The first-Desktop rule and reordering (KI-1, by hand) | `dnm set "Two" --display <d> --desktop 2`. In Mission Control, hover over + for that display; drag Desktop 2 to the first position and hover again; drag it back and hover again. Finish with `dnm remove --display <d> --desktop 2` | The + preview shows the normal wallpaper, then "Two" while that Desktop is first (macOS mirrors the first Desktop), then the normal wallpaper again. `dnm` printed no warning. Matches the README and `docs/research/desktop-association.md`. |
 | 21 | Sets across displays (User Story 6) | Run the four commands of User Story 6 | Desktops 2 and 3 on both displays show LABEL1 and LABEL2; each display ends where it started; each command under 8 s. |
 | 22 | Shared label (KI-1) | Label Desktop 1 of a display, create a new Desktop there, `remove --desktop <new>` | The new Desktop returns to the original; Desktop 1 keeps its label; `show --desktop 1` still recognizes it. |
 | 23 | Prune | `dnm prune`, then `dnm prune --yes` | The first lists and changes nothing; the second deletes only images no current Desktop shows. |
-| 20 | Show on all Spaces (known issue KI-1) | With "Show on all Spaces" ON for a display, `dnm set "Test" --display <that display>`; then create a new Desktop on it (and one from another Desktop) | The label is on this Desktop only; new Desktops show your normal wallpaper, not the label; no warning is printed. Turn the setting back as it was afterwards. |
-| 19 | Missing stamp | Delete the stamp file for a labeled Desktop, run `dnm show`, then `dnm set "Email"` | `show` says the stamp is missing; `set` rebuilds it from the original; `remove` also works (spec edge case). |
+
+Scripts: `Tests/live/live-label.sh` runs 1 to 3, 5 to 11, 16 and 19; `Tests/live/live-safety.sh` runs 12
+to 15; `Tests/live/live-desktops.sh` runs 21 to 23 (it needs Accessibility for the terminal and at least
+three Desktops per display, and asks you to add and delete one Desktop). The others are by hand.
 
 Restore when finished:
 
