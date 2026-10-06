@@ -224,9 +224,9 @@ macOS behavior come from the prototype tests on macOS 27.0 (see
   missing Desktop and returning), using public interfaces only.
 - **Alternatives**: private Space switching (rejected); "Switch to Desktop N" shortcuts (off by default
   and numbered across the whole Mac, not per display); scripting Mission Control's interface (fragile).
-- **Open**: full-screen app Spaces are in the Control-arrow order but not numbered as Desktops; how to
-  detect them publicly is a task (T086); until then the tool stops if a step lands somewhere it cannot
-  confirm as a Desktop.
+- **Edge case (decided 2026-10-05, not handled)**: full-screen app Spaces are in the Control-arrow order
+  but not numbered as Desktops, so they can shift the count. The wallpaper is rarely visible there, so it
+  is documented rather than detected.
 
 ## R15. Private interfaces leave the product
 

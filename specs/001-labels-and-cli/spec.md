@@ -274,8 +274,9 @@ the expected labels; the other Desktops are unchanged.
   `remove` or `set` there.
 - Labeled images accumulate, because the tool cannot tell whether other Desktops still show one;
   `dnm prune` lists them and deletes them only when the user confirms.
-- A full-screen app occupies a Space between Desktops: `--desktop` counts only Desktops, as Mission
-  Control numbers them; if it cannot be sure it has reached a Desktop, it stops, returns, and says so.
+- A full-screen app occupies a Space among the Desktops: the shortcuts that `--desktop` uses step through
+  it too, so the count can be off by one and the label land on the full-screen Space, where the wallpaper
+  is rarely seen. Documented edge case, not handled: exit full screen first if it matters.
 - The "Move left/right a space" shortcuts are turned off, or something else is bound to them: `--desktop`
   stops with a message and changes nothing.
 - The display changes Desktop while a `--desktop` command runs (the person switches or creates one):
@@ -381,7 +382,8 @@ the expected labels; the other Desktops are unchanged.
   tell its own files from any other file. The tool MUST recognize its files by this name
   pattern together with its manifest, never by the image format alone.
 - **FR-027**: `--desktop N` MUST select the Nth Desktop of the chosen display, numbered as Mission
-  Control numbers them (full-screen app Spaces are not Desktops). The tool MUST use only public
+  Control numbers them (a full-screen app Space among them can shift the count: a documented edge case,
+  not handled). The tool MUST use only public
   interfaces: it moves the pointer to that display (and back), uses the "Move left a space" and
   "Move right a space" shortcuts, and confirms each step with the system's public notification that the
   active Desktop changed. It MUST end on the Desktop it started on, also when it fails. If the Desktop is

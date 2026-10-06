@@ -101,8 +101,9 @@ What it needs and costs:
 - About 0.6 s per step with the slide animation, plus about 1 s to confirm the left edge: 3 to 6 s for a
   label on another Desktop and back. "Reduce motion" should shorten it (not measured).
 - The person sees the Desktops slide, and should not type while it runs (it sends keystrokes).
-- Not yet checked: full-screen app Spaces, which sit among the Desktops in the Control-arrow order but are
-  not numbered as Desktops by Mission Control.
+- Full-screen app Spaces sit among the Desktops in the Control-arrow order but are not numbered as Desktops
+  by Mission Control, so they can shift the count. Decided: a documented edge case, not handled, since
+  the wallpaper is rarely seen on a full-screen Space.
 
 ## Effects of option A on spec 001
 
