@@ -126,8 +126,20 @@ report the wallpaper, now labels and removes cleanly on the real system.
 The budget is under one second on a 5K display on an Apple-silicon Mac; it is met with wide margin. The
 automatic style on this wallpaper is now "plain" (the dark-backdrop rule: a halo could not show).
 
+### Live run, 2026-10-06, macOS 26.7.1 (25G241), Apple silicon, three displays, `dnm 0.1.0-dev+90fc96f`
+
+Run by the maintainer with the live-test kit (`Tests/live/live-label.sh`), log reviewed. Scenarios 1, 2, 3
+(both sizes), 5 (original byte-identical and placement back), 6 (undo, and a second undo has nothing to undo),
+7, 8, 9, 10, 11 and 19 passed; the wallpaper was restored at the end. The safety script was reported as passed
+by the maintainer (log not reviewed).
+
+Observation: every label in this run was on the main display's first Desktop, and each time the (since
+superseded) store check warned that macOS also made it the default for new Desktops. That matches the macOS
+behavior found on 27 (`docs/research/desktop-association.md`): the first Desktop provides the default on
+macOS 26 as well. The warning's advice ("Show on all Spaces") is wrong and the check is removed in T079.
+
 ### Still to record
 
-The macOS 26 run (T070), the image-quality check (scenario 18) and scenario 4.
+The full quickstart (T070): scenarios 4, 16, 17 and 18 on both versions, and 20 to 23 after Phase 10.
 
 
