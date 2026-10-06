@@ -182,7 +182,10 @@ store_file_count() {
 }
 
 accessibility_granted() {
-    "$dnm_binary" check | grep -q '^ok  Accessibility'
+    # Capture first: with pipefail, `dnm check | grep -q` fails when grep exits early and dnm gets SIGPIPE.
+    local report
+    report="$("$dnm_binary" check)"
+    grep -q '^ok  Accessibility' <<<"$report"
 }
 
 timed_set() {
