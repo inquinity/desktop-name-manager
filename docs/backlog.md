@@ -13,7 +13,8 @@ Ideas recorded for later. None is part of a current spec.
   shortcuts with Accessibility, and for shipping the command-line tool.
 - **Multi-line labels.** Labels are one line of 30 characters for now (spec 001).
 - **Clean up all labeled images after a manual reset** (2026-10-06). After a person resets wallpapers by
-  hand (for example System Settings > Wallpaper, "Show on all Spaces" on, pick a picture, then off), the
+  hand (picking a picture in System Settings > Wallpaper on each Desktop, or turning "Show on all Spaces"
+  on, which is one setting for every display, picking a picture, and turning it off again), the
   store still holds images and records for labels no Desktop shows. `prune` deletes only retired labels,
   so these stay (seen live: a label still marked active after every Desktop was reset). The CLI (for
   example `dnm prune --all`) and the app (spec 002) need a way to delete every labeled image and record.
