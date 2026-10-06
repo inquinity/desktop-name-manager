@@ -91,6 +91,26 @@ against scratch folders to confirm finding 1. Scope: `Sources/`, `Tests/`, `scri
 pinned yet), the built release binary's signature (spec 005), and macOS-level behavior of
 `NSWorkspace.setDesktopImageURL`.
 
+### 2026-10-05: code and security review of Phase 10 (author's pass, high effort)
+
+**Independence caveat:** run by the agent that wrote the code, so T091 still needs an independent review
+(`/code-review ultra`, triggered by the maintainer). Scope: commits `a726d4b` to the T091 commit:
+shared images, `prune`, `DesktopNavigator` and `SystemDesktopSwitcher`, `--desktop`, `about`, `check`.
+
+| # | Severity | Finding | Outcome |
+|---|---|---|---|
+| 1 | medium | FR-027 requires stopping when the person switches Desktops during the command; the navigator counted only its own confirmed steps, so an extra switch would shift the target and label the wrong Desktop | Fixed: the switcher exposes macOS's count of announced Desktop changes; the navigator stops before labeling when it exceeds the steps taken, and reports when a change arrives while labeling. It cannot know its position then, so it does not switch back; FR-027 and the contract were corrected to say so. Tests added |
+| 2 | low | `dnm check` reported "Displays share one set of Spaces" on a Mac with separate Spaces: `NSScreen.screensHaveSeparateSpaces` reads false until the process has an `NSApplication` | Fixed before commit: `Configuration.current()` creates the shared application first |
+| 3 | low | `SetLabelResult.warnings` stayed after T079 removed the only warning | Removed |
+| 4 | low | With the shortcuts remapped or off, the Control-Left/Right presses reach the frontmost app (for example a terminal moves a word) | Accepted: one press each way before the tool stops with the "shortcuts are off" message; documented in the README |
+| 5 | info | A failure inside the operation hides a failure to switch back (`try?`) | Accepted: the operation's error is the one to show; the next command still acts correctly |
+
+Security notes (static): the only events posted are Control-Left/Right key presses at the HID tap and pointer
+moves, which are restored; Accessibility is checked with `AXIsProcessTrusted` and never prompted; no private
+interfaces (the privacy scan passes); `check` reads only and creates nothing; `about` prints the data
+directory with the home folder as `~`. Results: 196 tests pass (177 core, 18 CLI, 1 snapshot); Periphery
+reports no unused code.
+
 ## Measurements
 
 ### Live run, 2026-10-03, macOS 27.0.1 (this Mac), main display, `Tests/live/live-label.sh`
@@ -149,5 +169,6 @@ Intel support is still decided at packaging (spec 005).
 ### Still to record
 
 The full quickstart (T070): scenarios 4, 16, 17 and 18 on both versions, and 20 to 23 after Phase 10.
+The independent review of Phase 10 (T091).
 
 

@@ -398,8 +398,11 @@ the expected labels; the other Desktops are unchanged.
   active Desktop changed. It MUST end on the Desktop it started on, also when it fails. Without `--desktop`
   there is no switching and no permission; with it, the tool needs the Accessibility permission: when it is missing, the tool MUST change nothing, say why it is needed and how to grant it,
   and MUST NOT trigger a permission prompt on its own. A Desktop number that does not exist, shortcuts
-  that are off, a step that cannot be confirmed, or a change made by the person during the command MUST
-  stop the command with a message, return to the starting Desktop and label nothing. When no step moves at all,
+  that are off, or a step that cannot be confirmed MUST stop the command with a message, return to the
+  starting Desktop and label nothing. A Desktop change made by the person during the command (more
+  changes announced than steps taken) MUST stop it with a message; the position is then unknown, so the
+  tool does not switch back and says so, and if the change came while labeling it says the label may be
+  on another Desktop. When no step moves at all,
   the display either has a single Desktop or the shortcuts are off, which public interfaces cannot tell apart;
   the tool MUST then refuse and say both possibilities, rather than risk acting on the wrong Desktop.
 - **FR-028**: The documentation MUST explain the macOS behavior that a display's first Desktop provides

@@ -16,6 +16,9 @@ final class FakeSwitcher: DesktopSwitching {
     private(set) var pointedAt: String?
     private(set) var pointerRestored = false
     private(set) var visitedPositions: [Int] = []
+    private(set) var announcedChanges = 0
+    /// A step (counted from 1) during which the person also switches one Desktop right.
+    var personSwitchesAtStep: Int?
 
     init(desktops: Int, position: Int) {
         self.desktops = desktops
@@ -36,7 +39,16 @@ final class FakeSwitcher: DesktopSwitching {
         guard (1...desktops).contains(next) else { return false }
         position = next
         visitedPositions.append(next)
-        return !unconfirmedSteps.contains(steps)
+        if personSwitchesAtStep == steps { personSwitches() }
+        guard !unconfirmedSteps.contains(steps) else { return false }
+        announcedChanges += 1
+        return true
+    }
+
+    /// The person moves one Desktop right (or left at the last one), and macOS announces it.
+    func personSwitches() {
+        position = position < desktops ? position + 1 : position - 1
+        announcedChanges += 1
     }
 }
 
@@ -71,6 +83,32 @@ final class FakeSwitcher: DesktopSwitching {
         #expect(!ran)
         #expect(fake.position == 2)
         #expect(fake.pointerRestored)
+    }
+
+    @Test func aSwitchByThePersonWhileSwitchingStopsBeforeLabeling() throws {
+        let fake = FakeSwitcher(desktops: 4, position: 3)
+        fake.personSwitchesAtStep = 2
+        var ran = false
+        do {
+            try DesktopNavigator(switcher: fake).visit(desktop: 2, on: display) { ran = true }
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect(error.exitCode == 1)
+            #expect((error.errorDescription ?? "").contains("Nothing was labeled"))
+        }
+        #expect(!ran)
+        #expect(fake.pointerRestored)
+    }
+
+    @Test func aSwitchByThePersonDuringTheChangeIsReported() throws {
+        let fake = FakeSwitcher(desktops: 4, position: 3)
+        do {
+            try DesktopNavigator(switcher: fake).visit(desktop: 2, on: display) { fake.personSwitches() }
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect(error.exitCode == 1)
+            #expect((error.errorDescription ?? "").contains("dnm show"))
+        }
     }
 
     @Test func withoutAccessibilityNothingMovesAndTheReasonIsGiven() throws {

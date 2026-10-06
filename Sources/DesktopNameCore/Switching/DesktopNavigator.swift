@@ -12,6 +12,8 @@ public protocol DesktopSwitching {
     func restorePointer(_ location: CGPoint)
     /// Presses "Move left a space" or "Move right a space"; true if macOS announced a Desktop change.
     func step(_ direction: StepDirection) -> Bool
+    /// Every Desktop change macOS has announced so far, the person's included.
+    var announcedChanges: Int { get }
 }
 
 public enum StepDirection: Sendable {
@@ -44,6 +46,7 @@ public struct DesktopNavigator {
         }
         let savedPointer = try switcher.pointAt(display)
         defer { switcher.restorePointer(savedPointer) }
+        let baseline = switcher.announcedChanges
 
         // Find the start: step left to Desktop 1, counting the steps.
         var lefts = 0
@@ -74,12 +77,23 @@ public struct DesktopNavigator {
             at += 1
         }
 
+        // More changes than steps means the person (or another app) switched Desktops meanwhile: the position is
+        // no longer known, so stop rather than label the wrong Desktop.
+        let moves = lefts + (lefts == 0 ? 2 : 0) + (target - 1)
+        guard switcher.announcedChanges - baseline == moves else {
+            throw DnmError.failure("The Desktop on \(display.name) changed while dnm was switching (another switch or shortcut). Nothing was labeled. dnm no longer knows where it is, so it did not switch back; return to your Desktop yourself.")
+        }
+        let beforeBody = switcher.announcedChanges
+
         let result: T
         do {
             result = try body()
         } catch {
             try? returnTo(origin, from: at, on: display)
             throw error
+        }
+        guard switcher.announcedChanges == beforeBody else {
+            throw DnmError.failure("The Desktop on \(display.name) changed while dnm was working on Desktop \(target), so the change may have gone to another Desktop. Check with `dnm show`, and run `dnm undo` if needed. dnm did not switch back.")
         }
         try returnTo(origin, from: at, on: display)
         return result
@@ -137,6 +151,8 @@ public final class SystemDesktopSwitcher: DesktopSwitching {
     }
 
     public var isTrusted: Bool { AXIsProcessTrusted() }
+
+    public var announcedChanges: Int { changes.value }
 
     public func pointAt(_ display: Display) throws -> CGPoint {
         let saved = CGEvent(source: nil)?.location ?? .zero
