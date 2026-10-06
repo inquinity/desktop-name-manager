@@ -177,6 +177,26 @@ LG HDR 4K
                 { "name": "LG HDR 4K", "isMain": false } ] }
 ```
 
+## `dnm about`
+
+Prints the tool's name, version (as `--version` prints it), license, source location, data directory
+(home shown as `~`) and the permissions statement (FR-030). Exit `0`. `--json`:
+
+```json
+{ "name": "…", "version": "0.1.0", "license": "MIT", "source": "https://…",
+  "dataDirectory": "~/Library/Application Support/…", "permissions": ["…", "…", "…"] }
+```
+
+## `dnm check`
+
+Prints one line per item, in this order: macOS (version and chip), Separate Spaces, Displays (main
+marked), Accessibility (for the app running `dnm`), Space shortcuts (always "cannot be read", with where to
+look), First Desktop (the FR-028 reminder), Stored labels (active labels, images, space, what `prune` could
+free). Each line starts with `ok`, `fix`, `?` or nothing (information); a `fix` or `?` line is followed by
+how to fix or where to look. Changes nothing, takes no lock and never prompts for a permission (FR-031).
+Exit `0`. `--json`: `{ "items": [ { "name", "state": "ok" | "attention" | "unknown" | "info", "detail",
+"fix": string or null } ] }`.
+
 ## Exit codes (FR-013)
 
 | Code | Meaning |

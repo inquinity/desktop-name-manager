@@ -14,7 +14,7 @@ struct Dnm: ParsableCommand {
         """,
         version: DesktopNameCoreInfo.displayVersion,
         subcommands: [SetCommand.self, RemoveCommand.self, UndoCommand.self, ShowCommand.self, ListCommand.self, DisplaysCommand.self,
-                      PruneCommand.self])
+                      PruneCommand.self, AboutCommand.self, CheckCommand.self])
 
     /// Parsing failures exit 2 (invalid input), as documented, instead of ArgumentParser's default.
     static func main() {

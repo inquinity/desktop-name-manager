@@ -27,16 +27,7 @@ extension DesktopLabeler {
         guard store.hasManifest else { return PruneResult(candidates: [], deleted: confirm) }
         return try store.exclusive {
             try cleanUp()
-            let manifest = try store.readManifest()
-            var showing = Set<String>()
-            for display in try system.displays() {
-                if let name = try system.currentWallpaper(on: display).url?.lastPathComponent { showing.insert(name) }
-            }
-            let candidates: [PruneCandidate] = manifest.stamps.compactMap { stamp in
-                guard case .retired(let at, let reason) = stamp.state, !showing.contains(stamp.fileName) else { return nil }
-                let size = (try? store.fileURL(named: stamp.fileName).resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
-                return PruneCandidate(label: stamp.label.text.value, reason: reason, retiredAt: at, bytes: Int64(size), fileName: stamp.fileName)
-            }.sorted { $0.retiredAt < $1.retiredAt }
+            let candidates = try pruneCandidates(in: try store.readManifest())
 
             if confirm && !candidates.isEmpty {
                 let names = Set(candidates.map(\.fileName))
@@ -47,5 +38,21 @@ extension DesktopLabeler {
             }
             return PruneResult(candidates: candidates, deleted: confirm)
         }
+    }
+
+    /// The retired images not shown on any display's current Desktop. Reads only.
+    func pruneCandidates(in manifest: Manifest) throws -> [PruneCandidate] {
+        var showing = Set<String>()
+        for display in try system.displays() {
+            if let name = try system.currentWallpaper(on: display).url?.lastPathComponent { showing.insert(name) }
+        }
+        return manifest.stamps.compactMap { stamp in
+            guard case .retired(let at, let reason) = stamp.state, !showing.contains(stamp.fileName) else { return nil }
+            return PruneCandidate(label: stamp.label.text.value, reason: reason, retiredAt: at, bytes: fileSize(stamp.fileName), fileName: stamp.fileName)
+        }.sorted { $0.retiredAt < $1.retiredAt }
+    }
+
+    func fileSize(_ fileName: String) -> Int64 {
+        Int64((try? store.fileURL(named: fileName).resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0)
     }
 }

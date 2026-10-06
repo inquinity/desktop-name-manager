@@ -73,6 +73,28 @@ import Testing
     }
 
     @Test(.enabled(if: CLI.binary != nil))
+    func aboutStatesThePermissions() throws {
+        let about = try CLI.run(["about"])
+        #expect(about.status == 0)
+        #expect(about.output.contains("Accessibility is used only by --desktop"))
+        let json = try CLI.run(["about", "--json"])
+        let root = try #require(try JSONSerialization.jsonObject(with: Data(json.output.utf8)) as? [String: Any])
+        #expect(Set(root.keys) == ["name", "version", "license", "source", "dataDirectory", "permissions"])
+    }
+
+    @Test(.enabled(if: CLI.binary != nil))
+    func checkReportsAndChangesNothing() throws {
+        let store = CLI.scratchStore()
+        let check = try CLI.run(["check"], store: store)
+        #expect(check.status == 0)
+        #expect(check.output.contains("Space shortcuts"))
+        let json = try CLI.run(["check", "--json"], store: store)
+        let root = try #require(try JSONSerialization.jsonObject(with: Data(json.output.utf8)) as? [String: Any])
+        #expect((root["items"] as? [[String: Any]])?.count == 7)
+        #expect(!FileManager.default.fileExists(atPath: store))
+    }
+
+    @Test(.enabled(if: CLI.binary != nil))
     func rootHelpDocumentsTheExitCodes() throws {
         let help = try CLI.run(["--help"])
         #expect(help.output.contains("Exit codes"))
