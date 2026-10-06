@@ -185,6 +185,25 @@ Earlier label names (LABEL1, LABEL2, First). Log kept locally (`working-notes/`)
 Script changes since: labels name their place ("Display N - Desktop M"), a display legend, every display
 covered, a read-only Desktop 3 pre-check, the number prompt re-asks, and failed LOOKs record what was seen.
 
+### Live run, 2026-10-06, macOS 27.0.1, Apple silicon, two displays, `Tests/live/live-desktops.sh`, `dnm 0.1.0-dev+ed72078`
+
+Scenarios 21 to 23 all pass, with no failed checks (log kept locally in `working-notes/`). Three Desktops per
+display, plain image wallpapers, labels named by place.
+
+- Pre-check: both displays reached Desktop 3 read-only.
+- Scenario 21: four `set --desktop` commands, each label on the Desktop it names and nowhere else (checked
+  with `show --desktop` and in Mission Control); each display returned to its starting Desktop. Times:
+  4.3, 6.7, 5.1 and 6.7 s (SC-008: under 8 s).
+- Scenario 22: the Desktop 1 note printed; the new Desktop shared the label (macOS copied Desktop 1);
+  `remove --desktop 4` restored it while Desktop 1 kept its label.
+- Scenario 23: `undo --desktop` brought the shared label back; after removing it from Desktop 1, `prune`
+  listed the four retired images, deleted nothing, and left out the image on screen; `prune --yes` deleted
+  the four and kept the one on screen.
+- Afterwards every Desktop showed its original wallpaper, checked with the research observer.
+
+Still open for T092: macOS 26 (the kit), a one-display and a three-display run with the new labels, and the
+speed concern (9.3 s once in the three-display run).
+
 ### Still to record
 
 The full quickstart (T070): scenarios 4, 16, 17 and 18 on both versions, and 20 to 23 after Phase 10.
