@@ -96,6 +96,20 @@ display_for_tool() {
     printf "%s" "$1"
 }
 
+check_three_desktops_each() {
+    # Reaching Desktop 3 read-only (show switches there and back) proves each display has enough Desktops,
+    # before the long run starts. macOS moves Desktops between displays when monitors change.
+    local display_name problem
+    while IFS= read -r display_name; do
+        print_colored "$COLOR_YELLOW" "Checking that ${display_name} has a Desktop 3..."
+        if ! problem="$("$dnm_binary" show --display "$display_name" --desktop 3 2>&1 >/dev/null)"; then
+            print_colored "$COLOR_RED" "${problem}"
+            print_colored "$COLOR_RED" "Give every display at least three Desktops (Mission Control, +), then run this again."
+            return 1
+        fi
+    done < <(connected_displays)
+}
+
 time_show() {
     # time_show <display> <start> <target> <rep>: one timed `dnm show --desktop`, as a CSV row.
     local display_name=$1 start_desktop=$2 target_desktop=$3 repetition=$4
@@ -172,6 +186,10 @@ tool_log="${results_directory}/switch-timing-${display_count}displays-${run_stam
 
 if ! "$dry_run"; then
     print_colored "$COLOR_YELLOW" "Run on: macOS $(sw_vers -productVersion) ($(sw_vers -buildVersion)), $(uname -m), ${display_count} display(s), dnm $("$dnm_binary" --version), ${run_stamp}"
+fi
+
+if ! "$dry_run"; then
+    check_three_desktops_each
 fi
 
 # --- Part 1: step timing (switch-timing) -------------------------------------------------------------

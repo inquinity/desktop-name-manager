@@ -182,6 +182,22 @@ func record(_ display: String, _ measure: String, _ gap: Double?, _ sample: Int,
                     "\(result.notifications)"].joined(separator: ","))
 }
 
+/// Appends this display's rows to the CSV file now, so an interrupted run keeps what it measured.
+func flushCSV() {
+    guard let csvPath, !csvRows.isEmpty else { return }
+    var text = csvRows.joined(separator: "\n") + "\n"
+    if !FileManager.default.fileExists(atPath: csvPath) {
+        text = environment().map(\.0).joined(separator: ",") + ",display,measure,gap_s,sample,latency_ms,notifications\n" + text
+        FileManager.default.createFile(atPath: csvPath, contents: nil)
+    }
+    if let handle = FileHandle(forWritingAtPath: csvPath) {
+        handle.seekToEndOfFile()
+        handle.write(Data(text.utf8))
+        handle.closeFile()
+    }
+    csvRows.removeAll()
+}
+
 // MARK: - Navigation
 
 /// Steps left until nothing moves; returns how many steps moved (the start position is that + 1).
@@ -248,7 +264,11 @@ for screen in chosenScreens() {
     pointAt(screen)
     let origin = walkToFirst() + 1
     let desktops = countDesktops()
-    guard desktops >= 2 else { fail("\(screen.name) has one Desktop or the shortcuts are off") }
+    guard desktops >= 2 else {
+        // Skip it and go on: macOS moves Desktops between displays when monitors change.
+        print("skipped: one Desktop (or the shortcuts are off); add Desktops in Mission Control to measure it")
+        continue
+    }
     print("started on Desktop \(origin) of \(desktops)")
     var position = desktops
 
@@ -314,20 +334,12 @@ for screen in chosenScreens() {
 
     move(from: 1, to: origin)
     print("returned to Desktop \(origin)")
+    flushCSV()
 }
 
 CGWarpMouseCursorPosition(savedPointer)
 NSWorkspace.shared.notificationCenter.removeObserver(observer)
 if let csvPath {
-    let header = environment().map(\.0).joined(separator: ",") + ",display,measure,gap_s,sample,latency_ms,notifications"
-    let text = ([header] + csvRows).joined(separator: "\n") + "\n"
-    let exists = FileManager.default.fileExists(atPath: csvPath)
-    if exists, let handle = FileHandle(forWritingAtPath: csvPath) {
-        handle.seekToEndOfFile()
-        handle.write(Data((csvRows.joined(separator: "\n") + "\n").utf8))
-        handle.closeFile()
-    } else {
-        try? text.write(toFile: csvPath, atomically: true, encoding: .utf8)
-    }
+    flushCSV()
     print("\nCSV: \(csvPath)")
 }
