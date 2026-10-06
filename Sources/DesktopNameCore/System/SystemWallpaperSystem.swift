@@ -74,7 +74,7 @@ public struct SystemWallpaperSystem: WallpaperSystem {
     }
 
     @MainActor
-    private static func screen(for display: Display) throws -> NSScreen {
+    static func screen(for display: Display) throws -> NSScreen {
         guard let screen = NSScreen.screens.first(where: { uuid(of: displayID(of: $0)) == display.uuid }) else {
             throw DnmError.failure("The display \"\(display.name)\" is no longer connected.")
         }

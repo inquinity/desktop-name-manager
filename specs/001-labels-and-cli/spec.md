@@ -246,8 +246,9 @@ the expected labels; the other Desktops are unchanged.
    labeled, the display is back where it started, and the tool says the display has three Desktops.
 3. **Given** Accessibility is not granted, **When** the user passes `--desktop`, **Then** nothing changes
    and the tool explains how to grant the permission and why it is needed; it never prompts on its own.
-4. **Given** `--desktop` is the Desktop already showing, **When** the command runs, **Then** no switching
-   happens and no permission is needed.
+4. **Given** `--desktop` is left out, **When** the command runs, **Then** it acts on the current Desktop with
+   no switching and no permission. (With `--desktop`, the tool always finds its position by switching, because
+   public interfaces cannot tell which Desktop is showing.)
 5. **Given** `--desktop` is used with `remove`, `undo` or `show`, **When** the command runs, **Then** it
    acts on that Desktop in the same way and returns.
 6. **Given** the user labels Desktop 1 of a display, **When** the command finishes, **Then** the tool also
@@ -394,12 +395,13 @@ the expected labels; the other Desktops are unchanged.
   not handled). The tool MUST use only public
   interfaces: it moves the pointer to that display (and back), uses the "Move left a space" and
   "Move right a space" shortcuts, and confirms each step with the system's public notification that the
-  active Desktop changed. It MUST end on the Desktop it started on, also when it fails. If the Desktop is
-  already showing, it MUST NOT switch or need any permission. Otherwise it needs the Accessibility
-  permission: when it is missing, the tool MUST change nothing, say why it is needed and how to grant it,
+  active Desktop changed. It MUST end on the Desktop it started on, also when it fails. Without `--desktop`
+  there is no switching and no permission; with it, the tool needs the Accessibility permission: when it is missing, the tool MUST change nothing, say why it is needed and how to grant it,
   and MUST NOT trigger a permission prompt on its own. A Desktop number that does not exist, shortcuts
   that are off, a step that cannot be confirmed, or a change made by the person during the command MUST
-  stop the command with a message, return to the starting Desktop and label nothing.
+  stop the command with a message, return to the starting Desktop and label nothing. When no step moves at all,
+  the display either has a single Desktop or the shortcuts are off, which public interfaces cannot tell apart;
+  the tool MUST then refuse and say both possibilities, rather than risk acting on the wrong Desktop.
 - **FR-028**: The documentation MUST explain the macOS behavior that a display's first Desktop provides
   the wallpaper for new Desktops (and that reordering changes which Desktop that is), with the fix
   (`remove` or `set` on the new Desktop, or keep Desktop 1 unlabeled). When `--desktop 1` is labeled,
