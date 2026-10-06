@@ -76,13 +76,25 @@ architectures="$(lipo -archs "$built_binary")"
     exit 1
 }
 
+# The switch-timing research tool (public interfaces only), universal like dnm.
+print_colored "$COLOR_BRIGHTYELLOW" "Building the switch-timing tool..."
+timing_build_directory="${repository_root}/build.noindex/research"
+mkdir -p "$timing_build_directory"
+for architecture in arm64 x86_64; do
+    swiftc -O -target "${architecture}-apple-macos26" -o "${timing_build_directory}/switch-timing-${architecture}" \
+        "${repository_root}/prototype/switch-timing.swift"
+done
+lipo -create -output "${timing_build_directory}/switch-timing-universal" \
+    "${timing_build_directory}/switch-timing-arm64" "${timing_build_directory}/switch-timing-x86_64"
+
 rm -rf "$output_directory"
 mkdir -p "${output_directory}/Tests/live" "${output_directory}/results"
 cp "$built_binary" "${output_directory}/dnm"
+cp "${timing_build_directory}/switch-timing-universal" "${output_directory}/switch-timing"
 cp "${repository_root}/Tests/live/live-label.sh" "${repository_root}/Tests/live/live-safety.sh" \
-    "${repository_root}/Tests/live/live-desktops.sh" "${output_directory}/Tests/live/"
+    "${repository_root}/Tests/live/live-desktops.sh" "${repository_root}/Tests/live/live-timing.sh" "${output_directory}/Tests/live/"
 cp "${repository_root}/specs/001-labels-and-cli/quickstart.md" "${output_directory}/quickstart.md"
-chmod +x "${output_directory}/dnm" "${output_directory}"/Tests/live/*.sh
+chmod +x "${output_directory}/dnm" "${output_directory}/switch-timing" "${output_directory}"/Tests/live/*.sh
 
 binary_checksum="$(shasum -a 256 "${output_directory}/dnm" | awk '{print $1}')"
 cat >"${output_directory}/BUILD-INFO.txt" <<EOF
@@ -162,7 +174,15 @@ notarized, and not for installing.
    Tests/live/live-desktops.sh 2>&1 | tee results/live-desktops.txt
    ```
 
-7. Optional, from `quickstart.md`: scenario 4 (reorder Desktops, use Show Desktop, then log out and in and
+7. Run the timing check. It switches Desktops for about 10 to 15 minutes but changes no wallpaper. Leave
+   System Settings as they are (don't change Reduce Motion or other settings for it). Run it once with two
+   displays and, if you can, once with three.
+
+   ```sh
+   Tests/live/live-timing.sh 2>&1 | tee -a results/live-timing.txt
+   ```
+
+8. Optional, from `quickstart.md`: scenario 4 (reorder Desktops, use Show Desktop, then log out and in and
    confirm a label is still on the same Desktop), scenario 17 (a solid-color wallpaper) and scenario 18
    (look closely for any loss of picture quality away from the label) and scenario 20 (the first-Desktop
    rule, by hand). Write your results in
@@ -170,7 +190,7 @@ notarized, and not for installing.
 
    To label by hand: `./dnm set "Test"`, wait a few seconds, then `./dnm remove`.
 
-8. Copy the whole folder back (the `results` folder matters most).
+9. Copy the whole folder back (the `results` folder matters most).
 
 ## If something looks wrong
 
@@ -182,6 +202,6 @@ if you like.
 `BUILD-INFO.txt` says which source commit this build came from.
 EOF
 
-(cd "$output_directory" && shasum -a 256 dnm Tests/live/live-label.sh Tests/live/live-safety.sh Tests/live/live-desktops.sh >SHA256SUMS)
+(cd "$output_directory" && shasum -a 256 dnm switch-timing Tests/live/*.sh >SHA256SUMS)
 print_colored "$COLOR_GREEN" "Kit written to ${output_directory}"
 print_colored "$COLOR_GREEN" "Copy that whole folder to the other Mac and follow README-FIRST.md inside it."
