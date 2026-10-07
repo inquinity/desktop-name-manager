@@ -26,3 +26,9 @@ Ideas recorded for later. None is part of a current spec.
   display, Desktop and label), so the walk to find each display's position happens once instead of once
   per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
   commands or scripts) is not known yet, and should set this item's priority.
+- **Display aliases** (2026-10-07). Short names for displays, for example `DP1` for a long monitor name, so
+  `--display DP1` works. An alias is tied to the display's stable identity (never shown), not its name, so
+  it also tells apart two monitors of the same model that report the same name, which no name or partial
+  name can do today. (A name that is part of another, such as `LG Ultra` and `LG Ultra HD`, already works:
+  an exact name wins over a partial match.) Spec 001 planned these for display roles (M4); they could come
+  sooner as a small CLI feature (`dnm alias DP1 "LG Ultra HD"`, shown by `dnm displays`).

@@ -95,7 +95,7 @@ constitution amendment for a preview stage; see the open decision in the maintai
 
 ## Related
 
-- [docs/backlog.md](docs/backlog.md): ideas not yet placed, such as batch labeling, multi-line labels,
+- [docs/backlog.md](docs/backlog.md): ideas not yet placed, such as display aliases, batch labeling, multi-line labels,
   cleaning up all labeled images, and a separate full-featured build.
 - [specs/001-labels-and-cli/known-issues.md](specs/001-labels-and-cli/known-issues.md): KI-1 (the first
   Desktop's wallpaper is copied to new Desktops) and KI-2 (Desktops of a display arrangement that is not
