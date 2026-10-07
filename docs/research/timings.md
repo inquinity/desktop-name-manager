@@ -38,6 +38,7 @@ steps). Max: every step, the confirmation run plus every gap.
 | Setup | Date | Slowest display | Median | Max | Index (median) | Index (max) | Lost / doubled |
 |---|---|---|---|---|---|---|---|
 | **M5 Pro, 27.0.1, 3 displays (baseline)** | 2026-10-06 | Built-in | 1006 ms | 1023 ms | **100%** | **100%** | 0 / 0 |
+| M5 Pro, 27.0.1, 3 displays, repeat run | 2026-10-06 | Built-in | 1003 ms | 1027 ms | 99.7% | 100.4% | 0 / 0 |
 | M5 Pro, 27.0.1, 2 displays | 2026-10-06 | Built-in | 986 ms | 1000 ms | 98.0% | 97.8% | 0 / 0 |
 | M5 Pro, 27.0.1, 2 displays, Reduce Motion on (once, for information) | 2026-10-06 | Built-in | 978 ms | 998 ms | 97.2% | 97.6% | 0 / 0 |
 | Intel i9-9980HK (MacBook Pro 16", 2019), 26.7.1 (25G241), 3 displays | 2026-10-06 | Built-in | 560 ms | 586 ms | 55.7% | 57.3% | 0 / 0 |
@@ -49,9 +50,13 @@ Other displays measured (not the slowest in their setup):
 |---|---|---|---|---|
 | M5 Pro, 27.0.1, 2 displays | DP (external) | 552 ms | 578 ms | 54.9% |
 | M5 Pro, 27.0.1, 2 displays, Reduce Motion on | DP (external) | 554 ms | 582 ms | 55.1% |
-| M5 Pro, 27.0.1, 3 displays | LG ULTRAFINE, LG Ultra HD | pending (the run stopped: LG ULTRAFINE had one Desktop) | | |
+| M5 Pro, 27.0.1, 3 displays | LG ULTRAFINE | 553 ms | 578 ms | 55.0% |
+| M5 Pro, 27.0.1, 3 displays | LG Ultra HD | 559 ms | 577 ms | 55.6% |
 | Intel, 26.7.1, 3 displays | LG ULTRAFINE | 552 ms | 577 ms | 54.9% |
 | Intel, 26.7.1, 3 displays | LG Ultra HD | 556 ms | 577 ms | 55.3% |
+
+The repeat run of the baseline setup moved by less than half a point (99.7% median, 100.4% max): that is
+the run-to-run noise to allow for when comparing runs.
 
 Gap and edge tests, every setup so far: no lost or doubled steps at any gap, including 0 ms; no late
 notifications at the edge.
@@ -67,7 +72,9 @@ notifications at the edge.
    and an external one about 550 ms; adding a third monitor moved the built-in display by about 2%.
 5. Caveat: the two- and three-display setups used different external monitors (DP against the two LG
    monitors), so the 2% also includes the change of monitors.
-6. **The CPU is not what is slow.** The Intel Mac (macOS 26.7.1) confirms in about 560 ms on every display,
+6. **The margin today is about 13 ms.** `dnm` starts its 1.0 s wait after the key press (about 40 ms), so
+   it effectively allows about 1.04 s; the slowest step seen took 1027 ms.
+7. **The CPU is not what is slow.** The Intel Mac (macOS 26.7.1) confirms in about 560 ms on every display,
    like every external monitor on the M5. Only the M5's built-in display on macOS 27 takes about 1000 ms.
    Whether that is the display or macOS 27 is open: an Apple silicon Mac on macOS 26 would tell.
 
@@ -91,6 +98,17 @@ time ≈ 1.38 s + 0.83 s × steps
 | 2 | 1 → 1, 2 → 2, 2 → 1 | 3.03 s |
 | 4 | 1 → 2, 2 → 3, 3 → any | 4.69 s |
 | 6 | 1 → 3 | 6.33 s |
+
+The M5 (27.0.1, three displays) gives the same for its LG monitors (3.00, 4.67 and 6.35 s), and for its
+built-in display `time ≈ 1.29 s + 1.28 s × steps`:
+
+| Steps | M5 built-in display | M5 LG monitors | Intel, every display |
+|---|---|---|---|
+| 2 | 3.86 s | 3.00 s | 3.03 s |
+| 4 | 6.42 s | 4.67 s | 4.69 s |
+| 6 | **8.98 s** | 6.35 s | 6.33 s |
+
+With three Desktops, `--desktop 3` from Desktop 1 on the M5's built-in display already exceeds SC-008's 8 s.
 
 Consequences:
 
