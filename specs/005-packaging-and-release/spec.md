@@ -8,6 +8,35 @@
 
 **Input**: User description: "Packaging and release (spec 005): turn the dnm command-line tool (and later the app) into a signed, notarized release that people can install and upgrade through the maintainer's existing Homebrew tap, as an unlisted ("quiet") cask. A maintainer cuts a release only after the constitution's gates pass (independent code review, security review, macOS 26 and 27 live checks). A release is built reproducibly from a tagged commit, signed with the maintainer's Developer ID, notarized and stapled, packaged as a download hosted on this repository's GitHub Releases, with release notes and a checksum. The cask lives in the existing tap, is not listed in the tap's README, installs dnm (and the desktop-name alias) onto the user's PATH, supports upgrade and uninstall, requires macOS 26 or later, and never needs permissions, network access at run time, or disabling SIP. Out of scope: Intel builds (deferred), submission to the official Homebrew cask repository, the menu-bar app itself. Maintainer-held credentials (Developer ID, notarization profile) never enter the repository."
 
+## Clarifications
+
+### Session 2026-10-07
+
+Decided by the maintainer before this session (roadmap and security plan), recorded here:
+
+- The first release is **M1, version 0.1.0**, a preview: the command-line tool, signed and notarized, in an
+  unlisted cask named **`desktop-name-manager`** in `inquinity/homebrew-tap`, hosted on this repository's
+  GitHub Releases. The listed release with every gate is **M5, 1.0.0** (`ROADMAP.md`).
+- **Review gate for 0.1.0:** the two security reviews in
+  `specs/001-labels-and-cli/security-plan-2026-10-07.md` stand in for the code and security reviews of
+  FR-002. The independent code review (`/code-review ultra`) and CodeQL are required from 1.0.0 (M5).
+- **No hosted CI** before M5: the procedure runs on the maintainer's Mac.
+- **The release binary is checked** (security plan S7): fail if it contains the build folder or the home
+  path (`strings`); the linkage check runs on the release binary and fails rather than skips; no research
+  tool (`prototype/`, `switch-timing`) is ever in a release.
+
+Asked in this session:
+
+- Q: Should the 0.1.0 cask install on Intel Macs as well as Apple silicon? → A: No: Apple silicon only for
+  0.1.0, as written; Intel (already built and tested universal) is revisited later.
+- Q: What should the 0.1.0 download be: a zip holding the notarized `dnm`, or a signed installer package? →
+  A: A zip of the signed, notarized, hardened-runtime binary (no entitlements). A notarization ticket cannot
+  be attached to a bare binary or a zip, so macOS checks with Apple online the first time the tool runs;
+  FR-005 is worded accordingly.
+- Q: Which user stories must work for 0.1.0, and which can wait? → A: User Stories 1, 2, 4 and 5 (release,
+  install, uninstall, verify) for 0.1.0. User Stories 3 and 6 (upgrade, withdraw) are documented for 0.1.0
+  and tested at the next release (0.1.1), the first with a predecessor.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The maintainer cuts a release that has passed its gates (Priority: P1)
@@ -30,7 +59,7 @@ The maintainer decides a version is ready. They run one release procedure for a 
 
 ### User Story 2 - A user installs the tool quietly through the tap (Priority: P1)
 
-A person who knows about the tool, but has not been told through any public listing, installs it with one Homebrew command that names the tap and the tool. They get `dnm` and its alias `desktop-name` on their PATH. macOS accepts the download without a warning, the tool asks for no permissions, and it works with the network off.
+A person who knows about the tool, but has not been told through any public listing, installs it with one Homebrew command that names the tap and the tool. They get `dnm` and its alias `desktop-name` on their PATH. macOS accepts the download without a warning, the tool asks for no permissions, and after its first run it works with the network off.
 
 **Why this priority**: Installation is the whole point of the release, and "without a warning" is a constitutional requirement.
 
@@ -40,7 +69,7 @@ A person who knows about the tool, but has not been told through any public list
 
 1. **Given** a Mac on macOS 26 or later with Homebrew, **When** the user installs the cask by its name, **Then** both `dnm` and `desktop-name` run from a new terminal and report the same version.
 2. **Given** the install has finished, **When** the user runs the tool for the first time, **Then** macOS shows no Gatekeeper warning and no permission prompt.
-3. **Given** the network is off after installation, **When** the user runs any command, **Then** it works.
+3. **Given** the tool has run once since installing, **When** the network is off and the user runs any command, **Then** it works.
 4. **Given** a Mac older than macOS 26, **When** the user tries to install, **Then** the install refuses with a clear message about the supported macOS versions and changes nothing.
 5. **Given** an Intel Mac, **When** the user tries to install, **Then** the install refuses with a clear message that only Apple-silicon Macs are supported for now, and changes nothing.
 6. **Given** the cask is in the tap, **When** someone reads the tap's public README, **Then** it does not list the tool (the cask is unlisted, not hidden: the file is in the public tap, and anyone who knows its name can install it).
@@ -48,6 +77,8 @@ A person who knows about the tool, but has not been told through any public list
 ---
 
 ### User Story 3 - A user upgrades to a newer release (Priority: P2)
+
+*Documented for 0.1.0; tested from 0.1.1, the first release with a predecessor.*
 
 When a new release is published, a user who installed earlier upgrades with the normal Homebrew upgrade command and gets the new version. Everything they had set up (their labels, and the Desktops that show them) keeps working through the upgrade.
 
@@ -96,6 +127,8 @@ A cautious user or reviewer can check a release without trusting the maintainer'
 
 ### User Story 6 - The maintainer can withdraw a bad release (Priority: P3)
 
+*Documented for 0.1.0; tested from 0.1.1.*
+
 If a published release turns out to be bad, the maintainer can withdraw it quickly so new installs stop getting it, and point users at the last good release.
 
 **Why this priority**: Mistakes happen; the recovery path must exist before it is needed.
@@ -126,10 +159,10 @@ If a published release turns out to be bad, the maintainer can withdraw it quick
 ### Functional Requirements
 
 - **FR-001**: A single release procedure MUST take a version number and, from a clean working tree at a tagged commit, produce a verified draft release. It MUST NOT publish, push to any public location, or change the tap unless the maintainer separately confirms each of those steps.
-- **FR-002**: The procedure MUST refuse to start, naming the unmet gate, unless: the pre-release code review and security review for that commit range are recorded with no unresolved finding (or each remaining finding is explicitly accepted in the record); live checks are recorded on macOS 26 and macOS 27; the automated tests and the unused-code scan pass; and the version number is new.
+- **FR-002**: The procedure MUST refuse to start, naming the unmet gate, unless: the pre-release code review and security review for that commit range are recorded with no unresolved finding (or each remaining finding is explicitly accepted in the record; for 0.1.0, the two security reviews of 2026-10-07 stand in for both, see Clarifications); live checks are recorded on macOS 26 and macOS 27; the automated tests and the unused-code scan pass; and the version number is new.
 - **FR-003**: The version number MUST follow semantic versioning, MUST be the single source for the tool's reported version, the tag, the download file names and the cask, and MUST NOT be reused once published. Builds that are not releases MUST report which commit they came from, and whether the tree had uncommitted changes, in the version the tool prints (for example `0.1.0-dev+9398ae4`); a release build MUST report the plain version. A build with no commit information MUST say so rather than look like a release.
 - **FR-004**: The build MUST come from the tagged commit only, with the toolchain and dependency versions recorded in the release notes, so that the same commit and toolchain give an equivalent build (identical apart from signature and timestamps).
-- **FR-005**: Release artifacts MUST be signed with the maintainer's Developer ID, notarized by Apple, and carry the notarization ticket so that macOS accepts them without a warning, including with no network connection.
+- **FR-005**: The release artifact MUST be a zip holding the `dnm` binary, signed with the maintainer's Developer ID with the hardened runtime and no entitlements, and notarized by Apple, so that macOS accepts it without a warning. Because a ticket cannot be attached to a binary or a zip, the first run after installing needs a network connection once for macOS's online notarization check; later runs need none.
 - **FR-006**: Before a release can be published, the procedure MUST verify, and show the result of, each of: the signature is valid and from the expected identity; notarization is present; macOS's download check accepts the artifact; the published checksum matches the file. Any failure MUST stop the procedure.
 - **FR-007**: Each release MUST be hosted on this repository's public releases, containing the installable download and its checksum, and release notes stating: what changed, known gaps (for example untested configurations), the gate outcomes and their record, the supported macOS versions, the source commit, the toolchain versions, and how to verify the download.
 - **FR-008**: Maintainer-held credentials (the signing identity, the notarization profile and any tokens) MUST be read from the maintainer's own keychain or environment at run time and MUST NEVER be written to the repository, to logs, to release files or to the tap. A scan of tracked files MUST fail if such a credential name or value appears.
@@ -172,6 +205,6 @@ If a published release turns out to be bad, the maintainer can withdraw it quick
 - The first release contains only the command-line tool (and its alias). The menu-bar app (spec 002) adds an app bundle to the cask later; this spec's requirements apply to it then.
 - Supported platform: macOS 26 or later on Apple-silicon Macs. Intel Macs are deferred (a universal build, with testing on the maintainer's 2019 MacBook Pro, is revisited later) and the cask refuses them until then.
 - The pre-release code and security reviews are the ones defined in the constitution and recorded in `specs/001-labels-and-cli/review-notes.md`-style records; for later features, the record lives with that feature.
-- The download format (a disk image or an archive) and the exact tool for each step are decided in planning; the requirements above hold for either.
+- The download is a zip of the binary (FR-005); the exact tool for each step is decided in planning.
 - Submitting to the official Homebrew cask repository is out of scope and needs the popularity and age thresholds noted in the project notes.
 - Release notes and the gate record are public, so they must never contain anything private (FR-017, FR-019).
