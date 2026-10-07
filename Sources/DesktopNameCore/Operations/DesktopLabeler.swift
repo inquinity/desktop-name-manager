@@ -1,4 +1,6 @@
 import AppKit
+import ImageIO
+import UniformTypeIdentifiers
 import Foundation
 
 /// The label operations (set, remove, undo, list, show) over a wallpaper system and a store.
@@ -39,18 +41,32 @@ public final class DesktopLabeler {
     /// Resolving a bookmark must never mount a volume (a network share is a network connection) or show UI.
     static let bookmarkResolution: URL.BookmarkResolutionOptions = [.withoutUI, .withoutMounting]
 
-    /// Resolves an original through its bookmark (which follows moves), falling back to its path.
+    /// Resolves an original through its bookmark (which follows moves), falling back to its path. Whatever the
+    /// manifest says, only an image file is ever read or set as the wallpaper.
     static func resolve(_ original: Original) throws -> URL {
         if let bookmark = original.bookmark {
             var stale = false
             if let url = try? URL(resolvingBookmarkData: bookmark, options: bookmarkResolution, relativeTo: nil, bookmarkDataIsStale: &stale),
                FileManager.default.fileExists(atPath: url.path) {
-                return url
+                return try requireImageFile(url)
             }
         }
         let url = URL(fileURLWithPath: original.path)
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw DnmError.originalMissing(url.lastPathComponent)
+        }
+        return try requireImageFile(url)
+    }
+
+    /// A regular file (after following links) that is an image: by its type, or, for a file without a telling
+    /// extension, by ImageIO reading at least one image from it.
+    static func requireImageFile(_ url: URL) throws -> URL {
+        let resolved = url.resolvingSymlinksInPath()
+        let values = try? resolved.resourceValues(forKeys: [.isRegularFileKey, .contentTypeKey])
+        let isImage = values?.contentType?.conforms(to: .image) == true
+            || CGImageSourceCreateWithURL(resolved as CFURL, nil).map { CGImageSourceGetCount($0) > 0 } == true
+        guard values?.isRegularFile == true, isImage else {
+            throw DnmError.failure("The recorded original \(url.lastPathComponent) is not an image file, so it was not used. Choose a wallpaper in System Settings > Wallpaper. Nothing was changed.")
         }
         return url
     }
