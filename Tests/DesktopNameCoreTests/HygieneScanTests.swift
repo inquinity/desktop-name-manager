@@ -1,9 +1,11 @@
+import CryptoKit
 import Foundation
 import Testing
 
 /// FR-021 and constitution principle VIII: the repository is public, so tracked files must not
 /// contain personal paths, user names, display or Space identifiers, keychain profile names or
-/// personal images. The patterns are assembled from pieces so this file does not match itself.
+/// personal images. The patterns are assembled from pieces, or kept as hashes, so this file does not match
+/// itself or reveal what it guards.
 @Suite struct HygieneScanTests {
     static let repositoryRoot: URL? = {
         var directory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
@@ -38,12 +40,25 @@ import Testing
     /// Names that are clearly placeholders, not a person.
     static let placeholderUsers: Set<String> = ["Shared", "Guest", "example", "user", "username", "you", "name", "yourname", "me"]
 
-    static func scan(_ text: String, file: String) -> [Finding] {
+    /// SHA-256 of names that must never appear, such as the maintainer's notary keychain profile. Only the hashes
+    /// are kept, so this public file does not reveal the names it guards.
+    static let deniedTokenHashes: Set<String> = ["c25d32a3dc5c48511cd6c71e727ff4049a7825e77ac7c9e8c8e8378d25fdf057"]
+
+    /// True if any word of the line (letters, digits, `-`, `_` and `.`) hashes to one of `hashes`.
+    static func containsDeniedToken(_ line: String, hashes: Set<String>) -> Bool {
+        let tokens = line.split { !($0.isLetter || $0.isNumber || "-_.".contains($0)) }
+        return tokens.contains { hashes.contains(sha256(String($0))) }
+    }
+
+    static func sha256(_ text: String) -> String {
+        SHA256.hash(data: Data(text.utf8)).map { String(format: "%02x", $0) }.joined()
+    }
+
+    static func scan(_ text: String, file: String, deniedTokenHashes: Set<String> = deniedTokenHashes) -> [Finding] {
         var findings: [Finding] = []
         let homePrefix = "/Us" + "ers/"
         let uuidPattern = try! NSRegularExpression(pattern: "[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}")
-        let keychainProfile = ["altman", "notary"].joined(separator: "-")
-
+        
         for (index, line) in text.split(separator: "\n", omittingEmptySubsequences: false).enumerated() {
             let lineText = String(line)
             if lineText.contains("hygiene-allow:") { continue }
@@ -60,7 +75,7 @@ import Testing
             if uuidPattern.firstMatch(in: lineText, range: whole) != nil {
                 findings.append(Finding(file: file, line: index + 1, rule: "UUID-shaped identifier (display or Space id?)"))
             }
-            if lineText.contains(keychainProfile) {
+            if Self.containsDeniedToken(lineText, hashes: deniedTokenHashes) {
                 findings.append(Finding(file: file, line: index + 1, rule: "keychain profile name"))
             }
         }
@@ -93,7 +108,9 @@ import Testing
         #expect(!Self.scan(homePath, file: "x").isEmpty)
         #expect(Self.scan("/Us" + "ers/<name>/Pictures and /Us" + "ers/Shared", file: "x").isEmpty)
         #expect(!Self.scan("display " + ["0A1B2C3D", "0000", "1111", "2222", "333344445555"].joined(separator: "-"), file: "x").isEmpty)
-        #expect(!Self.scan("profile " + ["altman", "notary"].joined(separator: "-"), file: "x").isEmpty)
+        let guarded = Self.sha256("example-notary")
+        #expect(!Self.scan("profile example-notary here", file: "x", deniedTokenHashes: [guarded]).isEmpty)
+        #expect(Self.scan("profile example-notarized here", file: "x", deniedTokenHashes: [guarded]).isEmpty)
         #expect(Self.scan("nothing sensitive here", file: "x").isEmpty)
     }
 }
