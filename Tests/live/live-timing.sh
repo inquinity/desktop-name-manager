@@ -124,20 +124,26 @@ time_show() {
 }
 
 summarize_dnm_timings() {
-    # Median and maximum per display, start and target, from this run's rows.
-    print_colored "$COLOR_BRIGHTYELLOW" "dnm show --desktop: median / max ms per start -> target"
+    # Median and maximum per display, start and target, from this run's rows, checked against spec 001
+    # SC-008: 2.5 s plus 1.25 s per step. Steps: left to Desktop 1 (start - 1), the step right and back
+    # that only --desktop 1 from Desktop 1 needs (2), right to the target (target - 1), back (|target - start|).
+    print_colored "$COLOR_BRIGHTYELLOW" "dnm show --desktop: median / max ms per start -> target, against SC-008"
     awk -F, -v context="$run_context" '
         index($0, context) == 1 {
             key = $(NF-5) " start " $(NF-4) " -> " $(NF-3)
             values[key] = values[key] " " $(NF-1)
             if ($(NF-1) > maximum[key]) maximum[key] = $(NF-1)
+            start = $(NF-4) + 0; target = $(NF-3) + 0
+            distance = target - start; if (distance < 0) distance = -distance
+            steps[key] = (start - 1) + ((start == 1 && target == 1) ? 2 : 0) + (target - 1) + distance
         }
         END {
             for (key in values) {
                 count = split(values[key], list, " ")
                 # Simple sort for a few values.
                 for (i = 1; i <= count; i++) for (j = i + 1; j <= count; j++) if (list[j] + 0 < list[i] + 0) { t = list[i]; list[i] = list[j]; list[j] = t }
-                printf "  %s: %d / %d\n", key, list[int((count + 1) / 2)], maximum[key]
+                limit = 2500 + 1250 * steps[key]
+                printf "  %s: %d / %d (%d steps, limit %d) %s\n", key, list[int((count + 1) / 2)], maximum[key], steps[key], limit, (maximum[key] <= limit ? "PASS" : "FAIL")
             }
         }' "$dnm_csv" | sort
 }
