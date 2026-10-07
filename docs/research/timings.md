@@ -144,6 +144,24 @@ Desktop 3, from 8.98 s to about 5.9 s; the Intel Mac, from 6.33 s to about 4.2 s
 or the fixed cost changes (a new macOS release), recompute `confirmTimeout` and the SC-008 limits with
 the procedure below.
 
+## Confirmation run with the new settings (2026-10-07)
+
+M5 Pro, macOS 27.0.1, two displays, `dnm 0.1.0 (1) fdd9f34+` (confirm wait 1.5 s, no settle, probe only for
+`--desktop 1`). Every start-to-target case passed SC-008; no step was lost or doubled at any gap; the slowest
+step took 1008 ms.
+
+| Case (start → target) | Steps now | Built-in display | DP | Before the change (built-in / external) |
+|---|---|---|---|---|
+| 1 → 1, 2 → 2, 2 → 1 | 2 | 3.83 to 3.85 s | 2.99 to 3.00 s | 3.86 / 3.03 s |
+| 1 → 2 | 2 (was 4) | 3.83 s | 2.99 s | 6.42 / 4.69 s |
+| 1 → 3 | 4 (was 6) | **5.83 s** | **4.13 s** | **8.98 / 6.33 s** |
+| 2 → 3, 3 → any | 4 | 5.82 to 5.85 s | 4.11 to 4.13 s | 6.42 / 4.69 s |
+
+The predictions held: the slowest case on the built-in display went from 8.98 s to 5.83 s (predicted about
+5.9 s), and on an external monitor from 6.33 s to 4.13 s (predicted about 4.2 s). Fitted now:
+`time ≈ 1.8 s + 1.0 s × steps` on the built-in display and `≈ 1.85 s + 0.57 s × steps` on DP (the fixed part is
+the 1.5 s edge wait plus start-up). The worst case is about 2.1 s under its SC-008 limit.
+
 ## Choosing the delay
 
 `dnm` uses one delay everywhere. It must exceed the slowest step of the slowest supported setup, with
