@@ -70,7 +70,8 @@ public struct SystemWallpaperSystem: WallpaperSystem {
             pointWidth: Double(frame.width), pointHeight: Double(frame.height), scale: scale,
             insetTop: Double(frame.maxY - visible.maxY), insetLeft: Double(visible.minX - frame.minX),
             insetBottom: Double(visible.minY - frame.minY), insetRight: Double(frame.maxX - visible.maxX))
-        return Display(name: screen.localizedName, uuid: uuid(of: id), isMain: id == mainID, geometry: geometry)
+        // The name comes from the monitor and is printed to the terminal, so control characters are replaced.
+        return Display(name: TerminalText.sanitized(screen.localizedName), uuid: uuid(of: id), isMain: id == mainID, geometry: geometry)
     }
 
     @MainActor

@@ -61,8 +61,9 @@ with `--yes`; never deletes an image shown on any display's current Desktop. Exi
 
 ## `dnm set <label>`
 
-Labels the target Desktop. A label is 1 to 30 characters after trimming, on one line;
-emoji are allowed and count as one character each (FR-006, FR-007).
+Labels the target Desktop. A label is 1 to 30 characters after trimming, on one line, with no control
+characters (escape, tab and so on) or text-direction marks; emoji are allowed and count as one
+character each (FR-006, FR-007). A rejected label exits `2`.
 
 | Option | Values | Default |
 |---|---|---|

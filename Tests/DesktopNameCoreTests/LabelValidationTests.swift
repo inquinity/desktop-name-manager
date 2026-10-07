@@ -30,6 +30,22 @@ import Testing
         #expect(throws: DnmError.self) { try LabelText(text) }
     }
 
+    @Test(arguments: ["Mail\u{1B}]0;pwned\u{7}", "Tab\tbed", "A\u{1B}[31mred", "Del\u{7F}", "C1\u{9B}x",
+                      "Mail\u{202E}xoB", "Iso\u{2066}late", "Mark\u{200F}"])
+    func rejectsControlAndDirectionCharacters(_ text: String) {
+        #expect(throws: DnmError.self) { try LabelText(text) }
+    }
+
+    @Test(arguments: ["👨‍👩‍👧", "❤️", "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Café", "عربي", "日本語"])
+    func acceptsEmojiSequencesAndOtherScripts(_ text: String) throws {
+        #expect(try LabelText(text).value == text)
+    }
+
+    @Test func displayNamesHaveControlCharactersReplaced() {
+        #expect(TerminalText.sanitized("LG\u{1B}]0;x\u{7} HD\u{202E}") == "LG\u{FFFD}]0;x\u{FFFD} HD\u{FFFD}")
+        #expect(TerminalText.sanitized("Built-in Retina Display") == "Built-in Retina Display")
+    }
+
     @Test func countsEachEmojiAsOneCharacter() throws {
         let thirty = String(repeating: "✉️", count: 30)
         #expect(try LabelText(thirty).value == thirty)

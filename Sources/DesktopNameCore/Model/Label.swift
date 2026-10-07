@@ -35,6 +35,24 @@ public enum LabelOption: String, Codable, CaseIterable, Sendable {
     case look, textColor, position, size
 }
 
+/// Characters that must not reach a terminal as they are.
+public enum TerminalText {
+    /// Control characters (C0, DEL and C1) and the bidirectional formatting characters. Emoji joiners, variation
+    /// selectors and tag characters (used in flag emoji) are allowed.
+    public static func isUnsafe(_ scalar: Unicode.Scalar) -> Bool {
+        if scalar.properties.generalCategory == .control { return true }
+        switch scalar.value {
+        case 0x061C, 0x200E, 0x200F, 0x202A...0x202E, 0x2066...0x2069: return true
+        default: return false
+        }
+    }
+
+    /// Text from outside (such as a display's name) with unsafe characters replaced by U+FFFD.
+    public static func sanitized(_ text: String) -> String {
+        String(String.UnicodeScalarView(text.unicodeScalars.map { isUnsafe($0) ? "\u{FFFD}" : $0 }))
+    }
+}
+
 /// A label's text. One line, 1 to 30 characters after trimming; each emoji counts as one; no line breaks.
 public struct LabelText: Codable, Hashable, Sendable {
     public static let maxLength = 30
@@ -47,6 +65,11 @@ public struct LabelText: Codable, Hashable, Sendable {
         }
         guard !trimmed.contains(where: \.isNewline) else {
             throw DnmError.invalidInput("A label must be a single line (no line breaks).")
+        }
+        // Labels are printed to the terminal: escape sequences could retitle it, write the clipboard or fake
+        // output, and direction overrides could make the text read differently from what is stored.
+        guard !trimmed.unicodeScalars.contains(where: TerminalText.isUnsafe) else {
+            throw DnmError.invalidInput("A label cannot contain control characters (such as escape, tab or text-direction marks).")
         }
         // Character counts extended grapheme clusters, so each emoji counts as one.
         guard trimmed.count <= Self.maxLength else {

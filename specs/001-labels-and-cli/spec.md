@@ -314,8 +314,9 @@ the expected labels; the other Desktops are unchanged.
   supported in this version.
 - **FR-007**: The system MUST validate label text and options and reject invalid input with a
   clear message and no change to the wallpaper. A label MUST have at least one visible
-  character, contain no line break, and be at most 30 characters (each emoji counts as one
-  character).
+  character, contain no line break, no control character (such as escape or tab) and no text-direction
+  mark, and be at most 30 characters (each emoji counts as one character). Display names are printed
+  with such characters replaced (security plan S4).
 - **FR-008**: Removing a label MUST restore the targeted Desktop's original image, placement mode and
   background color exactly as they were before the first label was applied. It MUST affect only that
   Desktop: other Desktops that show the same labeled image keep it, and the tool MUST still recognize
