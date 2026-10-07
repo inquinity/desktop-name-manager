@@ -45,9 +45,11 @@ command-line tool and for this repository's rule that no credential name is ever
 
 ## R5. Credentials (FR-008)
 
-- **Decision:** two environment variables, both required for a real release and never given defaults:
-  `DNM_SIGNING_IDENTITY` (the Developer ID Application identity) and `DNM_NOTARY_PROFILE` (a `notarytool`
-  keychain profile). The procedure checks the identity with `security find-identity -v -p codesigning` and
+- **Decision (revised 2026-10-07 to match the sibling project's no-typing setup):** the signing identity
+  is `DNM_SIGNING_IDENTITY`, else `SIGNING_IDENTITY` in the local, git-ignored `Secrets.xcconfig` (the
+  sibling project's file name), else the keychain's only "Developer ID Application" identity. The notary
+  profile is `DNM_NOTARY_PROFILE`, else `NOTARY_PROFILE` in `Secrets.xcconfig`. The sibling project writes
+  its defaults into its tracked build script; here they stay in the untracked file. The procedure checks the identity with `security find-identity -v -p codesigning` and
   the profile with `xcrun notarytool history`, and on failure says which variable is wrong without printing
   its value. Nothing writes either value to a file, log, release note or the tap.
 - **Why:** the constitution forbids keychain profile names in tracked files; the sibling project's

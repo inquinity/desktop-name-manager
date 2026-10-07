@@ -8,8 +8,9 @@
 # `just release <segment>` prepares a release first (bump, notes, "Release X build N" commit, signed tag), and
 # `just publish <stage>` runs these stages for the version in Version.xcconfig.
 #
-# Nothing is published, pushed or changed in the tap unless that stage is run with --confirm. Credentials
-# come only from the environment (DNM_SIGNING_IDENTITY, DNM_NOTARY_PROFILE) and are never printed.
+# Nothing is published, pushed or changed in the tap unless that stage is run with --confirm. Credentials come
+# from the environment (DNM_SIGNING_IDENTITY, DNM_NOTARY_PROFILE) or the local, git-ignored Secrets.xcconfig
+# (SIGNING_IDENTITY, NOTARY_PROFILE); the identity can also be found in the keychain. They are never printed.
 #
 # Usage: scripts/release.sh <version> <stage> [--dry-run] [--confirm] [--tap DIR] [--help]
 
@@ -58,7 +59,8 @@ usage() {
     print_colored "$COLOR_YELLOW" "  cask      test the cask in a temporary local tap, write it into --tap DIR (needs --confirm); never pushes"
     print_colored "$COLOR_YELLOW" "  record    append the procedure log to the gate record"
     print_colored "$COLOR_YELLOW" "  --dry-run  with check or build: list every unmet gate, sign ad hoc if no identity is set, send nothing"
-    print_colored "$COLOR_YELLOW" "Environment: DNM_SIGNING_IDENTITY (build), DNM_NOTARY_PROFILE (notarize). Their values are never printed."
+    print_colored "$COLOR_YELLOW" "Credentials: DNM_SIGNING_IDENTITY / DNM_NOTARY_PROFILE, or SIGNING_IDENTITY / NOTARY_PROFILE in the"
+    print_colored "$COLOR_YELLOW" "git-ignored Secrets.xcconfig; the keychain's only Developer ID identity is used if none is set. Never printed."
 }
 
 die() {
@@ -201,12 +203,41 @@ maintainer_gates_checked() {
     ! awk '/^## Maintainer gates/{inside=1; next} /^## /{inside=0} inside' "$gate_record" | grep -q '^- \[ \]'
 }
 
+# A value from the local, git-ignored Secrets.xcconfig (the sibling project's file name), or nothing.
+local_secret() {
+    local secrets="${repository_root}/Secrets.xcconfig"
+    [[ -f "$secrets" ]] || return 0
+    awk -F' *= *' -v key="$1" '$1 == key { print $2; exit }' "$secrets"
+}
+
+# The signing identity: DNM_SIGNING_IDENTITY, else SIGNING_IDENTITY in Secrets.xcconfig, else the keychain's only
+# "Developer ID Application" identity. Never printed.
+resolve_signing_identity() {
+    [[ -n "${DNM_SIGNING_IDENTITY:-}" ]] && return 0
+    DNM_SIGNING_IDENTITY="$(local_secret SIGNING_IDENTITY)"
+    if [[ -z "$DNM_SIGNING_IDENTITY" ]]; then
+        local identities
+        identities="$(security find-identity -v -p codesigning 2>/dev/null | sed -n 's/.*"\(Developer ID Application: .*\)"$/\1/p' | sort -u)"
+        [[ "$(grep -c . <<<"$identities")" == "1" ]] && DNM_SIGNING_IDENTITY="$identities"
+    fi
+    return 0
+}
+
+# The notary profile: DNM_NOTARY_PROFILE, else NOTARY_PROFILE in Secrets.xcconfig. Never printed.
+resolve_notary_profile() {
+    [[ -n "${DNM_NOTARY_PROFILE:-}" ]] && return 0
+    DNM_NOTARY_PROFILE="$(local_secret NOTARY_PROFILE)"
+    return 0
+}
+
 signing_identity_usable() {
+    resolve_signing_identity
     [[ -n "${DNM_SIGNING_IDENTITY:-}" ]] || return 1
     security find-identity -v -p codesigning 2>/dev/null | grep -qF "$DNM_SIGNING_IDENTITY"
 }
 
 notary_profile_usable() {
+    resolve_notary_profile
     [[ -n "${DNM_NOTARY_PROFILE:-}" ]] || return 1
     xcrun notarytool history --keychain-profile "$DNM_NOTARY_PROFILE" >/dev/null 2>&1
 }
@@ -242,12 +273,13 @@ stage_build() {
     require_command codesign
     require_command ditto
     local signing_identity="-"
-    if signing_identity_usable; then
+    if "$dry_run"; then
+        # A real signature asks Apple's timestamp server; a dry run sends nothing anywhere.
+        print_colored "$COLOR_YELLOW" "Dry run: signing ad hoc."
+    elif signing_identity_usable; then
         signing_identity="$DNM_SIGNING_IDENTITY"
-    elif "$dry_run"; then
-        print_colored "$COLOR_YELLOW" "No usable DNM_SIGNING_IDENTITY: signing ad hoc for the dry run."
     else
-        die "DNM_SIGNING_IDENTITY is not set or not a code-signing identity in the keychain"
+        die "no usable signing identity: set DNM_SIGNING_IDENTITY or SIGNING_IDENTITY in Secrets.xcconfig (needed when the keychain has no single Developer ID Application identity)"
     fi
 
     # A release stamp needs a clean tree; a dry run on a dirty tree builds an interim stamp instead.
@@ -338,7 +370,7 @@ stage_build() {
 
 stage_notarize() {
     require_file "$zip_path" build
-    notary_profile_usable || die "DNM_NOTARY_PROFILE is not set or cannot authenticate with notarytool"
+    notary_profile_usable || die "no usable notary profile: set NOTARY_PROFILE in Secrets.xcconfig (or DNM_NOTARY_PROFILE), naming a notarytool keychain profile that can sign in"
     print_colored "$COLOR_BRIGHTYELLOW" "Submitting ${zip_name} to Apple's notary service (waiting up to 30 minutes)..."
     local result="${artifact_directory}/notarization.json"
     xcrun notarytool submit "$zip_path" --keychain-profile "$DNM_NOTARY_PROFILE" --wait --timeout 30m \

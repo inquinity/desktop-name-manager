@@ -33,8 +33,10 @@ stage's output in `build.noindex/release-artifacts/<version>/`.
 
 ## Environment
 
-- `DNM_SIGNING_IDENTITY`: the Developer ID Application identity (required by `build` unless `--dry-run`).
-- `DNM_NOTARY_PROFILE`: a `notarytool` keychain profile (required by `notarize`).
+- `DNM_SIGNING_IDENTITY`, else `SIGNING_IDENTITY` in the git-ignored `Secrets.xcconfig`, else the keychain's
+  only "Developer ID Application" identity (used by `build`; a dry run always signs ad hoc).
+- `DNM_NOTARY_PROFILE`, else `NOTARY_PROFILE` in `Secrets.xcconfig`: a `notarytool` keychain profile (used
+  by `notarize`).
 
 Neither value is ever printed, logged or written to a file. A missing or unusable one is reported by the
 variable's name only.

@@ -24,3 +24,6 @@ prototype/dnm-prototype
 
 # Agent worktrees (Claude Code)
 .claude/worktrees/
+
+# Local signing and notary settings, never committed (the sibling project's file name)
+Secrets.xcconfig

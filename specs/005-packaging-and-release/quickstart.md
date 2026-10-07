@@ -10,7 +10,7 @@ How to show the release works end to end. Procedure details are in
 |---|---|---|---|
 | 1 | Dry run | `scripts/release.sh 0.1.0 check --dry-run`, then `scripts/release.sh 0.1.0 build --dry-run` | Every unmet gate listed; an ad hoc signed zip built; the later stages described; nothing sent anywhere |
 | 2 | A gate refuses | On a dirty tree, `scripts/release.sh 0.1.0 check` | Exit 1, naming the clean-tree gate (User Story 1, scenario 2) |
-| 3 | Missing credential | Unset `DNM_SIGNING_IDENTITY`, run `build` | Exit 1, naming the variable, printing no value (spec edge case) |
+| 3 | Missing credential | With no `DNM_NOTARY_PROFILE` and no `NOTARY_PROFILE` in `Secrets.xcconfig`, run `notarize` | Exit 1, naming where to set it, printing no value (spec edge case) |
 | 4 | Outward steps need confirmation | `scripts/release.sh 0.1.0 draft` without `--confirm` | Prints what it would do; exit 1; no draft created |
 | 5 | Signed and notarized | `build`, `notarize`, `verify` | Hardened runtime and Developer ID in the signature; notarization "Accepted"; the quarantined binary runs and prints `0.1.0` (FR-005, FR-006) |
 | 6 | Binary hygiene | `build` | No build folder, home folder or user name in the binary; only system libraries linked; the zip holds exactly `dnm`, `LICENSE`, `Acknowledgements.md` and the license files of the components in the binary (`Licenses/swift-argument-parser-LICENSE.txt`) (security plan S7, constitution 2.1.0) |

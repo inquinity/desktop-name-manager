@@ -3,5 +3,8 @@
 // The command-line build stamps both into the binary (scripts/build-stamp.sh); the app (M2) will read
 // this file directly.
 
+// Local settings that are never committed (signing identity, notary profile): see Secrets.xcconfig.
+#include? "Secrets.xcconfig"
+
 MARKETING_VERSION = 0.1.0
 CURRENT_PROJECT_VERSION = 1
