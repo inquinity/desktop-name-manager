@@ -39,6 +39,7 @@ steps). Max: every step, the confirmation run plus every gap.
 |---|---|---|---|---|---|---|---|
 | **M5 Pro, 27.0.1, 3 displays (baseline)** | 2026-10-06 | Built-in | 1006 ms | 1023 ms | **100%** | **100%** | 0 / 0 |
 | M5 Pro, 27.0.1, 3 displays, repeat run | 2026-10-06 | Built-in | 1003 ms | 1027 ms | 99.7% | 100.4% | 0 / 0 |
+| M5 Pro, 27.0.1, 4 displays | 2026-10-07 | Built-in | 1003 ms | 1021 ms | 99.7% | 99.8% | 0 / 0 |
 | M5 Pro, 27.0.1, 2 displays | 2026-10-06 | Built-in | 986 ms | 1000 ms | 98.0% | 97.8% | 0 / 0 |
 | M5 Pro, 27.0.1, 2 displays, Reduce Motion on (once, for information) | 2026-10-06 | Built-in | 978 ms | 998 ms | 97.2% | 97.6% | 0 / 0 |
 | Intel i9-9980HK (MacBook Pro 16", 2019), 26.7.1 (25G241), 3 displays | 2026-10-06 | Built-in | 560 ms | 586 ms | 55.7% | 57.3% | 0 / 0 |
@@ -52,6 +53,9 @@ Other displays measured (not the slowest in their setup):
 | M5 Pro, 27.0.1, 2 displays, Reduce Motion on | DP (external) | 554 ms | 582 ms | 55.1% |
 | M5 Pro, 27.0.1, 3 displays | LG ULTRAFINE | 553 ms | 578 ms | 55.0% |
 | M5 Pro, 27.0.1, 3 displays | LG Ultra HD | 559 ms | 577 ms | 55.6% |
+| M5 Pro, 27.0.1, 4 displays | DP | 560 ms | 591 ms | 55.7% |
+| M5 Pro, 27.0.1, 4 displays | LG ULTRAFINE | 557 ms | 582 ms | 55.4% |
+| M5 Pro, 27.0.1, 4 displays | LG Ultra HD | 558 ms | 588 ms | 55.5% |
 | Intel, 26.7.1, 3 displays | LG ULTRAFINE | 552 ms | 577 ms | 54.9% |
 | Intel, 26.7.1, 3 displays | LG Ultra HD | 556 ms | 577 ms | 55.3% |
 
@@ -68,7 +72,8 @@ notifications at the edge.
 2. **`settleTime` (0.25 s) shows no benefit.** Pressing again immediately after a confirmation lost no
    steps on any display.
 3. **Reduce Motion has no measurable effect** (97.2% against 98.0%, within the spread of one run).
-4. **Displays differ more than setups do.** On one Mac the built-in display takes about 1000 ms per step
+4. **The number of displays does not matter** (two, three and four displays within 2.2 points of each
+   other). **Displays differ more than setups do.** On one Mac the built-in display takes about 1000 ms per step
    and an external one about 550 ms; adding a third monitor moved the built-in display by about 2%.
 5. Caveat: the two- and three-display setups used different external monitors (DP against the two LG
    monitors), so the 2% also includes the change of monitors.
@@ -109,6 +114,10 @@ built-in display `time ≈ 1.29 s + 1.28 s × steps`:
 | 6 | **8.98 s** | 6.35 s | 6.33 s |
 
 With three Desktops, `--desktop 3` from Desktop 1 on the M5's built-in display already exceeds SC-008's 8 s.
+
+Four displays (M5, 27.0.1) change nothing: the built-in display took 3.86, 6.41 and 8.97 s for 2, 4 and 6
+steps, and DP and the two LG monitors 2.98 to 3.03, 4.63 to 4.69 and 6.29 to 6.32 s. The number of
+displays does not measurably affect switching time; the display itself does.
 
 Consequences:
 
