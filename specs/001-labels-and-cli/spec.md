@@ -464,8 +464,10 @@ the expected labels; the other Desktops are unchanged.
 - **SC-007**: In 100% of test runs, undoing a removal or replacement within the undo window
   returns the Desktop to a state identical to the one before the change.
 - **SC-008**: The four-command script in User Story 6 labels exactly Desktops 2 and 3 on both displays
-  in 100% of live runs on macOS 26 and 27, each display ends on the Desktop it started on, and each
-  command takes under 8 seconds.
+  in 100% of live runs on macOS 26 and 27, and each display ends on the Desktop it started on. Time is set
+  per step, because a command's steps grow with the number of Desktops: each `--desktop` command finishes
+  within **2.5 s plus 1.25 s per Desktop step** (a step is one switch: the walk left to Desktop 1, the walk to
+  the target, and the walk back). Measured and recalibrated as described in `docs/research/timings.md`.
 
 ## Assumptions
 

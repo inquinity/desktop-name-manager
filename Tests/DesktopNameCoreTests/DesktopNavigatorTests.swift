@@ -152,6 +152,33 @@ final class FakeSwitcher: DesktopSwitching {
         #expect(fake.visitedPositions == [2, 1])   // the probe went right and came back
     }
 
+    @Test func fromDesktopOneToALaterDesktopTheFirstStepIsTheProbe() throws {
+        let fake = FakeSwitcher(desktops: 3, position: 1)
+        var actedOn: Int?
+        try DesktopNavigator(switcher: fake).visit(desktop: 3, on: display) { actedOn = fake.position }
+        #expect(actedOn == 3)
+        #expect(fake.visitedPositions == [2, 3, 2, 1])   // straight there and back, no step right and back first
+        #expect(fake.steps == 5)                         // the one left press at the edge, then four moves
+    }
+
+    @Test(arguments: [2, 3])
+    func fromDesktopOneWithNothingMovingBothExplanationsAreGiven(_ target: Int) throws {
+        for fake in [FakeSwitcher(desktops: 3, position: 1), FakeSwitcher(desktops: 1, position: 1)] {
+            if fake.desktops == 3 { fake.shortcutsOn = false }
+            var ran = false
+            do {
+                try DesktopNavigator(switcher: fake).visit(desktop: target, on: display) { ran = true }
+                Issue.record("expected an error")
+            } catch let error as DnmError {
+                let text = error.errorDescription ?? ""
+                #expect(error.exitCode == 1)
+                #expect(text.contains("only one Desktop") && text.contains("shortcuts are off"))
+            }
+            #expect(!ran)
+            #expect(fake.position == 1)
+        }
+    }
+
     @Test func anErrorInTheBodyStillReturnsToTheStart() throws {
         struct Boom: Error {}
         let fake = FakeSwitcher(desktops: 4, position: 3)

@@ -53,24 +53,20 @@ public struct DesktopNavigator {
         while lefts < Self.maximumSteps && switcher.step(.left) { lefts += 1 }
         let origin = lefts + 1
 
-        if lefts == 0 {
-            // Nothing moved. Either this is Desktop 1, or the shortcuts are off: one step right tells them apart.
-            if switcher.step(.right) {
-                guard switcher.step(.left) else {
-                    throw DnmError.failure("macOS did not confirm a step back on \(display.name); it may be one Desktop to the right of where it was. Nothing was labeled.")
-                }
-            } else {
-                throw DnmError.failure("""
-                    No Desktop change happened on \(display.name). Either it has only one Desktop (then leave out --desktop), \
-                    or the "Move left a space" and "Move right a space" shortcuts are off. To turn them on: \
-                    \(About.shortcutSettings). Nothing was changed.
-                    """)
+        // Nothing moved: either this is Desktop 1, or the shortcuts are off. A step right tells them apart. For a
+        // target beyond Desktop 1 the first step toward it does that; only Desktop 1 needs a step right and back.
+        let probed = lefts == 0 && target == 1
+        if probed {
+            guard switcher.step(.right) else { throw nothingMoved(display) }
+            guard switcher.step(.left) else {
+                throw DnmError.failure("macOS did not confirm a step back on \(display.name); it may be one Desktop to the right of where it was. Nothing was labeled.")
             }
         }
 
         var at = 1
         while at < target {
             guard switcher.step(.right) else {
+                if lefts == 0 && at == 1 { throw nothingMoved(display) }
                 try returnTo(origin, from: at, on: display)
                 throw DnmError.invalidInput("\(display.name) has \(at) Desktop\(at == 1 ? "" : "s"); there is no Desktop \(target). Nothing was changed.")
             }
@@ -79,7 +75,7 @@ public struct DesktopNavigator {
 
         // More changes than steps means the person (or another app) switched Desktops meanwhile: the position is
         // no longer known, so stop rather than label the wrong Desktop.
-        let moves = lefts + (lefts == 0 ? 2 : 0) + (target - 1)
+        let moves = lefts + (probed ? 2 : 0) + (target - 1)
         guard switcher.announcedChanges - baseline == moves else {
             throw DnmError.failure("The Desktop on \(display.name) changed while dnm was switching (another switch or shortcut). Nothing was labeled. dnm no longer knows where it is, so it did not switch back; return to your Desktop yourself.")
         }
@@ -111,6 +107,14 @@ public struct DesktopNavigator {
         }
     }
 
+    private func nothingMoved(_ display: Display) -> DnmError {
+        .failure("""
+            No Desktop change happened on \(display.name). Either it has only one Desktop (then leave out --desktop), \
+            or the "Move left a space" and "Move right a space" shortcuts are off. To turn them on: \
+            \(About.shortcutSettings). Nothing was changed.
+            """)
+    }
+
     private func lostWay(_ display: Display, _ origin: Int) -> DnmError {
         .failure("macOS did not confirm a step while returning \(display.name) to Desktop \(origin). The command's own change was made; switch back yourself if needed.")
     }
@@ -131,9 +135,10 @@ public final class SystemDesktopSwitcher: DesktopSwitching {
 
     private let changes = Counter()
     private var observer: NSObjectProtocol?
-    /// How long to wait for macOS to confirm one step, and to let the slide finish.
-    let confirmTimeout: TimeInterval = 1.0
-    let settleTime: TimeInterval = 0.25
+    /// How long to wait for macOS to confirm one step. Measured worst case 1027 ms (the M5's built-in display on
+    /// macOS 27), plus a margin; see docs/research/timings.md, which also says how to recalibrate it. The next
+    /// step can follow a confirmation at once: no step was lost with no pause, so there is no settle time.
+    let confirmTimeout: TimeInterval = 1.5
 
     public init() {
         let app = NSApplication.shared
@@ -172,9 +177,7 @@ public final class SystemDesktopSwitcher: DesktopSwitching {
         let before = changes.value
         press(direction == .left ? 123 : 124)
         pump(for: confirmTimeout) { self.changes.value != before }
-        guard changes.value != before else { return false }
-        pump(for: settleTime)
-        return true
+        return changes.value != before
     }
 
     private func press(_ key: CGKeyCode) {

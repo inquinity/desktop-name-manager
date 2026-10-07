@@ -128,6 +128,22 @@ Consequences:
   (about 1.25 s per step today), five Desktops take about 11 s. A fixed 8 s in SC-008 cannot hold for
   every Desktop count; it should be stated per step or for a given number of Desktops.
 
+## Decisions (2026-10-07)
+
+From the runs above (the M5 with two, three and four displays, and the Intel Mac):
+
+| Setting | Was | Now | Reason |
+|---|---|---|---|
+| `confirmTimeout` | 1.0 s | **1.5 s** | Worst step seen 1027 ms; 1.46 × that. |
+| `settleTime` | 0.25 s | **removed** | No step lost or doubled at a 0 ms gap, in 840+ steps per setup. |
+| Probe from Desktop 1 | always | **only for `--desktop 1`** | For a later target, the first step toward it proves the shortcuts work. |
+| SC-008 | each command under 8 s | **2.5 s + 1.25 s per step** | Steps grow with the number of Desktops. 2.5 s covers the 1.5 s edge wait and about 0.4 s of start-up; 1.25 s is about 20% over the slowest step (1027 ms). |
+
+Predicted with these settings (to be confirmed by a new run): the M5's built-in display, Desktop 1 to
+Desktop 3, from 8.98 s to about 5.9 s; the Intel Mac, from 6.33 s to about 4.2 s. When the slowest step
+or the fixed cost changes (a new macOS release), recompute `confirmTimeout` and the SC-008 limits with
+the procedure below.
+
 ## Choosing the delay
 
 `dnm` uses one delay everywhere. It must exceed the slowest step of the slowest supported setup, with
