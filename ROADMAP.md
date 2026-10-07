@@ -12,7 +12,7 @@ exists. Ideas with no place in the order yet are in [docs/backlog.md](docs/backl
 | 2 | The menu-bar app and label editor | not written | Notes only |
 | 3 | Quick View: see every label, switch to one | not written | Notes only |
 | 4 | Desktop groups, display roles and sites (home and work monitors) | not written | Notes only |
-| 5 | Packaging and release: signed, notarized, Homebrew cask | [specs/005-packaging-and-release](specs/005-packaging-and-release/) | Draft, not clarified |
+| 5 | Packaging and release: signed, notarized, Homebrew cask | [specs/005-packaging-and-release](specs/005-packaging-and-release/) | Draft, not clarified. Its first part (a notarized build in an unlisted cask) is in the MVP |
 | 6 | Live and dynamic wallpapers | not written | Idea only |
 
 ### 1. Labels and the `dnm` command-line tool
@@ -46,9 +46,13 @@ macOS keeps Desktops per display arrangement (known issue KI-2), which this feat
 
 ### 5. Packaging and release
 
-A release procedure that refuses to run until the constitution's gates are met, then builds, signs with
-the Developer ID, notarizes and publishes to GitHub Releases, with a cask in the `inquinity/homebrew-tap`
-tap (unlisted at first). The first release ships the command-line tool only; the app joins it later.
+A release procedure that builds, signs with the Developer ID, notarizes and publishes to GitHub Releases,
+with a cask in the `inquinity/homebrew-tap` tap. It comes in two stages:
+
+- **MVP stage:** the command-line tool, notarized, in an **unlisted** cask under a quiet name (spec 005
+  User Stories 1 and 2), so it installs with one `brew install`.
+- **Official release (later):** the cask listed in the tap's README, with every release gate of the
+  constitution met, and later a submission to Homebrew itself. The app joins after feature 2.
 
 ### 6. Live and dynamic wallpapers
 
@@ -56,31 +60,35 @@ Labels on dynamic, aerial and shuffling wallpapers, which `dnm` refuses today (e
 
 ## Minimum viable product
 
-**Proposed (open for the maintainer to confirm): the command-line tool, installed locally for daily use.**
-It already does the core job: name each Desktop on every display, from the terminal or a script.
+**The command-line tool (feature 1), signed, notarized and installable from an unlisted cask in the
+`inquinity/homebrew-tap` tap (the first stage of feature 5).** Decided 2026-10-07.
 
 Exit criteria:
 
 1. One timing run (`Tests/live/live-timing.sh`) and one `Tests/live/live-desktops.sh` run pass on this
    Mac with the measured `--desktop` settings.
-2. Installed for the maintainer: `just release`, then `dnm` and `desktop-name` on the PATH.
-3. A period of daily use; problems go to `specs/001-labels-and-cli/known-issues.md` or the backlog.
+2. Spec 005 clarified for the MVP stage, then planned and built: a release procedure that signs with the
+   Developer ID, notarizes, publishes the download on GitHub Releases, and updates the unlisted cask.
+3. `brew install` of the quiet cask works on macOS 26 and 27 (Apple silicon and Intel), and Gatekeeper
+   accepts the tool.
+4. A period of daily use; problems go to `specs/001-labels-and-cli/known-issues.md` or the backlog.
 
-The alternative MVP is the menu-bar app (feature 2), which still needs its specification.
+The menu-bar app (feature 2) comes after the MVP.
 
-## Gates: using it versus releasing it
+## Gates: MVP versus official release
 
-| Gate | Personal use | Public release |
+| Gate | MVP (unlisted cask) | Official release (listed) |
 |---|---|---|
 | Unit, contract and Periphery checks pass | yes | yes |
 | Live checks on macOS 26 and 27 | the ones above | the full quickstart (T070) |
-| Independent code review (`/code-review ultra`) | no | yes (T091, T072) |
-| Security review and CodeQL | no | yes (T072) |
+| Signed and notarized build | yes | yes |
+| Independent code review (`/code-review ultra`) | **open question** | yes (T091, T072) |
+| Security review and CodeQL | **open question** | yes (T072) |
 | CI workflow | no | yes (T006) |
-| Signed and notarized build | no (a local build) | yes (feature 5) |
 
-The constitution requires its reviews before a **release**; building and running the tool on the
-maintainer's own Mac is not a release.
+The constitution requires its code and security reviews before any build is "signed and published". An
+unlisted cask is still a published, signed download, so the MVP needs either those reviews or a written
+constitution amendment for a preview stage; see the open decision in the maintainer's notes.
 
 ## Related
 
