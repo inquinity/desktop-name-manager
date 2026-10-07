@@ -70,3 +70,5 @@ the full texts. Periphery, a Swift tool that also compiles in swift-argument-par
    separates the binary from them is not our responsibility (maintainer decision).
 6. Spec 001 FR-030 and its contract, spec 005 (R1, data model, contract, quickstart), the release notes
    template, the README's License section and the review modes are updated (closes L5).
+
+Verified 2026-10-07: the pinned tags exist (`v1.0.12` in github/spec-kit, checked by the maintainer with `gh api`; `1.8.2` in apple/swift-argument-parser, the version in `Package.resolved`).
