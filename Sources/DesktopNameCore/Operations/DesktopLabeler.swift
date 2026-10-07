@@ -36,11 +36,14 @@ public final class DesktopLabeler {
         return manifest.stamps.first { $0.fileName == url.lastPathComponent }
     }
 
+    /// Resolving a bookmark must never mount a volume (a network share is a network connection) or show UI.
+    static let bookmarkResolution: URL.BookmarkResolutionOptions = [.withoutUI, .withoutMounting]
+
     /// Resolves an original through its bookmark (which follows moves), falling back to its path.
     static func resolve(_ original: Original) throws -> URL {
         if let bookmark = original.bookmark {
             var stale = false
-            if let url = try? URL(resolvingBookmarkData: bookmark, options: [], relativeTo: nil, bookmarkDataIsStale: &stale),
+            if let url = try? URL(resolvingBookmarkData: bookmark, options: bookmarkResolution, relativeTo: nil, bookmarkDataIsStale: &stale),
                FileManager.default.fileExists(atPath: url.path) {
                 return url
             }
