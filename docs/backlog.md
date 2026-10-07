@@ -22,3 +22,7 @@ Ideas recorded for later. None is part of a current spec.
   shows, warn that a Desktop still showing one would lose its wallpaper, and require confirmation (`--yes`
   in the CLI). The README should describe the manual reset it follows. It must also warn about Desktops of
   display arrangements not connected now (known issue KI-2), which it cannot see.
+- **Batch labeling** (2026-10-06). Label several Desktops in one command (for example from a list of
+  display, Desktop and label), so the walk to find each display's position happens once instead of once
+  per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
+  commands or scripts) is not known yet, and should set this item's priority.

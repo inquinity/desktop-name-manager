@@ -103,7 +103,8 @@ Good to know:
 Early. Spec 001 (labels and the `dnm` command-line tool) is being implemented; see
 `specs/001-labels-and-cli/`. The menu-bar app and the other planned features are not built
 yet. `prototype/` holds the proof of concept that validated the approach, and
-`docs/research/` holds what testing and research found.
+`docs/research/` holds what testing and research found. The build order and the MVP are in
+[ROADMAP.md](ROADMAP.md).
 
 ## Development
 
