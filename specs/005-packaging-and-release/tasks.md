@@ -26,9 +26,9 @@ maintainer's explicit go-ahead at that moment, and Desktop-switching runs are an
 
 ## Phase 2: Foundational (blocks every user story)
 
-- [ ] T005 Create `scripts/release.sh` skeleton (shell-script-expert style: `set -euo pipefail`, the standard color block, `usage`, argument parsing for `<version> <stage> [--dry-run] [--confirm] [--tap DIR] [--help]`, exit codes 0/1/2 per `contracts/release-procedure.md`, version format check `^[0-9]+\.[0-9]+\.[0-9]+$`, the artifact folder `build.noindex/release-artifacts/<version>/`, a temporary folder removed by an EXIT trap)
-- [ ] T006 In `scripts/release.sh`, add credential helpers that read only `DNM_SIGNING_IDENTITY` and `DNM_NOTARY_PROFILE` from the environment, check them with `security find-identity -v -p codesigning` and `xcrun notarytool history`, and report a problem by the variable's name only, never printing a value (FR-008, research R5)
-- [ ] T007 Create the gate record template and the 0.1.0 record `specs/005-packaging-and-release/releases/0.1.0.md` (sections per `data-model.md`: Release, Gates, Artifact, Verification, Cask; the review gate line names `specs/001-labels-and-cli/security-plan-2026-10-07.md` and the maintainer decision of 2026-10-07; "who ran it" is the role "maintainer", never a user name)
+- [x] T005 Create `scripts/release.sh` skeleton (shell-script-expert style: `set -euo pipefail`, the standard color block, `usage`, argument parsing for `<version> <stage> [--dry-run] [--confirm] [--tap DIR] [--help]`, exit codes 0/1/2 per `contracts/release-procedure.md`, version format check `^[0-9]+\.[0-9]+\.[0-9]+$`, the artifact folder `build.noindex/release-artifacts/<version>/`, a temporary folder removed by an EXIT trap)
+- [x] T006 In `scripts/release.sh`, add credential helpers that read only `DNM_SIGNING_IDENTITY` and `DNM_NOTARY_PROFILE` from the environment, check them with `security find-identity -v -p codesigning` and `xcrun notarytool history`, and report a problem by the variable's name only, never printing a value (FR-008, research R5)
+- [x] T007 Create the gate record template and the 0.1.0 record `specs/005-packaging-and-release/releases/0.1.0.md` (sections per `data-model.md`: Release, Gates, Artifact, Verification, Cask; the review gate line names `specs/001-labels-and-cli/security-plan-2026-10-07.md` and the maintainer decision of 2026-10-07; "who ran it" is the role "maintainer", never a user name)
 
 **Checkpoint**: the script parses its arguments and refuses unknown stages; credentials are checked without being printed.
 
@@ -38,16 +38,16 @@ maintainer's explicit go-ahead at that moment, and Desktop-switching runs are an
 
 **Independent test**: quickstart scenarios 1 to 6: a dry run lists unmet gates and builds an ad hoc signed zip; a dirty tree is refused by name; a missing credential is named without its value; `draft` without `--confirm` does nothing.
 
-- [ ] T008 [US1] Stage `check` in `scripts/release.sh`: clean tree; `v<version>` is a signed annotated tag on HEAD (`git tag -v`); `<version>` equals `DesktopNameCoreInfo.version` in `Sources/DesktopNameCore/DesktopNameCore.swift`; no GitHub release exists for the tag (`gh release view`, skipped with a note under `--dry-run`); `just test` and `just periphery` pass; `specs/001-labels-and-cli/review-notes.md` has live-run records for macOS 26 and macOS 27; the gate record's review line is confirmed. Stop at the first unmet gate, naming it; under `--dry-run`, list every unmet gate (FR-002)
-- [ ] T009 [US1] Stage `build` in `scripts/release.sh`: `swift build -c release --arch arm64 --product dnm --scratch-path build.noindex --force-resolved-versions` with the stamp flags of `scripts/build-stamp.sh --release` read one per line; check the built `dnm --version` prints exactly `<version>` (FR-003)
-- [ ] T010 [US1] Binary checks in the `build` stage of `scripts/release.sh` (security plan S7, research R3): fail if `strings -a` finds the repository path, `$HOME` or the user name; fail if `otool -L` lists a library outside the allowed set used by `Tests/dnmTests/LinkedLibrariesTests.swift`; run on the release binary, never skipped
-- [ ] T011 [US1] Signing in the `build` stage of `scripts/release.sh`: `codesign --force --sign "$DNM_SIGNING_IDENTITY" --options runtime --timestamp --identifier com.altmansoftwaredesign.dnm` (ad hoc `-` under `--dry-run` when the identity is unset), no entitlements; verify with `codesign --verify --strict --verbose=2` and check `codesign -dvv` shows the runtime flag and a "Developer ID Application" authority (skipped for ad hoc) (research R4)
-- [ ] T012 [US1] Packaging in the `build` stage of `scripts/release.sh`: `ditto -c -k` a folder holding exactly `dnm` and `LICENSE` into `dnm-<version>-arm64.zip`; write `dnm-<version>-arm64.zip.sha256`; record file name and SHA-256 in the gate record (research R1)
-- [ ] T013 [US1] Stage `notarize` in `scripts/release.sh`: `xcrun notarytool submit <zip> --keychain-profile "$DNM_NOTARY_PROFILE" --wait --timeout 30m`; require "Accepted", record the submission id; on failure run `notarytool log` and stop (research R6, spec edge case on slow service)
-- [ ] T014 [US1] Stage `draft` in `scripts/release.sh`: without `--confirm`, print the planned `gh release create v<version> --draft --verify-tag` command and exit 1; with it, render `packaging/release-notes.md.template` and create the draft with the zip and `.sha256` (FR-001, FR-007, research R8)
-- [ ] T015 [US1] Stage `publish` in `scripts/release.sh`: requires `--confirm`; refuses unless the draft exists and its asset checksum equals the recorded SHA-256; then `gh release edit v<version> --draft=false` (FR-001, FR-006)
-- [ ] T016 [US1] `--dry-run` across stages in `scripts/release.sh`: runs `check` and `build`, then prints what `notarize`, `verify`, `draft`, `publish` and `cask` would do, sending nothing anywhere (FR-018); `shellcheck` clean
-- [ ] T017 [US1] Run quickstart scenarios 1 to 4 (dry run, dirty tree, missing credential, unconfirmed draft) and record the results in `specs/005-packaging-and-release/releases/0.1.0.md`
+- [x] T008 [US1] Stage `check` in `scripts/release.sh`: clean tree; `v<version>` is a signed annotated tag on HEAD (`git tag -v`); `<version>` equals `DesktopNameCoreInfo.version` in `Sources/DesktopNameCore/DesktopNameCore.swift`; no GitHub release exists for the tag (`gh release view`, skipped with a note under `--dry-run`); `just test` and `just periphery` pass; `specs/001-labels-and-cli/review-notes.md` has live-run records for macOS 26 and macOS 27; the gate record's review line is confirmed. Stop at the first unmet gate, naming it; under `--dry-run`, list every unmet gate (FR-002)
+- [x] T009 [US1] Stage `build` in `scripts/release.sh`: `swift build -c release --arch arm64 --product dnm --scratch-path build.noindex --force-resolved-versions` with the stamp flags of `scripts/build-stamp.sh --release` read one per line; check the built `dnm --version` prints exactly `<version>` (FR-003)
+- [x] T010 [US1] Binary checks in the `build` stage of `scripts/release.sh` (security plan S7, research R3): fail if `strings -a` finds the repository path, `$HOME` or the user name; fail if `otool -L` lists a library outside the allowed set used by `Tests/dnmTests/LinkedLibrariesTests.swift`; run on the release binary, never skipped
+- [x] T011 [US1] Signing in the `build` stage of `scripts/release.sh`: `codesign --force --sign "$DNM_SIGNING_IDENTITY" --options runtime --timestamp --identifier com.altmansoftwaredesign.dnm` (ad hoc `-` under `--dry-run` when the identity is unset), no entitlements; verify with `codesign --verify --strict --verbose=2` and check `codesign -dvv` shows the runtime flag and a "Developer ID Application" authority (skipped for ad hoc) (research R4)
+- [x] T012 [US1] Packaging in the `build` stage of `scripts/release.sh`: `ditto -c -k` a folder holding exactly `dnm` and `LICENSE` into `dnm-<version>-arm64.zip`; write `dnm-<version>-arm64.zip.sha256`; record file name and SHA-256 in the gate record (research R1)
+- [x] T013 [US1] Stage `notarize` in `scripts/release.sh`: `xcrun notarytool submit <zip> --keychain-profile "$DNM_NOTARY_PROFILE" --wait --timeout 30m`; require "Accepted", record the submission id; on failure run `notarytool log` and stop (research R6, spec edge case on slow service)
+- [x] T014 [US1] Stage `draft` in `scripts/release.sh`: without `--confirm`, print the planned `gh release create v<version> --draft --verify-tag` command and exit 1; with it, render `packaging/release-notes.md.template` and create the draft with the zip and `.sha256` (FR-001, FR-007, research R8)
+- [x] T015 [US1] Stage `publish` in `scripts/release.sh`: requires `--confirm`; refuses unless the draft exists and its asset checksum equals the recorded SHA-256; then `gh release edit v<version> --draft=false` (FR-001, FR-006)
+- [x] T016 [US1] `--dry-run` across stages in `scripts/release.sh`: runs `check` and `build`, then prints what `notarize`, `verify`, `draft`, `publish` and `cask` would do, sending nothing anywhere (FR-018); `shellcheck` clean
+- [x] T017 [US1] Run quickstart scenarios 1 to 4 (dry run, dirty tree, missing credential, unconfirmed draft) and record the results in `specs/005-packaging-and-release/releases/0.1.0.md`
 
 **Checkpoint**: User Story 1 works up to a draft, without anything public.
 
@@ -57,8 +57,8 @@ maintainer's explicit go-ahead at that moment, and Desktop-switching runs are an
 
 **Independent test**: quickstart scenarios 5 and 12.
 
-- [ ] T018 [US5] Stage `verify` in `scripts/release.sh`: unzip into the temporary folder, set `com.apple.quarantine` on `dnm`, run it with `--version` (macOS's first-run notarization check) and require `<version>`; record `syspolicy_check distribution`, `codesign -dvv` and the SHA-256 comparison in the gate record (FR-006, research R7)
-- [ ] T019 [US5] Verification section in `packaging/release-notes.md.template`: the `shasum -a 256 -c`, `codesign -dvv` and quarantine-then-run commands, and the statement that a one-byte change fails the checksum (User Story 5, SC-003)
+- [x] T018 [US5] Stage `verify` in `scripts/release.sh`: unzip into the temporary folder, set `com.apple.quarantine` on `dnm`, run it with `--version` (macOS's first-run notarization check) and require `<version>`; record `syspolicy_check distribution`, `codesign -dvv` and the SHA-256 comparison in the gate record (FR-006, research R7)
+- [x] T019 [US5] Verification section in `packaging/release-notes.md.template`: the `shasum -a 256 -c`, `codesign -dvv` and quarantine-then-run commands, and the statement that a one-byte change fails the checksum (User Story 5, SC-003)
 
 ## Phase 5: User Story 2 - A user installs the tool quietly through the tap (P1)
 
@@ -66,7 +66,7 @@ maintainer's explicit go-ahead at that moment, and Desktop-switching runs are an
 
 **Independent test**: quickstart scenarios 7 to 10 and 13.
 
-- [ ] T020 [US2] Stage `cask` in `scripts/release.sh`: requires `--confirm` and `--tap DIR`; render `packaging/desktop-name-manager.rb.template` with the version and SHA-256; test it in a temporary local tap (`brew tap-new` with no git remote, `brew audit --cask --new --strict`, `brew install --cask`, `dnm --version` and `desktop-name --version` equal, `brew uninstall --cask`, `brew untap`); then write `Casks/desktop-name-manager.rb` into the tap clone and print the `git -C <tap> add/commit/push` commands without running them; never edit the tap's `README.md` (FR-009, FR-010, FR-011)
+- [x] T020 [US2] Stage `cask` in `scripts/release.sh`: requires `--confirm` and `--tap DIR`; render `packaging/desktop-name-manager.rb.template` with the version and SHA-256; test it in a temporary local tap (`brew tap-new` with no git remote, `brew audit --cask --new --strict`, `brew install --cask`, `dnm --version` and `desktop-name --version` equal, `brew uninstall --cask`, `brew untap`); then write `Casks/desktop-name-manager.rb` into the tap clone and print the `git -C <tap> add/commit/push` commands without running them; never edit the tap's `README.md` (FR-009, FR-010, FR-011)
 - [ ] T021 [US2] README "Install" section in `README.md`: `brew install --cask inquinity/tap/desktop-name-manager` (adding the tap first), Apple silicon and macOS 26 or later only for now, the first run needs the network once, and the Accessibility note for `--desktop`
 
 ## Phase 6: User Story 4 - A user uninstalls without losing their wallpaper (P2)
@@ -76,7 +76,7 @@ maintainer's explicit go-ahead at that moment, and Desktop-switching runs are an
 **Independent test**: quickstart scenario 11.
 
 - [ ] T022 [US4] README "Uninstall" section in `README.md`: `brew uninstall --cask desktop-name-manager` removes `dnm` and `desktop-name` and leaves every wallpaper and the store; "Full removal": first `dnm remove` the labels you want gone (or accept that those Desktops lose their labeled picture), optionally `dnm prune --yes`, then delete `~/Library/Application Support/com.altmansoftwaredesign.desktop-name-manager` by hand; Homebrew never deletes it (FR-015, research R12)
-- [ ] T023 [US4] Confirm the rendered cask has no `zap` stanza and its caveats point to the README's full-removal section (`contracts/cask.md`)
+- [x] T023 [US4] Confirm the rendered cask has no `zap` stanza and its caveats point to the README's full-removal section (`contracts/cask.md`)
 
 ## Phase 7: Release 0.1.0 (gates and maintainer steps)
 

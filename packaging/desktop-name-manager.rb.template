@@ -23,7 +23,7 @@ cask "desktop-name-manager" do
 
   caveats <<~EOS
     Labeling the Desktop on screen needs no permission. `dnm --desktop N` needs the
-    Accessibility permission for the app you run dnm from (your terminal). @ACCESSIBILITY_SCOPE@
+    Accessibility permission: @ACCESSIBILITY_SCOPE@
 
     Uninstalling keeps your wallpapers and dnm's stored labels. For full removal, see
       https://github.com/inquinity/desktop-name-manager#uninstall

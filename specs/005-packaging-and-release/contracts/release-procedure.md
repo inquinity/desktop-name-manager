@@ -4,7 +4,8 @@
 scripts/release.sh <version> <stage> [--dry-run] [--confirm] [--tap DIR] [--help]
 ```
 
-Run from the repository root on the maintainer's Mac. Stages run in this order; each needs the previous
+Run from the repository root on the maintainer's Mac. Stages run in the order `check`, `build`, `notarize`,
+`verify`, `draft`, `publish`, `cask`, `record`; each needs the previous
 stage's output in `build.noindex/release-artifacts/<version>/`.
 
 | Stage | Does | Publishes? |
@@ -15,6 +16,7 @@ stage's output in `build.noindex/release-artifacts/<version>/`.
 | `verify` | Unzip to a temporary folder, mark the binary as downloaded, run `dnm --version` (macOS's first-run check), `syspolicy_check distribution`, compare the SHA-256; write the results into the gate record. | no |
 | `draft` | `gh release create v<version> --draft --verify-tag` with the zip, the `.sha256` file and the rendered release notes. | a **draft**, not public. Needs `--confirm` |
 | `publish` | Turns the draft public. | **yes**. Needs `--confirm` |
+| `record` | Appends the procedure log (kept in the build folder so the tree stays clean during the release) to the gate record, for the maintainer to review and commit. | no |
 | `cask` | Renders the cask into the local tap clone given by `--tap`, runs `brew audit --cask --new --strict` and a local-tap install, run and uninstall test, then prints the `git` commands to commit and push the tap. Never pushes. | no (prints the push). Needs `--confirm` |
 
 ## Options
