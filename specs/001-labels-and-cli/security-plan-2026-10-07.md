@@ -32,15 +32,19 @@ by hand afterwards: the current release and kit binaries contain no home path or
 | S14 | info | The CodeQL gate cannot run: the query tag file is not committed | OSS-9 | Pin and commit the query tag | M5 |
 | S15 | info | `prototype/` uses private interfaces | OSS-11 | Research only, never built into the product; covered by S7's release check | M1 (via S7) |
 
-## Questions for the maintainer
+## Maintainer decisions (2026-10-07)
 
-1. **`--desktop` in 0.1.0:** ship it with the S1 warnings (recommended), or hold it until the app has its
-   own Accessibility identity (M2)?
-2. **Threat model:** is another process running as the same user in scope? The plan assumes no, beyond
-   keeping every file operation inside the store (S9, S10).
-3. **`DNM_STORE_DIR` in release builds:** keep it (the plan assumes yes: it is the user's own environment,
-   and the tests and kits rely on it) or limit it to debug builds?
-4. **The CI workflow before the push (S13):** review it now (T006), or move it out of the tree until M5?
+1. **`--desktop` ships in 0.1.0 with the S1 warnings.** macOS gives the Accessibility permission to the
+   responsible app; a command-line tool's is the terminal that started it. A signed `.app` (M2) has its own
+   identity, so the permission can belong to it alone and the terminal needs none.
+2. **Threat model:** a malicious program already running as the user is out of scope, beyond keeping every
+   file operation inside the store (S9, S10); such a program can already do what the user can.
+3. **`DNM_STORE_DIR` stays in release builds:** whoever can set the user's environment can do more harm
+   directly, and the tests and kits rely on it.
+4. **No hosted CI until later (S13):** move `.github/workflows/ci.yml` and `.github/dependabot.yml` to
+   `docs/ci/` as inactive drafts before the push, so GitHub runs neither. T006 and S5's CI part wait.
+5. **Review gate for M1:** the two security reviews satisfy the review gate for the M1 (0.1.0) preview
+   release. The independent code review (`/code-review ultra`) and CodeQL remain required for M5 (1.0.0).
 
 ## Order of work
 
@@ -48,12 +52,10 @@ by hand afterwards: the current release and kit binaries contain no home path or
 2. S6 (hygiene deny-list), S12 (build-stamp flags), S5 (justfile), S11 (kit wording).
 3. S1 documentation and `check` and `about` wording.
 4. Spec 005 clarify for the M1 stage, covering S7, S8 and S5's release checks.
-5. S13 decision, then the hygiene check and the push.
+5. Move the CI drafts (decision 4), then the hygiene check, the push, and the `0.1.0` tag.
 
 ## Deferred, with reasons
 
-- **S14 and the independent code review** (`/code-review ultra`): required before M5 (1.0.0). For M1
-  the maintainer chose these two security reviews (2026-10-07). The constitution requires the code and
-  security reviews before any signed, published build, so M1 needs either the code review or a recorded
-  constitution decision for the preview stage.
+- **S14 and the independent code review** (`/code-review ultra`): required before M5 (1.0.0); for M1 the
+  maintainer accepted the two security reviews (decision 5).
 - **S1's own identity:** needs the app (M2).
