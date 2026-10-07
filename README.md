@@ -17,14 +17,30 @@ Planned:
 
 The command-line tool is `dnm`.
 
-## Try the command-line tool
+## Install
 
-Not packaged yet; build it from source (macOS 26 or later, Xcode 27 command-line tools):
+With [Homebrew](https://brew.sh), on macOS 26 or later with Apple silicon (Intel Macs are not supported
+yet):
 
 ```sh
-swift build -c release --scratch-path build.noindex
-build.noindex/release/dnm set "Status Report"   # label the Desktop you are on
-build.noindex/release/dnm remove                # put the original wallpaper back
+brew tap inquinity/tap
+brew trust --tap inquinity/tap   # Homebrew 7 and later load casks only from taps you trust
+brew install --cask inquinity/tap/desktop-name-manager
+```
+
+This installs `dnm` and the same tool as `desktop-name`. The release is signed and notarized by Apple; the
+first run needs a network connection once, for macOS's notarization check, and after that the tool works
+offline and never connects to the network. To check a download yourself, follow the steps in its
+[release notes](https://github.com/inquinity/desktop-name-manager/releases).
+
+To build from source instead (Xcode 27 command-line tools): `just release`, then use
+`build.noindex/release/dnm`.
+
+## Try it
+
+```sh
+dnm set "Status Report"   # label the Desktop you are on
+dnm remove                # put the original wallpaper back
 ```
 
 A label is one line of 1 to 30 characters (emoji are fine). Commands act on the Desktop on
@@ -103,10 +119,30 @@ Good to know:
 - For the same reason one labeled image can be on several Desktops, so removing or replacing a label
   never deletes its image: `dnm prune` lists the ones no longer in use and deletes them with `--yes`.
 
+## Uninstall
+
+```sh
+brew uninstall --cask desktop-name-manager
+```
+
+This removes `dnm` and `desktop-name`. Your wallpapers stay exactly as they are, labeled ones included, and
+so do `dnm`'s stored labels, in case you reinstall.
+
+**Full removal.** A labeled Desktop shows an image from `dnm`'s storage, so deleting that storage would
+leave such Desktops without their picture. To remove everything:
+
+1. Before uninstalling, run `dnm remove` (with `--display` or `--desktop` as needed) on each Desktop whose
+   label you want gone, then `dnm prune --yes` to delete labeled images no longer in use. Any Desktop you
+   skip keeps its labeled picture until you choose another wallpaper.
+2. Uninstall as above.
+3. Delete the storage folder: `~/Library/Application Support/com.altmansoftwaredesign.desktop-name-manager`.
+
+Homebrew never deletes that folder itself.
+
 ## Status
 
-Early. Spec 001 (labels and the `dnm` command-line tool) is being implemented; see
-`specs/001-labels-and-cli/`. The menu-bar app and the other planned features are not built
+Early. The command-line tool (spec 001, `specs/001-labels-and-cli/`) is built and its first preview
+release, 0.1.0, is being prepared (spec 005, `specs/005-packaging-and-release/`). The menu-bar app and the other planned features are not built
 yet. `prototype/` holds the proof of concept that validated the approach, and
 `docs/research/` holds what testing and research found. The build order and the MVP are in
 [ROADMAP.md](ROADMAP.md).

@@ -67,7 +67,7 @@ maintainer's explicit go-ahead at that moment, and Desktop-switching runs are an
 **Independent test**: quickstart scenarios 7 to 10 and 13.
 
 - [x] T020 [US2] Stage `cask` in `scripts/release.sh`: requires `--confirm` and `--tap DIR`; render `packaging/desktop-name-manager.rb.template` with the version and SHA-256; test it in a temporary local tap (`brew tap-new` with no git remote, `brew audit --cask --new --strict`, `brew install --cask`, `dnm --version` and `desktop-name --version` equal, `brew uninstall --cask`, `brew untap`); then write `Casks/desktop-name-manager.rb` into the tap clone and print the `git -C <tap> add/commit/push` commands without running them; never edit the tap's `README.md` (FR-009, FR-010, FR-011)
-- [ ] T021 [US2] README "Install" section in `README.md`: `brew install --cask inquinity/tap/desktop-name-manager` (adding the tap first), Apple silicon and macOS 26 or later only for now, the first run needs the network once, and the Accessibility note for `--desktop`
+- [x] T021 [US2] README "Install" section in `README.md`: `brew install --cask inquinity/tap/desktop-name-manager` (adding the tap first), Apple silicon and macOS 26 or later only for now, the first run needs the network once, and the Accessibility note for `--desktop`
 
 ## Phase 6: User Story 4 - A user uninstalls without losing their wallpaper (P2)
 
@@ -75,7 +75,7 @@ maintainer's explicit go-ahead at that moment, and Desktop-switching runs are an
 
 **Independent test**: quickstart scenario 11.
 
-- [ ] T022 [US4] README "Uninstall" section in `README.md`: `brew uninstall --cask desktop-name-manager` removes `dnm` and `desktop-name` and leaves every wallpaper and the store; "Full removal": first `dnm remove` the labels you want gone (or accept that those Desktops lose their labeled picture), optionally `dnm prune --yes`, then delete `~/Library/Application Support/com.altmansoftwaredesign.desktop-name-manager` by hand; Homebrew never deletes it (FR-015, research R12)
+- [x] T022 [US4] README "Uninstall" section in `README.md`: `brew uninstall --cask desktop-name-manager` removes `dnm` and `desktop-name` and leaves every wallpaper and the store; "Full removal": first `dnm remove` the labels you want gone (or accept that those Desktops lose their labeled picture), optionally `dnm prune --yes`, then delete `~/Library/Application Support/com.altmansoftwaredesign.desktop-name-manager` by hand; Homebrew never deletes it (FR-015, research R12)
 - [x] T023 [US4] Confirm the rendered cask has no `zap` stanza and its caveats point to the README's full-removal section (`contracts/cask.md`)
 
 ## Phase 7: Release 0.1.0 (gates and maintainer steps)

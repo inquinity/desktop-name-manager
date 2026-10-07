@@ -413,7 +413,11 @@ render_cask() {
     printf "%s" "$cask"
 }
 
+brew_has_trust() { brew help trust >/dev/null 2>&1; }
+
+# The temporary tap is trusted only while it exists (Homebrew 7 loads casks only from trusted taps).
 remove_temporary_tap() {
+    if brew_has_trust; then brew untrust --tap "$temporary_tap" >/dev/null 2>&1 || true; fi
     brew untap "$temporary_tap" >/dev/null 2>&1 || true
 }
 
@@ -431,6 +435,7 @@ stage_cask() {
     remove_temporary_tap
     brew tap-new --no-git "$temporary_tap" >/dev/null
     trap 'remove_temporary_tap; cleanup' EXIT
+    if brew_has_trust; then brew trust --tap "$temporary_tap" >/dev/null; fi
     local local_tap
     local_tap="$(brew --repository "$temporary_tap")"
     mkdir -p "${local_tap}/Casks"

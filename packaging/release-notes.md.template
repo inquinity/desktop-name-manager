@@ -8,6 +8,7 @@ Desktop Name Manager @VERSION@: the `dnm` command-line tool (also installed as `
 
 ```sh
 brew tap inquinity/tap
+brew trust --tap inquinity/tap   # Homebrew 7 and later load casks only from taps you trust
 brew install --cask inquinity/tap/desktop-name-manager
 ```
 
