@@ -11,7 +11,7 @@ The features in build order. Each milestone is reached when its feature is done;
 
 | Milestone | Feature | Specification | Status |
 |---|---|---|---|
-| **M1 (MVP)** | Labels and the `dnm` command-line tool | [specs/001-labels-and-cli](specs/001-labels-and-cli/) | **Released as 0.1.0 (build 1), 2026-10-07**: notarized, in the unlisted `desktop-name-manager` cask. Install checks on macOS 26 and 27 and a period of daily use remain |
+| **M1 (MVP)** | Labels and the `dnm` command-line tool | [specs/001-labels-and-cli](specs/001-labels-and-cli/) | **Released as 0.1.0 (build 1), 2026-10-07**: notarized, in the unlisted `desktop-name-manager` cask. Installed and checked on macOS 26 and 27; in daily use. The Intel refusal check remains |
 | M2 | The menu-bar app and label editor | not written | Notes only |
 | M3 | Quick View: see every label, switch to one | not written | Notes only |
 | M4 | Desktop groups, display roles and sites (home and work monitors) | not written | Notes only |
