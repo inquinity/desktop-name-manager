@@ -21,3 +21,6 @@ prototype/dnm-prototype
 
 # Local CodeQL results
 .codeql/
+
+# Agent worktrees (Claude Code)
+.claude/worktrees/
