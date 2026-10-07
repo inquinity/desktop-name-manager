@@ -143,8 +143,12 @@ notarized, and not for installing.
    than USB), run this once, then try again:
 
    ```sh
-   xattr -dr com.apple.quarantine .
+   xattr -d com.apple.quarantine dnm switch-timing run-timing.command
    ```
+
+   This test build is not notarized, so only do this for a kit that came from the maintainer, and check
+   first that the `SHA-256 of dnm` line in `BUILD-INFO.txt` matches the one the maintainer sent you
+   separately. Released versions are notarized and never need this.
 
 3. Check that it runs:
 
