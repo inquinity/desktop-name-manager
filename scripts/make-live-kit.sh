@@ -66,8 +66,13 @@ fi
 
 print_colored "$COLOR_BRIGHTYELLOW" "Building a universal release of dnm (commit ${commit}${dirty})..."
 # Stamp the build with its commit, so `dnm --version` in the kit says what the testers are running.
-read -ra stamp_flags <<<"$("${repository_root}/scripts/build-stamp.sh")"
-(cd "$repository_root" && swift build -c release --arch arm64 --arch x86_64 --product dnm --scratch-path "${repository_root}/build.noindex" "${stamp_flags[@]}")
+# One flag per line, so a checkout path with spaces stays one argument.
+stamp_flags=()
+while IFS= read -r stamp_flag; do
+    stamp_flags+=("$stamp_flag")
+done < <("${repository_root}/scripts/build-stamp.sh")
+(cd "$repository_root" && swift build -c release --arch arm64 --arch x86_64 --product dnm --scratch-path "${repository_root}/build.noindex" \
+    --force-resolved-versions "${stamp_flags[@]}")
 built_binary="${repository_root}/build.noindex/out/Products/Release/dnm"
 [[ -x "$built_binary" ]] || { print_colored "$COLOR_RED" "Cannot find the built binary at ${built_binary}"; exit 1; }
 architectures="$(lipo -archs "$built_binary")"

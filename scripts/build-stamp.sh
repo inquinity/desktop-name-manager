@@ -7,7 +7,9 @@
 #   (no option)  an interim build: reported as <version>-dev+<commit> (with .dirty if uncommitted changes)
 #   --release    a release build: reported as the plain version. Only the release procedure (spec 005) uses this.
 #
-# Prints one line of linker flags on standard output; everything else goes to standard error.
+# Prints the linker flags on standard output, one per line (so a path with spaces stays one argument);
+# everything else goes to standard error. Read them into an array, for example:
+#   stamp_flags=(); while IFS= read -r flag; do stamp_flags+=("$flag"); done < <(scripts/build-stamp.sh)
 
 set -euo pipefail
 
@@ -62,4 +64,4 @@ stamp_file="${stamp_directory}/stamp-${commit}-${kind}-${dirty}.txt"
 printf 'commit=%s\ndirty=%s\nkind=%s\n' "$commit" "$dirty" "$kind" >"$stamp_file"
 
 # -sectcreate takes a segment, a section and a file: the binary then holds the stamp in __DNM,build.
-printf '%s' "-Xlinker -sectcreate -Xlinker __DNM -Xlinker build -Xlinker ${stamp_file}"
+printf '%s\n' -Xlinker -sectcreate -Xlinker __DNM -Xlinker build -Xlinker "$stamp_file"
