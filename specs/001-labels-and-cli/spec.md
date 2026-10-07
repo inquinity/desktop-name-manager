@@ -419,7 +419,9 @@ the expected labels; the other Desktops are unchanged.
   and a plain statement of permissions: labeling the current Desktop needs none; Accessibility is used
   only to switch Desktops (`--desktop`) by pressing macOS's own "Move left/right a space" shortcuts,
   because macOS offers apps no public way to switch Desktops; nothing else is typed or read; no network,
-  no telemetry.
+  no telemetry. It MUST also list the open-source components compiled into the binary, each with its
+  version, license and a link to that license at that version, and end with "Full license texts are in
+  Licenses/." (constitution 2.1.0). It has no JSON form (maintainer decision, 2026-10-07).
 - **FR-031**: The system MUST provide `dnm check`, a configuration report using public interfaces only,
   one line per item with its state and, when something is missing, how to fix it: macOS version and
   chip; whether displays have separate Spaces; the connected displays (main marked); whether the app

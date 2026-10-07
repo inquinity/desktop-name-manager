@@ -165,4 +165,6 @@ store directory (`DNM_STORE_DIR`) as described there.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+[MIT](LICENSE). The download carries the notices of the third-party code compiled into `dnm`, in
+`Licenses/`. [Acknowledgements](Acknowledgements.md), also shown by `dnm about`, lists each component and
+the license it is used under, linked to that license at the version that ships.

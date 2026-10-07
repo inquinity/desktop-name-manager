@@ -13,7 +13,7 @@
 # other than the one that ships, or `dnm about` does not name a binary component at that version.
 # AcknowledgementsTests runs its --check, so a stale page fails the tests.
 #
-# Usage: scripts/make-acknowledgements.sh [--dry-run] [--check] [--help]
+# Usage: scripts/make-acknowledgements.sh [--dry-run] [--check] [--binary-license-files] [--help]
 # Requires bash (not POSIX sh); written for the bash 3.2 that ships with macOS.
 
 set -euo pipefail
@@ -71,6 +71,9 @@ usage() {
     printf '%s\n' '  -h, --help      Show this help text.'
     printf '%s\n' '  -n, --dry-run   Print the file to stdout instead of writing it.'
     printf '%s\n' '      --check     Write nothing; exit 1 if the committed file is out of date.'
+    printf '%s\n' '      --binary-license-files'
+    printf '%s\n' '                  Print the license files of the components in the binary, one per line,'
+    printf '%s\n' '                  for the release download and the test kit.'
 }
 
 die() {
@@ -194,6 +197,7 @@ while [[ $# -gt 0 ]]; do
         -h|--help) usage; exit 0 ;;
         -n|--dry-run) mode="print" ;;
         --check) mode="check" ;;
+        --binary-license-files) mode="binary-files" ;;
         *) print_colored "$COLOR_RED" "Unknown option: $1"; usage >&2; exit 2 ;;
     esac
     shift
@@ -202,6 +206,12 @@ done
 validate_sources
 
 case "$mode" in
+    binary-files)
+        for entry in "${ENTRIES[@]}"; do
+            split_entry "$entry"
+            if [[ "$entry_scope" == "binary" ]]; then paths_of_entry; fi
+        done
+        ;;
     print)
         render
         ;;

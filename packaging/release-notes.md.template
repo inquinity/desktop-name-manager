@@ -36,6 +36,9 @@ codesign -dvv dnm-@VERSION@/dnm 2>&1 | grep -E "Authority=Developer ID|flags=.*r
 codesign --verify --strict --verbose=2 dnm-@VERSION@/dnm
 ```
 
+The zip also holds `LICENSE`, `Acknowledgements.md` (the open-source components in `dnm`, with their
+licenses) and their license texts in `Licenses/`; `dnm about` lists them too.
+
 SHA-256 of `dnm-@VERSION@-arm64.zip`: `@SHA256@`. Changing a single byte of the zip makes the checksum
 check fail. The binary is signed with a Developer ID and the hardened runtime, and notarized by Apple: a
 quarantined copy (as a browser or Homebrew downloads it) runs without a Gatekeeper warning.

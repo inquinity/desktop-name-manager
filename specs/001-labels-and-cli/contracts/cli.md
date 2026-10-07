@@ -9,7 +9,7 @@ dnm remove [--display <name>] [--desktop <n>]
 dnm undo   [--display <name>] [--desktop <n>]
 dnm show   [--display <name>] [--desktop <n>] [--json]
 dnm prune  [--yes] [--json]
-dnm about  [--json]
+dnm about
 dnm check  [--json]
 dnm list   [--json]
 dnm displays [--json]
@@ -182,11 +182,14 @@ LG HDR 4K
 ## `dnm about`
 
 Prints the tool's name, version (as `--version` prints it), license, source location, data directory
-(home shown as `~`) and the permissions statement (FR-030). Exit `0`. `--json`:
+(home shown as `~`), the permissions statement, and the acknowledgements (FR-030). Exit `0`. No JSON form.
+The acknowledgements end the output:
 
-```json
-{ "name": "…", "version": "0.1.0", "license": "MIT", "source": "https://…",
-  "dataDirectory": "~/Library/Application Support/…", "permissions": ["…", "…", "…"] }
+```text
+Acknowledgements:
+  swift-argument-parser 1.8.2 - Apache License 2.0 with Runtime Library Exception
+    https://github.com/apple/swift-argument-parser/blob/1.8.2/LICENSE.txt
+Full license texts are in Licenses/.
 ```
 
 ## `dnm check`

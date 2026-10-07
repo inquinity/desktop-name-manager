@@ -16,7 +16,7 @@ Files, not a database. Nothing here holds a credential, a personal path or an id
 
 | Field | Example | Rules |
 |---|---|---|
-| file | `dnm-0.1.0-arm64.zip` | Holds exactly `dnm` and `LICENSE` (R1, R3) |
+| file | `dnm-0.1.0-arm64.zip` | Holds exactly `dnm`, `LICENSE`, `Acknowledgements.md` and the license files of the components in the binary (`Licenses/swift-argument-parser-LICENSE.txt`) (R1, R3) |
 | sha256 | 64 hex characters | Same value in the release's `.sha256` file, the cask and the gate record |
 | signature | Developer ID Application, hardened runtime, timestamp | No entitlements (R4) |
 | notarization | submission id, status "Accepted" | Stored in the gate record (the id is Apple's, not personal) |

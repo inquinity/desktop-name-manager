@@ -6,8 +6,10 @@ command-line tool and for this repository's rule that no credential name is ever
 
 ## R1. The artifact
 
-- **Decision:** `dnm-<version>-arm64.zip`, made with `ditto -c -k`, holding the signed `dnm` binary and
-  `LICENSE`. The alias `desktop-name` is a second link the cask creates, not a second file.
+- **Decision:** `dnm-<version>-arm64.zip`, made with `ditto -c -k` (without extended attributes), holding
+  the signed `dnm` binary, `LICENSE`, `Acknowledgements.md` and the license files of the components in the
+  binary, as `scripts/make-acknowledgements.sh --binary-license-files` lists them (constitution 2.1.0).
+  The alias `desktop-name` is a second link the cask creates, not a second file.
 - **Why:** clarified 2026-10-07 (a zip; Apple silicon only). `ditto` keeps the code signature intact, which
   `zip` can damage (the sibling project's experience).
 - **Considered:** a stapled `.pkg` (works offline, but needs the admin password and receipt cleanup); a
@@ -26,8 +28,8 @@ command-line tool and for this repository's rule that no credential name is ever
 
 - **Decision:** fail if `strings -a` finds the build folder, the home folder or the user name; fail if
   `otool -L` lists any library outside the allowed system set (the same list as the linkage test, run on
-  the release binary and never skipped); fail if the artifact holds anything but `dnm` and `LICENSE` (so
-  no `prototype/` tool or `switch-timing` can ship).
+  the release binary and never skipped); fail if the artifact holds anything but those files (so no
+  `prototype/` tool or `switch-timing` can ship).
 - **Why:** the reviews found that nothing checked the release binary itself. A manual check on 2026-10-07
   found no paths, so these are guards against regressions.
 

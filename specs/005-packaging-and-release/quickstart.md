@@ -13,7 +13,7 @@ How to show the release works end to end. Procedure details are in
 | 3 | Missing credential | Unset `DNM_SIGNING_IDENTITY`, run `build` | Exit 1, naming the variable, printing no value (spec edge case) |
 | 4 | Outward steps need confirmation | `scripts/release.sh 0.1.0 draft` without `--confirm` | Prints what it would do; exit 1; no draft created |
 | 5 | Signed and notarized | `build`, `notarize`, `verify` | Hardened runtime and Developer ID in the signature; notarization "Accepted"; the quarantined binary runs and prints `0.1.0` (FR-005, FR-006) |
-| 6 | Binary hygiene | `build` | No build folder, home folder or user name in the binary; only system libraries linked; the zip holds only `dnm` and `LICENSE` (security plan S7) |
+| 6 | Binary hygiene | `build` | No build folder, home folder or user name in the binary; only system libraries linked; the zip holds exactly `dnm`, `LICENSE`, `Acknowledgements.md` and the license files of the components in the binary (`Licenses/swift-argument-parser-LICENSE.txt`) (security plan S7, constitution 2.1.0) |
 | 7 | Cask tested locally | `scripts/release.sh 0.1.0 cask --confirm --tap <tap clone>` | `brew audit` passes; local install, `dnm --version` and `desktop-name --version` match, uninstall clean; the push commands printed, nothing pushed (FR-011) |
 
 ## After publishing (macOS 26 and macOS 27, Apple silicon)

@@ -46,56 +46,27 @@ data file is tracked. `wallpaper-samples/` is local only and never tracked.
 | L4 | Nothing stops a new dependency from shipping without its notice | process gap |
 | L5 | The constitution says nothing about licenses beyond "Licensed MIT" and justifying new dependencies | process gap (requested) |
 
-## Plan
+## Decisions and what was done (2026-10-07)
 
-1. **`THIRD-PARTY-NOTICES.md` at the repository root** (L1, L2): one section per component that is
-   distributed, with its name, version, where it is used, its copyright line and the full license text:
-   swift-argument-parser (Apache 2.0 with Runtime Library Exception) and Spec Kit (MIT, covering `.specify/`
-   and `.claude/skills/speckit-*`). A short closing note lists what is not distributed (macOS frameworks,
-   the Swift runtime, the system font, test and development tools).
-2. **`dnm about` shows acknowledgements; `dnm about --licenses` prints the full texts** (L3):
-   - `dnm about` gains an "Acknowledgements" line: "swift-argument-parser 1.8.2 (Apache License 2.0 with
-     Runtime Library Exception). Full license texts: `dnm about --licenses`."
-   - `dnm about --licenses` prints our MIT license and every third-party notice compiled into the binary
-     (so a copied binary carries them, with no extra file), and `dnm about --json` includes an
-     `acknowledgements` list.
-   - `dnm --help` mentions `about` (it already lists the subcommand; its abstract will say "version,
-     licenses and permissions").
-   - The texts live in one generated Swift source (`Sources/DesktopNameCore/Licenses.swift`), produced by a
-     small script from `LICENSE` and the checked-out dependency's `LICENSE.txt`.
-3. **Release artifact** (L2): the zip holds `dnm`, `LICENSE` and `THIRD-PARTY-NOTICES.md`; the release
-   procedure's contents check and spec 005 (R1, the data model, the contract) change to match; the test
-   kit gets the same two files. The release notes name the acknowledgements.
-4. **Automated checks** (L4):
-   - a test that every package in `Package.resolved` has a section in `THIRD-PARTY-NOTICES.md`, with its
-     resolved version;
-   - a test that the license texts compiled into the binary equal `LICENSE` and the dependency's
-     `LICENSE.txt` in the build checkout (skipped, with a message, when the checkout is absent);
-   - the release `check` stage runs both as part of `just test`, and fails if `THIRD-PARTY-NOTICES.md`
-     is missing.
-5. **Constitution amendment, v2.1.0 (MINOR: a materially expanded constraint)** (L5), in "Platform &
-   Distribution Constraints", replacing "Licensed MIT. New dependencies MUST be justified in the plan and
-   MUST satisfy principles I-VI." with:
+The maintainer chose the sibling project's (Belvedere's) approach, checked against common practice:
+command-line tools installed here (jq, just, shellcheck, uv, Periphery) ship their license files beside the
+binary and print none; `gh licenses` prints a short list of name, version, license and a pinned link, not
+the full texts. Periphery, a Swift tool that also compiles in swift-argument-parser, ships no notice for it.
 
-   > Licensed MIT. Every third-party component in the source repository or in a distributed binary MUST be
-   > listed in `THIRD-PARTY-NOTICES.md` with its version, its copyright notice and its full license text,
-   > and its license MUST be compatible with distributing this project under MIT (no copyleft in what is
-   > distributed). Binary distributions MUST carry those notices, both as a file in the download and from
-   > the tool itself (`dnm about --licenses`; the app's About window later). A new dependency MUST be
-   > justified in the plan, MUST satisfy principles I-VI, and MUST have its license reviewed and its notice
-   > added before it is merged. Every release MUST pass a license check alongside the code and security
-   > reviews.
-
-   With a Sync Impact Report (affected: spec 001 FR-030 for `about`, spec 005 R1 and FR-007 for the
-   artifact and notes, the release `check` stage, and the review modes in
-   `specs/001-labels-and-cli/review-notes.md`).
-6. **Spec updates:** spec 001 FR-030 (`about` names acknowledgements, `--licenses` prints the texts) and
-   its CLI contract; spec 005's artifact contents, release notes and gate record (a "License check" gate).
-
-## Order of work
-
-1. The constitution amendment (needs the maintainer's approval of the wording first).
-2. `THIRD-PARTY-NOTICES.md`; the license-text generator and `Licenses.swift`; `dnm about` and
-   `--licenses` with tests; the inventory test.
-3. Spec 001 and spec 005 updates; the release script, kit and release notes.
-4. Then back to the 0.1.0 release steps (the confirmation runs, push, tag, release).
+1. **Constitution 2.1.0** (`d6e9fe2`): every component in the source or a distributed binary is listed in
+   `Acknowledgements.md` at the version that ships, with its license text in `Licenses/`; every binary
+   download includes the license files of the components it contains; the tool names them briefly;
+   releases add a license check.
+2. **`Licenses/`** holds swift-argument-parser's and Spec Kit's license texts, copied from the exact
+   versions used (closes L1).
+3. **`scripts/make-acknowledgements.sh`** (Belvedere's process) writes `Acknowledgements.md` and, with
+   `--check` (run by `AcknowledgementsTests` and the release `check` stage), refuses an unlisted license
+   file, a missing or non-https link, a link pinned to another version than ships (read from the committed
+   `Package.resolved`), or `dnm about` not naming a binary component at that version (closes L4).
+4. **`dnm about`** ends with the acknowledgements in `gh licenses`' short form and "Full license texts are
+   in Licenses/." No full texts are printed, and `about` has no JSON form (closes L3).
+5. **The release zip and the test kit** hold `dnm`, `LICENSE`, `Acknowledgements.md` and the binary's
+   license files, listed by `make-acknowledgements.sh --binary-license-files` (closes L2). Someone who
+   separates the binary from them is not our responsibility (maintainer decision).
+6. Spec 001 FR-030 and its contract, spec 005 (R1, data model, contract, quickstart), the release notes
+   template, the README's License section and the review modes are updated (closes L5).

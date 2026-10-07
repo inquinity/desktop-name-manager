@@ -10,8 +10,8 @@ stage's output in `build.noindex/release-artifacts/<version>/`.
 
 | Stage | Does | Publishes? |
 |---|---|---|
-| `check` | Gates: clean tree; `v<version>` is a signed tag on HEAD; the version equals `DesktopNameCoreInfo.version` and has no GitHub release; `just test` and `just periphery` pass; live-check records for macOS 26 and 27; the gate file's review line is confirmed. Names the first unmet gate. | no |
-| `build` | Release build for arm64 with the release stamp; `dnm --version` equals `<version>`; binary checks (no build folder, home folder or user name in `strings`; only allowed libraries in `otool -L`); sign (hardened runtime, timestamp, no entitlements); verify the signature; zip `dnm` and `LICENSE` with `ditto`; SHA-256. | no |
+| `check` | Gates: clean tree; `v<version>` is a signed tag on HEAD; the version equals `DesktopNameCoreInfo.version` and has no GitHub release; `just test` and `just periphery` pass; live-check records for macOS 26 and 27; `Acknowledgements.md` is up to date (the license check); the gate file's review line is confirmed. Names the first unmet gate. | no |
+| `build` | Release build for arm64 with the release stamp; `dnm --version` equals `<version>`; binary checks (no build folder, home folder or user name in `strings`; only allowed libraries in `otool -L`); sign (hardened runtime, timestamp, no entitlements); verify the signature; zip `dnm`, `LICENSE`, `Acknowledgements.md` and the license files of the components in the binary (`Licenses/swift-argument-parser-LICENSE.txt`) with `ditto`; SHA-256. | no |
 | `notarize` | Submit the zip, wait up to 30 minutes, require "Accepted"; on failure fetch Apple's log and stop. | no (sends the zip to Apple) |
 | `verify` | Unzip to a temporary folder, mark the binary as downloaded, run `dnm --version` (macOS's first-run check), `syspolicy_check distribution`, compare the SHA-256; results go to the procedure log. | no |
 | `draft` | `gh release create v<version> --draft --verify-tag` with the zip, the `.sha256` file and the rendered release notes. | a **draft**, not public. Needs `--confirm` |

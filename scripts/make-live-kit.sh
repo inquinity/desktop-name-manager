@@ -96,6 +96,12 @@ rm -rf "$output_directory"
 mkdir -p "${output_directory}/Tests/live" "${output_directory}/results"
 cp "$built_binary" "${output_directory}/dnm"
 cp "${timing_build_directory}/switch-timing-universal" "${output_directory}/switch-timing"
+# License files travel with the binaries (constitution 2.1.0).
+cp "${repository_root}/LICENSE" "${repository_root}/Acknowledgements.md" "${output_directory}/"
+while IFS= read -r license_file; do
+    mkdir -p "${output_directory}/$(dirname "$license_file")"
+    cp "${repository_root}/${license_file}" "${output_directory}/${license_file}"
+done < <("${repository_root}/scripts/make-acknowledgements.sh" --binary-license-files)
 cp "${repository_root}/Tests/live/run-timing.command" "${output_directory}/run-timing.command"
 cp "${repository_root}/Tests/live/live-label.sh" "${repository_root}/Tests/live/live-safety.sh" \
     "${repository_root}/Tests/live/live-desktops.sh" "${repository_root}/Tests/live/live-timing.sh" "${output_directory}/Tests/live/"

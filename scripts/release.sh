@@ -178,6 +178,8 @@ tests_pass() { just test >"${temporary_directory}/test.log" 2>&1; }
 
 periphery_is_clean() { just periphery >"${temporary_directory}/periphery.log" 2>&1; }
 
+acknowledgements_current() { scripts/make-acknowledgements.sh --check >/dev/null 2>&1; }
+
 live_checks_recorded() {
     local notes="specs/001-labels-and-cli/review-notes.md"
     grep -qE '^### Live run.*macOS 26' "$notes" && grep -qE '^### Live run.*macOS 27' "$notes"
@@ -217,6 +219,7 @@ stage_check() {
         gate "no GitHub release ${tag} exists yet" version_is_unreleased
     fi
     gate "live checks are recorded for macOS 26 and macOS 27" live_checks_recorded
+    gate "Acknowledgements.md is up to date (license check)" acknowledgements_current
     gate "every maintainer gate in ${gate_record#"${repository_root}"/} is checked" maintainer_gates_checked
     gate "just test passes" tests_pass
     gate "just periphery finds no unused code" periphery_is_clean
@@ -262,7 +265,13 @@ stage_build() {
     rm -rf "$payload"
     mkdir -p "$payload"
     cp "$built_binary" "${payload}/dnm"
-    cp LICENSE "${payload}/LICENSE"
+    cp LICENSE Acknowledgements.md "$payload/"
+    # The license files of the components compiled into dnm (constitution 2.1.0).
+    local license_file
+    while IFS= read -r license_file; do
+        mkdir -p "${payload}/$(dirname "$license_file")"
+        cp "$license_file" "${payload}/${license_file}"
+    done < <(scripts/make-acknowledgements.sh --binary-license-files)
     local binary="${payload}/dnm"
 
     local reported_version
@@ -311,9 +320,10 @@ stage_build() {
     # The signature is embedded in the binary, so extended attributes (which ditto would store as "._" files)
     # are left out.
     ditto -c -k --norsrc --noextattr --noqtn "$payload" "$zip_path"
-    local contents
-    contents="$(zipinfo -1 "$zip_path" | sort | tr '\n' ' ')"
-    [[ "$contents" == "LICENSE dnm " ]] || die "the zip holds \"${contents}\", not exactly dnm and LICENSE"
+    local contents expected
+    contents="$(zipinfo -1 "$zip_path" | grep -v '/$' | sort | tr '\n' ' ')"
+    expected="$({ printf '%s\n' dnm LICENSE Acknowledgements.md; scripts/make-acknowledgements.sh --binary-license-files; } | sort | tr '\n' ' ')"
+    [[ "$contents" == "$expected" ]] || die "the zip holds \"${contents}\", not exactly \"${expected}\""
     (cd "$artifact_directory" && shasum -a 256 "$zip_name" >"${zip_name}.sha256")
     log_result "${zip_name}: SHA-256 $(recorded_sha256)"
 }
