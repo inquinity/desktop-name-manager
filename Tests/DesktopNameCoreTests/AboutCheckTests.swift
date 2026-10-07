@@ -12,6 +12,7 @@ import Testing
         #expect(info.permissions.contains { $0.contains("needs no permissions") })
         #expect(info.permissions.contains { $0.contains("Accessibility") && $0.contains("Move left a space") })
         #expect(info.permissions.contains { $0.contains("No network") && $0.contains("telemetry") })
+        #expect(info.permissions.contains { $0.contains("every program run in that app") })
     }
 }
 
@@ -44,6 +45,7 @@ import Testing
         #expect(access.state == .attention && access.fix?.contains("Privacy & Security > Accessibility (macOS 26)") == true
             && access.fix?.contains("Device Control and Data Access (macOS 27)") == true)
         #expect(access.detail.contains("Only --desktop needs it"))
+        #expect(access.detail.contains("every program run in that app"))
     }
 
     @Test func storedLabelsCountWhatPruneCouldFree() throws {

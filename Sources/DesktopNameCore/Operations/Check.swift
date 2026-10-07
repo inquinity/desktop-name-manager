@@ -87,8 +87,8 @@ extension DesktopLabeler {
         ]
         items.append(displaysItem())
         items.append(configuration.accessibilityGranted
-            ? CheckItem(name: "Accessibility", state: .ok, detail: "Granted to the app running dnm, so --desktop can switch Desktops.")
-            : CheckItem(name: "Accessibility", state: .attention, detail: "Not granted to the app running dnm. Only --desktop needs it; labeling the current Desktop works without it.",
+            ? CheckItem(name: "Accessibility", state: .ok, detail: "Granted to the app running dnm, so --desktop can switch Desktops. \(About.accessibilityScope)")
+            : CheckItem(name: "Accessibility", state: .attention, detail: "Not granted to the app running dnm. Only --desktop needs it; labeling the current Desktop works without it. \(About.accessibilityScope)",
                         fix: "\(About.accessibilitySettings): turn on the app you run dnm from (your terminal)."))
         items.append(CheckItem(name: "Space shortcuts", state: .unknown,
                                detail: "macOS offers no public way to read whether \"Move left a space\" and \"Move right a space\" are on. --desktop says so if they are off.",

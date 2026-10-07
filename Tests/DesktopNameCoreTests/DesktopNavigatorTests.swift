@@ -121,6 +121,7 @@ final class FakeSwitcher: DesktopSwitching {
             #expect(error.exitCode == 1)
             let text = error.errorDescription ?? ""
             #expect(text.contains("Accessibility") && text.contains("Move left a space") && text.contains("Privacy & Security") && text.contains("Device Control and Data Access"))
+            #expect(text.contains("every program run in that app"))
         }
         #expect(fake.steps == 0)
         #expect(fake.pointedAt == nil)

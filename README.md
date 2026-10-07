@@ -68,6 +68,11 @@ Desktop it started on. The pointer moves to that display and returns. Don't type
   Accessibility item there). Quit and reopen the app after turning it on. macOS gives apps no public way to switch Desktops, so `dnm` presses
   macOS's own "Move left a space" and "Move right a space" shortcuts. Nothing else is typed or read.
   `dnm` never asks for the permission itself; without it, `--desktop` stops and changes nothing.
+  **Know what you are granting:** a command-line tool has no app of its own, so macOS gives the permission
+  to the terminal app, and every program you run in that terminal can then send keystrokes and clicks
+  too. Grant it only if you need `--desktop`, consider a separate terminal app just for it, and turn it
+  off when you no longer need it. The planned menu-bar app will hold the permission itself, so the
+  terminal will not need it.
 - **The shortcuts turned on**: System Settings > **Keyboard** (near the bottom of the sidebar) >
   Keyboard Shortcuts… > Mission Control, then **expand** the Mission Control group and turn on "Move left
   a space" and "Move right a space". The Shortcuts… button in Desktop & Dock does not list them.

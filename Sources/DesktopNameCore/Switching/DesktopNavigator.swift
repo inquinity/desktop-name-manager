@@ -41,7 +41,8 @@ public struct DesktopNavigator {
             throw DnmError.failure("""
                 --desktop needs the Accessibility permission, to press macOS's own "Move left a space" and "Move right a space" \
                 shortcuts (macOS offers apps no public way to switch Desktops). Nothing else is typed or read. Grant it to the app \
-                you run dnm from in \(About.accessibilitySettings), then run the command again. Nothing was changed.
+                you run dnm from in \(About.accessibilitySettings), then run the command again. Note: \(About.accessibilityScope) \
+                Nothing was changed.
                 """)
         }
         let savedPointer = try switcher.pointAt(display)
