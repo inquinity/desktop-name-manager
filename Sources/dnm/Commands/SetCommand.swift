@@ -34,9 +34,6 @@ struct SetCommand: ParsableCommand {
             var result = try context.onDesktop(place, of: display) { try context.labeler.setLabel(text, options: options, on: display) }
             result.displayName = place.describe(result.displayName)
             Output.out(result.confirmation)
-            if place.desktop == 1 {
-                Output.err("dnm: note: macOS gives every new Desktop on \(display.name) a copy of Desktop 1's wallpaper, so new Desktops there will show this label too. Run `dnm remove` on such a Desktop, or keep Desktop 1 unlabeled.")
-            }
         }
     }
 }

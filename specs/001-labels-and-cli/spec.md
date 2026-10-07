@@ -59,6 +59,13 @@
   setup, with fixes). The app (spec 002) shows the same content in its About window and in Help >
   Configuration.
 
+### Session 2026-10-07 (amendment for 0.1.1)
+
+- Q: Should the tool warn when Desktop 1 is labeled, since new Desktops copy its wallpaper? → A: No.
+  Verified live: a new Desktop takes its wallpaper from the left-most Desktop on its display, and the
+  user can drag any Desktop into that place. That is a choice, not a hazard, so the README documents it
+  and neither `set` nor `check` mentions it.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Label the current Desktop (Priority: P1)
@@ -251,8 +258,6 @@ the expected labels; the other Desktops are unchanged.
    public interfaces cannot tell which Desktop is showing.)
 5. **Given** `--desktop` is used with `remove`, `undo` or `show`, **When** the command runs, **Then** it
    acts on that Desktop in the same way and returns.
-6. **Given** the user labels Desktop 1 of a display, **When** the command finishes, **Then** the tool also
-   notes that macOS copies the first Desktop's wallpaper to new Desktops on that display.
 
 ---
 
@@ -277,10 +282,9 @@ the expected labels; the other Desktops are unchanged.
   `remove` still restores the original.
 - The user changes the wallpaper by hand in System Settings after labeling; the tool
   treats the new wallpaper as the new original and does not later restore an outdated one.
-- macOS copies the first Desktop's wallpaper (a labeled image included) to every new Desktop on that
-  display, and rewrites that default when Desktops are reordered. The tool cannot prevent it; it
-  documents it, notes it when `--desktop 1` is labeled, and lets the user fix a new Desktop with
-  `remove` or `set` there.
+- macOS copies the left-most Desktop's wallpaper (a labeled image included) to every new Desktop on that
+  display, and follows reordering. The tool documents it (the user picks the left-most Desktop) and lets
+  the user change a new Desktop with `remove` or `set` there.
 - Labeled images accumulate, because the tool cannot tell whether other Desktops still show one;
   `dnm prune` lists them and deletes them only when the user confirms.
 - A full-screen app occupies a Space among the Desktops: the shortcuts that `--desktop` uses step through
@@ -301,7 +305,7 @@ the expected labels; the other Desktops are unchanged.
   current one, or the one given with `--desktop`, FR-027) by producing a labeled copy of that
   Desktop's wallpaper and setting it as that Desktop's wallpaper.
 - **FR-002**: Setting a label MUST change only the targeted Desktop's wallpaper and MUST NOT
-  alter any other Desktop, display, or the original wallpaper file. (macOS itself copies the first
+  alter any other Desktop, display, or the original wallpaper file. (macOS itself copies the left-most
   Desktop's wallpaper to new Desktops; that is documented, FR-028.)
 - **FR-003**: The label MUST persist with its Desktop across restarts, Desktop reordering
   and Show Desktop, without any background process running.
@@ -406,10 +410,10 @@ the expected labels; the other Desktops are unchanged.
   on another Desktop. When no step moves at all,
   the display either has a single Desktop or the shortcuts are off, which public interfaces cannot tell apart;
   the tool MUST then refuse and say both possibilities, rather than risk acting on the wrong Desktop.
-- **FR-028**: The documentation MUST explain the macOS behavior that a display's first Desktop provides
-  the wallpaper for new Desktops (and that reordering changes which Desktop that is), with the fix
-  (`remove` or `set` on the new Desktop, or keep Desktop 1 unlabeled). When `--desktop 1` is labeled,
-  the tool MUST say so in its output.
+- **FR-028**: The documentation MUST explain the macOS behavior that a new Desktop starts with the
+  wallpaper of the left-most Desktop on its display (label included), that the user chooses which
+  Desktop that is by reordering, and that `remove` or `set` changes a new Desktop. The tool MUST NOT
+  warn about it in `set` or `check` (amended 2026-10-07).
 - **FR-029**: The system MUST provide `dnm prune`, which lists the labeled images that are no longer an
   active label (removed, replaced or undone through the tool), with the space they use, and deletes them
   only when the user confirms (`--yes`). It MUST warn that a Desktop still showing one of them would lose

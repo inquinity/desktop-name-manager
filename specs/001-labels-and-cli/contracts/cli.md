@@ -50,8 +50,8 @@ Desktops slide on screen and the person must not type meanwhile.
 | The person (or another app) switched Desktops meanwhile | 1 | Says so and that `dnm` did not switch back (the position is unknown); if it happened while labeling, says to check with `dnm show`. |
 
 The `set` confirmation names the Desktop when `--desktop` was given, for example
-`Labeled "LABEL1" on DP, Desktop 2 (plain, light text, bottom-left, medium).` Labeling Desktop 1 adds a
-note to standard error that macOS copies the first Desktop's wallpaper to new Desktops on that display.
+`Labeled "LABEL1" on DP, Desktop 2 (plain, light text, bottom-left, medium).` Labeling Desktop 1 adds no
+note: new Desktops copying the left-most Desktop's wallpaper is documented in the README (FR-028).
 
 ## `dnm prune`
 
@@ -196,7 +196,7 @@ Full license texts are in Licenses/.
 
 Prints one line per item, in this order: macOS (version and chip), Separate Spaces, Displays (main
 marked), Accessibility (for the app running `dnm`), Space shortcuts (always "cannot be read", with where to
-look), First Desktop (the FR-028 reminder), Stored labels (active labels, images, space, what `prune` could
+look), Stored labels (active labels, images, space, what `prune` could
 free). Each line starts with `ok`, `fix`, `?` or nothing (information); a `fix` or `?` line is followed by
 how to fix or where to look. Changes nothing, takes no lock and never prompts for a permission (FR-031).
 Exit `0`. `--json`: `{ "items": [ { "name", "state": "ok" | "attention" | "unknown" | "info", "detail",

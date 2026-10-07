@@ -6,7 +6,7 @@ struct PruneCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "prune",
         abstract: "List, and with --yes delete, labeled images that are no longer an active label.",
-        discussion: "macOS gives new Desktops a copy of the first Desktop's wallpaper, so a removed or replaced label can still be on another Desktop. Deleting its image would leave that Desktop without a wallpaper. Images shown on a display's current Desktop are never deleted.")
+        discussion: "macOS gives a new Desktop a copy of the left-most Desktop's wallpaper on that display, so a removed or replaced label can still be on another Desktop. Deleting its image would leave that Desktop without a wallpaper. Images shown on a display's current Desktop are never deleted.")
 
     @Flag(name: .long, help: "Delete the listed images. Without it, nothing is deleted.")
     var yes = false

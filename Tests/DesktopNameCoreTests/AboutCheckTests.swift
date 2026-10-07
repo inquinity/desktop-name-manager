@@ -26,7 +26,7 @@ import Testing
     @Test func aReadyMacHasNothingToFixExceptWhatCannotBeRead() throws {
         let h = try LabelerHarness(); defer { h.cleanUp() }
         let report = h.labeler.check(Self.ready)
-        #expect(report.items.map(\.name) == ["macOS", "Separate Spaces", "Displays", "Accessibility", "Space shortcuts", "First Desktop", "Stored labels"])
+        #expect(report.items.map(\.name) == ["macOS", "Separate Spaces", "Displays", "Accessibility", "Space shortcuts", "Stored labels"])
         #expect(report.items.allSatisfy { $0.state != .attention })
         #expect(try item("Space shortcuts", in: report).state == .unknown)
         #expect(try item("Displays", in: report).detail == "Built-in Display (main)")

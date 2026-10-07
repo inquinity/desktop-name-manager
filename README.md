@@ -112,10 +112,10 @@ if there were uncommitted changes). A build without a stamp says so.
 Good to know:
 - Labeling the Desktop on screen needs no macOS permissions; only `--desktop` needs Accessibility.
   The tool makes no network connections and collects no telemetry.
-- macOS gives every new Desktop a copy of the **first** Desktop's wallpaper on that display (hover over +
-  in Mission Control to see it), and reordering Desktops changes which one that is. A label on Desktop 1
-  therefore appears on new Desktops too; run `dnm remove` or `dnm set` on the new Desktop, or keep
-  Desktop 1 unlabeled. See `docs/research/desktop-association.md`.
+- A new Desktop starts with a copy of the wallpaper of the **left-most** Desktop on its display (hover over
+  + in Mission Control to see it), label included. To choose what new Desktops start with, drag a
+  different Desktop to the left-most place in Mission Control; to change one new Desktop, run `dnm set` or
+  `dnm remove` on it. See `docs/research/desktop-association.md`.
 - For the same reason one labeled image can be on several Desktops, so removing or replacing a label
   never deletes its image: `dnm prune` lists the ones no longer in use and deletes them with `--yes`.
 

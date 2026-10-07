@@ -324,13 +324,7 @@ set_labels_applied=false
 first_label="$(label_for 1 1)"
 print_colored "$COLOR_BRIGHTYELLOW" "Scenario 22: a label on Desktop 1 is shared with a new Desktop"
 first_desktop_labeled=true
-if "$dry_run"; then
-    run_step "$dnm_binary" set "$first_label" --display main --desktop 1
-else
-    note_output="$("$dnm_binary" set "$first_label" --display main --desktop 1 2>&1)"
-    printf "%s\n" "$note_output"
-    check "labeling Desktop 1 prints the new-Desktop note" grep -q "copy of Desktop 1's wallpaper" <<<"$note_output"
-fi
+run_step "$dnm_binary" set "$first_label" --display main --desktop 1
 wait_for_person "Open Mission Control, click + on the main display to add a Desktop, then close Mission Control (stay on your Desktop)."
 if "$dry_run"; then
     new_desktop_number=4
