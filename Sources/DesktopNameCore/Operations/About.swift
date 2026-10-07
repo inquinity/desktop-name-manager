@@ -1,7 +1,17 @@
 import Foundation
 
+/// An open-source component compiled into the binary (constitution 2.1.0). `scripts/make-acknowledgements.sh`
+/// checks that this list names each binary component of `Acknowledgements.md` at the version that ships.
+public struct Acknowledgement: Equatable, Sendable {
+    public var name: String
+    public var version: String
+    public var license: String
+    /// The license, pinned to the version that ships.
+    public var url: String
+}
+
 /// What `dnm about` prints (FR-030).
-public struct AboutInfo: Equatable, Sendable, Encodable {
+public struct AboutInfo: Equatable, Sendable {
     public var name: String
     public var version: String
     public var license: String
@@ -9,10 +19,18 @@ public struct AboutInfo: Equatable, Sendable, Encodable {
     /// Where labeled images and their records are kept, with the home folder shown as `~`.
     public var dataDirectory: String
     public var permissions: [String]
+    public var acknowledgements: [Acknowledgement]
 }
 
 public enum About {
     public static let source = "https://github.com/inquinity/desktop-name-manager"
+
+    /// The components compiled into `dnm`, in the order of `Acknowledgements.md`.
+    public static let acknowledgements = [
+        Acknowledgement(name: "swift-argument-parser", version: "1.8.2",
+                        license: "Apache License 2.0 with Runtime Library Exception",
+                        url: "https://github.com/apple/swift-argument-parser/blob/1.8.2/LICENSE.txt"),
+    ]
 
     /// What the Accessibility permission covers for a command-line tool (security plan S1).
     public static let accessibilityScope = "macOS grants it to the whole app you run dnm from (your terminal), so every program run in that app can then send keystrokes and clicks too; turn it off when you no longer need --desktop."
@@ -33,6 +51,6 @@ public enum About {
     public static func info(dataDirectory: URL, version: String = DesktopNameCoreInfo.displayVersion) -> AboutInfo {
         AboutInfo(name: "Desktop Name Manager (dnm, also installed as desktop-name)", version: version, license: "MIT",
                   source: source, dataDirectory: (dataDirectory.path as NSString).abbreviatingWithTildeInPath,
-                  permissions: permissions)
+                  permissions: permissions, acknowledgements: acknowledgements)
     }
 }

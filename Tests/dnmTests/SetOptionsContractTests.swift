@@ -77,9 +77,11 @@ import Testing
         let about = try CLI.run(["about"])
         #expect(about.status == 0)
         #expect(about.output.contains("Accessibility is used only by --desktop"))
-        let json = try CLI.run(["about", "--json"])
-        let root = try #require(try JSONSerialization.jsonObject(with: Data(json.output.utf8)) as? [String: Any])
-        #expect(Set(root.keys) == ["name", "version", "license", "source", "dataDirectory", "permissions"])
+        #expect(about.output.contains("Acknowledgements:"))
+        #expect(about.output.contains("swift-argument-parser 1.8.2 - Apache License 2.0 with Runtime Library Exception"))
+        #expect(about.output.contains("Full license texts are in Licenses/."))
+        // about has no JSON form (maintainer decision 2026-10-07).
+        #expect(try CLI.run(["about", "--json"]).status == 2)
     }
 
     @Test(.enabled(if: CLI.binary != nil))
