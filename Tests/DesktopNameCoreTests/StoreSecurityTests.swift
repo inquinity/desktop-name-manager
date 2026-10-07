@@ -44,6 +44,26 @@ import Testing
         #expect(!store.stampFileExists(named: "../victim.txt"))
     }
 
+    @Test func removeFileNeverDeletesAFolderWithOurName() throws {
+        let (store, root) = try makeStore(); defer { try? FileManager.default.removeItem(at: root) }
+        let folder = store.fileURL(named: "\(UUID().uuidString).dnm.jpg")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try Data("inside".utf8).write(to: folder.appendingPathComponent("keep.txt"))
+        store.removeFile(named: folder.lastPathComponent)
+        #expect(FileManager.default.fileExists(atPath: folder.appendingPathComponent("keep.txt").path))
+    }
+
+    @Test func removeFileNeverReachesThroughALink() throws {
+        let (store, root) = try makeStore(); defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: store.directory, withIntermediateDirectories: true)
+        let target = root.appendingPathComponent("target.jpg")
+        try Data("precious".utf8).write(to: target)
+        let link = store.fileURL(named: "\(UUID().uuidString).dnm.jpg")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
+        store.removeFile(named: link.lastPathComponent)
+        #expect(FileManager.default.fileExists(atPath: target.path))
+    }
+
     @Test func writeStampFileRefusesNamesThatAreNotOurs() throws {
         let (store, root) = try makeStore(); defer { try? FileManager.default.removeItem(at: root) }
         #expect(throws: DnmError.self) { try store.writeStampFile(Data([1]), named: "../evil.txt") }

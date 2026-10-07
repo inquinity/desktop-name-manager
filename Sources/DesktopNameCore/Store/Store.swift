@@ -175,9 +175,13 @@ public final class Store: Sendable {
     }
 
     /// Deletes one of our stamp files. Anything that is not exactly `<uuid>.dnm.<ext>` is ignored, so a
-    /// name carrying a path can never reach outside the store.
+    /// name carrying a path can never reach outside the store, and only a regular file is deleted (never a
+    /// folder, which would go recursively, nor what a symlink points to).
     public func removeFile(named fileName: String) {
         guard Cleanup.isOurFileName(fileName) else { return }
-        try? FileManager.default.removeItem(at: fileURL(named: fileName))
+        let url = fileURL(named: fileName)
+        var info = stat()
+        guard lstat(url.path, &info) == 0, info.st_mode & S_IFMT == S_IFREG else { return }
+        try? FileManager.default.removeItem(at: url)
     }
 }
