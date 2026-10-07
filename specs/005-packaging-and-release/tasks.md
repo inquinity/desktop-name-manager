@@ -83,11 +83,11 @@ maintainer's explicit go-ahead at that moment, and Desktop-switching runs are an
 - [x] T024 Document upgrade and withdrawal for later releases in `specs/005-packaging-and-release/releases/README.md`: `brew upgrade --cask`, and withdrawing (mark the GitHub release, return the cask to the previous version), tested from 0.1.1 (User Stories 3 and 6)
 - [x] T025 **(maintainer)** M1 confirmation runs with the measured `--desktop` settings on this Mac: `Tests/live/live-timing.sh` (every case PASS against SC-008) and `Tests/live/live-desktops.sh` (no failed check); record both in `docs/research/timings.md` and `specs/001-labels-and-cli/review-notes.md` (roadmap M1 exit criterion 1)
 - [x] T026 Hygiene check of everything to be pushed: `git log origin/main..main` reviewed for personal paths, user names, identifiers and credentials (the hygiene scan plus a `git grep` over the range), and `just test` green
-- [ ] T027 **(maintainer)** Push `main` to `origin` after T001 and T026
-- [ ] T028 **(maintainer)** Create the signed annotated tag `v0.1.0` on the release commit (`git tag -s v0.1.0`) and push it
-- [ ] T029 **(maintainer)** Run `scripts/release.sh 0.1.0 check`, `build`, `notarize`, `verify`, then `draft --confirm` (credentials set in the maintainer's shell)
-- [ ] T030 **(maintainer)** Review the draft, then `scripts/release.sh 0.1.0 publish --confirm`
-- [ ] T031 **(maintainer)** `scripts/release.sh 0.1.0 cask --confirm --tap <tap clone>`, review the printed diff, then commit and push the tap
+- [x] T027 **(maintainer)** Push `main` to `origin` after T001 and T026
+- [x] T028 **(maintainer)** Create the signed annotated tag `v0.1.0` on the release commit (`git tag -s v0.1.0`) and push it
+- [x] T029 **(maintainer)** Run `scripts/release.sh 0.1.0 check`, `build`, `notarize`, `verify`, then `draft --confirm` (credentials set in the maintainer's shell)
+- [x] T030 **(maintainer)** Review the draft, then `scripts/release.sh 0.1.0 publish --confirm`
+- [x] T031 **(maintainer)** `scripts/release.sh 0.1.0 cask --confirm --tap <tap clone>`, review the printed diff, then commit and push the tap
 - [ ] T032 Quickstart scenarios 8 to 13 on macOS 26 and macOS 27 (Apple silicon), recorded in `specs/005-packaging-and-release/releases/0.1.0.md`; commit the completed gate record
 
 ## Phase 8: Polish
