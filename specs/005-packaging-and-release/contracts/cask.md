@@ -23,6 +23,6 @@ Must not contain:
 - any credential, personal path, user name or identifier (FR-019);
 - anything that changes the tap's README (FR-010).
 
-Acceptance: `brew audit --cask --new --strict` passes in a temporary local tap, and installing it there
+Acceptance: `brew audit --cask --strict --online` passes in a temporary local tap, and installing it there
 gives working `dnm --version` and `desktop-name --version` with the same output, before anything is pushed
 (FR-011).

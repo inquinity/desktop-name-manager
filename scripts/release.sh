@@ -509,8 +509,10 @@ stage_cask() {
     local_tap="$(brew --repository "$temporary_tap")"
     mkdir -p "${local_tap}/Casks"
     cp "$cask" "${local_tap}/Casks/desktop-name-manager.rb"
-    brew audit --cask --new --strict "${temporary_tap}/desktop-name-manager"
-    log_result "brew audit --cask --new --strict passed"
+    # --strict and --online (the download, checksum and livecheck work), but not --new: that applies Homebrew's own
+    # cask repository's acceptance rules, such as a minimum number of GitHub stars, which a personal tap does not need.
+    brew audit --cask --strict --online "${temporary_tap}/desktop-name-manager"
+    log_result "brew audit --cask --strict --online passed"
     brew install --cask "${temporary_tap}/desktop-name-manager"
     local prefix main_version alias_version
     prefix="$(brew --prefix)"

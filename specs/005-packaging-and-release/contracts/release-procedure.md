@@ -19,7 +19,7 @@ stage's output in `build.noindex/release-artifacts/<version>/`.
 | `push` | Pushes `main` and the signed tag to `origin`. | **yes** (the code and tag). Needs `--confirm` |
 | `draft` | `gh release create v<version> --draft --verify-tag` with the zip, the `.sha256` file and the rendered release notes. | a **draft**, not public. Needs `--confirm` |
 | `publish` | Turns the draft public. | **yes**. Needs `--confirm` |
-| `cask` | Renders the cask into the local tap clone given by `--tap`, runs `brew audit --cask --new --strict` and a local-tap install, run and uninstall test, then prints the `git` commands to commit and push the tap. Never pushes. | no (prints the push). Needs `--confirm` |
+| `cask` | Renders the cask into the local tap clone given by `--tap`, runs `brew audit --cask --strict --online` and a local-tap install, run and uninstall test, then prints the `git` commands to commit and push the tap. Never pushes. | no (prints the push). Needs `--confirm` |
 | `record` | Appends the procedure log (kept in the build folder so the tree stays clean during the release) to the gate record, for the maintainer to review and commit. | no |
 
 ## Options

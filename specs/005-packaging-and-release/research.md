@@ -91,7 +91,8 @@ command-line tool and for this repository's rule that no credential name is ever
   security plan S1, and where full removal is documented). **No `zap` stanza:** stored data is never
   removed automatically (FR-015). The tap's README is not touched (FR-010).
 - **Testing before any push (FR-011):** a temporary local tap (`brew tap-new` with no remote), `brew audit
-  --cask --new --strict`, then install, run both commands, uninstall, and remove the temporary tap. The
+  --cask --strict --online` (not `--new`, which applies the official
+  repository's acceptance rules such as a minimum number of stars), then install, run both commands, uninstall, and remove the temporary tap. The
   procedure writes the cask into the maintainer's local clone of the tap and prints the commit and push
   commands; it never pushes.
 - **Considered:** writing the cask by hand each release (error-prone checksum and version).

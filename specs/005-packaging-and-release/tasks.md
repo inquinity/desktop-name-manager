@@ -66,7 +66,7 @@ maintainer's explicit go-ahead at that moment, and Desktop-switching runs are an
 
 **Independent test**: quickstart scenarios 7 to 10 and 13.
 
-- [x] T020 [US2] Stage `cask` in `scripts/release.sh`: requires `--confirm` and `--tap DIR`; render `packaging/desktop-name-manager.rb.template` with the version and SHA-256; test it in a temporary local tap (`brew tap-new` with no git remote, `brew audit --cask --new --strict`, `brew install --cask`, `dnm --version` and `desktop-name --version` equal, `brew uninstall --cask`, `brew untap`); then write `Casks/desktop-name-manager.rb` into the tap clone and print the `git -C <tap> add/commit/push` commands without running them; never edit the tap's `README.md` (FR-009, FR-010, FR-011)
+- [x] T020 [US2] Stage `cask` in `scripts/release.sh`: requires `--confirm` and `--tap DIR`; render `packaging/desktop-name-manager.rb.template` with the version and SHA-256; test it in a temporary local tap (`brew tap-new` with no git remote, `brew audit --cask --strict --online`, `brew install --cask`, `dnm --version` and `desktop-name --version` equal, `brew uninstall --cask`, `brew untap`); then write `Casks/desktop-name-manager.rb` into the tap clone and print the `git -C <tap> add/commit/push` commands without running them; never edit the tap's `README.md` (FR-009, FR-010, FR-011)
 - [x] T021 [US2] README "Install" section in `README.md`: `brew install --cask inquinity/tap/desktop-name-manager` (adding the tap first), Apple silicon and macOS 26 or later only for now, the first run needs the network once, and the Accessibility note for `--desktop`
 
 ## Phase 6: User Story 4 - A user uninstalls without losing their wallpaper (P2)
