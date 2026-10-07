@@ -13,7 +13,7 @@ cask "desktop-name-manager" do
   end
 
   depends_on arch: :arm64
-  depends_on macos: ">= :tahoe"
+  depends_on macos: :tahoe
 
   binary "dnm"
   binary "dnm", target: "desktop-name"

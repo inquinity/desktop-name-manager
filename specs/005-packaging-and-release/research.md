@@ -86,7 +86,7 @@ command-line tool and for this repository's rule that no credential name is ever
 - **Decision:** `Casks/desktop-name-manager.rb` in the tap, rendered by the procedure from a template in this
   repository (`packaging/desktop-name-manager.rb.template`):
   `version`, `sha256`, `url` (the release download), `name`, `desc`, `homepage`,
-  `livecheck` (`strategy :github_latest`), `depends_on macos: ">= :tahoe"`, `depends_on arch: :arm64`,
+  `livecheck` (`strategy :github_latest`), `depends_on macos: :tahoe` (macOS 26 or later), `depends_on arch: :arm64`,
   `binary "dnm"`, `binary "dnm", target: "desktop-name"`, and `caveats` (the Accessibility note from
   security plan S1, and where full removal is documented). **No `zap` stanza:** stored data is never
   removed automatically (FR-015). The tap's README is not touched (FR-010).

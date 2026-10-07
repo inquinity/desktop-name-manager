@@ -384,7 +384,9 @@ stage_notarize() {
         fi
         die "notarization ended with status \"${status}\" (submission ${submission})"
     fi
-    log_result "notarized: status Accepted, submission ${submission}"
+    # Only the start of Apple's submission id is recorded: enough to find it in `notarytool history`, and the
+    # gate record is public (the hygiene scan refuses UUID-shaped identifiers).
+    log_result "notarized: status Accepted, submission ${submission:0:8}…"
 }
 
 stage_verify() {

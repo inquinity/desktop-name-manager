@@ -12,7 +12,7 @@ Rendered by `scripts/release.sh <version> cask` from `packaging/desktop-name-man
 | `desc` | one line describing what it does | Homebrew audit |
 | `homepage` | `https://github.com/inquinity/desktop-name-manager` | |
 | `livecheck` | `url :url`, `strategy :github_latest` | FR-009 (detect new versions) |
-| `depends_on macos:` | `">= :tahoe"` (macOS 26) | FR-009, FR-012 |
+| `depends_on macos:` | `:tahoe` (macOS 26 or later) | FR-009, FR-012 |
 | `depends_on arch:` | `:arm64` | FR-009, FR-012 (Apple silicon only for 0.1.0) |
 | `binary` | `"dnm"` and `"dnm", target: "desktop-name"` | both commands on the PATH (FR-009) |
 | `caveats` | the Accessibility note (security plan S1) and where full removal is documented | FR-015 |
