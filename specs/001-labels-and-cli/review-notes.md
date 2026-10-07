@@ -111,6 +111,15 @@ interfaces (the privacy scan passes); `check` reads only and creates nothing; `a
 directory with the home folder as `~`. Results: 196 tests pass (177 core, 18 CLI, 1 snapshot); Periphery
 reports no unused code.
 
+### 2026-10-07: two security reviews before M1 (independent agents, read-only)
+
+Two agents reviewed `main` at `e88c74d` in parallel: one with the `security-oss-app-reviewer` method, one
+with the `security-review` method applied to the whole tree. No network or telemetry, no private interfaces
+in the shipped code, no credentials, guarded paths and deletions. Fifteen merged findings (one medium:
+the Accessibility grant covers the whole terminal; six low; eight informational) and their resolutions are
+in [security-plan-2026-10-07.md](security-plan-2026-10-07.md). These are security reviews; the independent
+code review (T091, T072) is still open.
+
 ## Measurements
 
 ### Live run, 2026-10-03, macOS 27.0.1 (this Mac), main display, `Tests/live/live-label.sh`
