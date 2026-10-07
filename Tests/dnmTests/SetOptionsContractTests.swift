@@ -123,11 +123,12 @@ import Testing
     @Test(.enabled(if: CLI.binary != nil))
     func versionIsPlainOrNamesTheCommit() throws {
         let output = try CLI.run(["--version"]).output.trimmingCharacters(in: .whitespacesAndNewlines)
-        // "0.1.0" (release), "0.1.0-dev+<commit>[.dirty]" (interim) or "0.1.0-dev+unknown" (unstamped build).
-        #expect(output.range(of: #"^\d+\.\d+\.\d+(-dev\+([0-9a-f]+(\.dirty)?|unknown))?$"#, options: .regularExpression) != nil, "got: \(output)")
+        // "0.1.0 (1)" (release), "0.1.0 (1) <commit>[+]" (any other build), or the unstamped notice.
+        #expect(output.range(of: #"^(\d+\.\d+\.\d+ \(\d+\)( [0-9a-f]+\+?)?|unknown version \(built without a build stamp\))$"#,
+                             options: .regularExpression) != nil, "got: \(output)")
         // Built through `just`, the stamp names the commit that was checked out when it was built.
-        if let range = output.range(of: #"\+[0-9a-f]+"#, options: .regularExpression), let head = Self.headCommit() {
-            let stamped = String(output[range].dropFirst())
+        if let range = output.range(of: #"\) [0-9a-f]+"#, options: .regularExpression), let head = Self.headCommit() {
+            let stamped = String(output[range].dropFirst(2))
             #expect(head.hasPrefix(stamped) || stamped.hasPrefix(head), "stamped \(stamped), HEAD \(head)")
         }
     }

@@ -104,7 +104,7 @@ if "$dry_run"; then
     exit 0
 fi
 
-[[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: just release"; exit 1; }
+[[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: just build-release"; exit 1; }
 [[ -f "$wallpaper_store_plist" ]] || { print_colored "$COLOR_RED" "Cannot find the wallpaper store: ${wallpaper_store_plist}"; exit 1; }
 command -v sandbox-exec >/dev/null 2>&1 || { print_colored "$COLOR_RED" "sandbox-exec is needed to block the network for scenario 14."; exit 1; }
 

@@ -25,6 +25,11 @@ Decided by the maintainer before this session (roadmap and security plan), recor
   path (`strings`); the linkage check runs on the release binary and fails rather than skips; no research
   tool (`prototype/`, `switch-timing`) is ever in a release.
 
+- **Versioning matches the sibling project** (maintainer decision, later on 2026-10-07): `Version.xcconfig`
+  holds the version and build number; `--version` prints `0.1.0 (1)`; 0.1.0 is build 1; `just release
+  <segment>` bumps, composes `docs/release-notes/<version>.md` from `UNRELEASED.md`, commits "Release <v> build
+  <n>" and makes the tag, and `just publish <stage>` runs the procedure. Tags stay signed.
+
 Asked in this session:
 
 - Q: Should the 0.1.0 cask install on Intel Macs as well as Apple silicon? → A: No: Apple silicon only for
@@ -160,7 +165,7 @@ If a published release turns out to be bad, the maintainer can withdraw it quick
 
 - **FR-001**: A single release procedure MUST take a version number and, from a clean working tree at a tagged commit, produce a verified draft release. It MUST NOT publish, push to any public location, or change the tap unless the maintainer separately confirms each of those steps.
 - **FR-002**: The procedure MUST refuse to start, naming the unmet gate, unless: the pre-release code review and security review for that commit range are recorded with no unresolved finding (or each remaining finding is explicitly accepted in the record; for 0.1.0, the two security reviews of 2026-10-07 stand in for both, see Clarifications); live checks are recorded on macOS 26 and macOS 27; the automated tests and the unused-code scan pass; and the version number is new.
-- **FR-003**: The version number MUST follow semantic versioning, MUST be the single source for the tool's reported version, the tag, the download file names and the cask, and MUST NOT be reused once published. Builds that are not releases MUST report which commit they came from, and whether the tree had uncommitted changes, in the version the tool prints (for example `0.1.0-dev+9398ae4`); a release build MUST report the plain version. A build with no commit information MUST say so rather than look like a release.
+- **FR-003**: The version number (`MARKETING_VERSION` in `Version.xcconfig`, with a build number, `CURRENT_PROJECT_VERSION`, as in the sibling project) MUST follow semantic versioning, MUST be the single source for the tool's reported version, the tag, the download file names and the cask, and MUST NOT be reused once published. A release build MUST report `<version> (<build>)`, for example `0.1.0 (1)`; builds that are not releases MUST add the commit they came from and `+` if the tree had uncommitted changes, for example `0.1.0 (1) 9398ae4+`. A build with no commit information MUST say so rather than look like a release.
 - **FR-004**: The build MUST come from the tagged commit only, with the toolchain and dependency versions recorded in the release notes, so that the same commit and toolchain give an equivalent build (identical apart from signature and timestamps).
 - **FR-005**: The release artifact MUST be a zip holding the `dnm` binary, signed with the maintainer's Developer ID with the hardened runtime and no entitlements, and notarized by Apple, so that macOS accepts it without a warning. Because a ticket cannot be attached to a binary or a zip, the first run after installing needs a network connection once for macOS's online notarization check; later runs need none.
 - **FR-006**: Before a release can be published, the procedure MUST verify, and show the result of, each of: the signature is valid and from the expected identity; notarization is present; macOS's download check accepts the artifact; the published checksum matches the file. Any failure MUST stop the procedure.

@@ -3,7 +3,10 @@
 # The release procedure for the dnm command-line tool (spec 005, contracts/release-procedure.md).
 # Runs on the maintainer's Mac, one stage at a time:
 #
-#   check -> build -> notarize -> verify -> draft -> publish -> cask -> record
+#   check -> build -> notarize -> verify -> push -> draft -> publish -> cask -> record
+#
+# `just release <segment>` prepares a release first (bump, notes, "Release X build N" commit, signed tag), and
+# `just publish <stage>` runs these stages for the version in Version.xcconfig.
 #
 # Nothing is published, pushed or changed in the tap unless that stage is run with --confirm. Credentials
 # come only from the environment (DNM_SIGNING_IDENTITY, DNM_NOTARY_PROFILE) and are never printed.
@@ -32,7 +35,7 @@ print_colored() {
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 release_repository="inquinity/desktop-name-manager"
 temporary_tap="dnmrelease/check"
-stages="check build notarize verify draft publish cask record"
+stages="check build notarize verify push draft publish cask record"
 
 version=""
 stage=""
@@ -49,6 +52,7 @@ usage() {
     print_colored "$COLOR_YELLOW" "  build     release build, binary checks, signing, zip and SHA-256"
     print_colored "$COLOR_YELLOW" "  notarize  submit the zip to Apple and wait (up to 30 minutes)"
     print_colored "$COLOR_YELLOW" "  verify    run a quarantined copy as a user's Mac would; compare the checksum"
+    print_colored "$COLOR_YELLOW" "  push      push main and the tag to origin (needs --confirm)"
     print_colored "$COLOR_YELLOW" "  draft     create a draft GitHub release (needs --confirm)"
     print_colored "$COLOR_YELLOW" "  publish   make the draft public (needs --confirm)"
     print_colored "$COLOR_YELLOW" "  cask      test the cask in a temporary local tap, write it into --tap DIR (needs --confirm); never pushes"
@@ -91,6 +95,11 @@ done
 [[ " ${stages} " == *" ${stage} "* ]] || die "unknown stage \"${stage}\"; stages: ${stages}" 2
 
 tag="v${version}"
+build_number="$("${repository_root}/scripts/build-num")"
+# What a release build of this version prints for --version (the sibling project's form).
+release_display="${version} (${build_number})"
+release_subject="Release ${version} build ${build_number}"
+notes_file="${repository_root}/docs/release-notes/${version}.md"
 artifact_directory="${repository_root}/build.noindex/release-artifacts/${version}"
 zip_name="dnm-${version}-arm64.zip"
 zip_path="${artifact_directory}/${zip_name}"
@@ -166,11 +175,13 @@ tag_is_signed_on_head() {
     git cat-file tag "$tag" | grep -qE "BEGIN (SSH|PGP) SIGNATURE"
 }
 
-source_version() {
-    sed -n 's/.*public static let version = "\([0-9.]*\)".*/\1/p' Sources/DesktopNameCore/DesktopNameCore.swift
-}
+source_version() { scripts/ver; }
 
 version_matches_source() { [[ "$(source_version)" == "$version" ]]; }
+
+head_is_release_commit() { [[ "$(git log -1 --format=%s)" == "$release_subject" ]]; }
+
+release_notes_exist() { [[ -s "$notes_file" ]]; }
 
 version_is_unreleased() { ! gh release view "$tag" --repo "$release_repository" >/dev/null 2>&1; }
 
@@ -200,11 +211,6 @@ notary_profile_usable() {
     xcrun notarytool history --keychain-profile "$DNM_NOTARY_PROFILE" >/dev/null 2>&1
 }
 
-# Text between a "## <heading>" line and the next "## " heading of the gate record.
-gate_record_section() {
-    awk -v heading="## $1" '$0 == heading {inside=1; next} /^## /{inside=0} inside' "$gate_record" | sed '/./,$!d'
-}
-
 # --- Stages ----------------------------------------------------------------------------------------
 
 stage_check() {
@@ -212,7 +218,9 @@ stage_check() {
     require_command just
     gate "the working tree is clean" tree_is_clean
     gate "${tag} is a signed, annotated tag on HEAD" tag_is_signed_on_head
-    gate "${version} is the version in DesktopNameCoreInfo (found $(source_version))" version_matches_source
+    gate "${version} is the version in Version.xcconfig (found $(source_version))" version_matches_source
+    gate "HEAD is the release commit \"${release_subject}\"" head_is_release_commit
+    gate "docs/release-notes/${version}.md exists" release_notes_exist
     if "$dry_run"; then
         print_colored "$COLOR_YELLOW" "SKIP  no GitHub release ${tag} yet (dry run: not asked)"
     else
@@ -243,7 +251,7 @@ stage_build() {
     fi
 
     # A release stamp needs a clean tree; a dry run on a dirty tree builds an interim stamp instead.
-    local stamp_option="--release" expected_version="$version"
+    local stamp_option="--release" expected_version="$release_display"
     if "$dry_run" && ! tree_is_clean; then
         stamp_option=""
         expected_version=""
@@ -358,7 +366,7 @@ stage_verify() {
     xattr -w com.apple.quarantine "0081;$(printf '%x' "$(date +%s)");dnm-release;" "$binary"
     local reported
     reported="$("$binary" --version)" || die "macOS refused to run the quarantined binary"
-    [[ "$reported" == "$version" ]] || die "the downloaded binary reports ${reported}, not ${version}"
+    [[ "$reported" == "$release_display" ]] || die "the downloaded binary reports ${reported}, not ${release_display}"
     log_result "a quarantined copy ran and reported ${reported} (macOS's first-run check passed)"
     if command -v syspolicy_check >/dev/null; then
         syspolicy_check distribution "$binary" >"${temporary_directory}/syspolicy.log" 2>&1 \
@@ -371,16 +379,26 @@ stage_verify() {
 render_release_notes() {
     local notes="${artifact_directory}/release-notes.md" sha
     sha="$(recorded_sha256)"
-    local changes gaps toolchain commit
-    changes="$(gate_record_section "Changes")"
-    gaps="$(gate_record_section "Known gaps")"
+    [[ -s "$notes_file" ]] || die "docs/release-notes/${version}.md is missing: run just release first"
+    local body toolchain commit
+    # The composed notes without their title (GitHub shows the release title).
+    body="$(sed '1{/^# /d;}' "$notes_file" | sed '/./,$!d')"
     toolchain="$(swift --version 2>&1 | head -n 1)"
     commit="$(git rev-parse --short "$tag")"
-    CHANGES="$changes" KNOWN_GAPS="$gaps" TOOLCHAIN="$toolchain" COMMIT="$commit" SHA="$sha" VERSION="$version" \
-        perl -0pe 's/\@CHANGES\@/$ENV{CHANGES}/g; s/\@KNOWN_GAPS\@/$ENV{KNOWN_GAPS}/g; s/\@TOOLCHAIN\@/$ENV{TOOLCHAIN}/g;
-                   s/\@COMMIT\@/$ENV{COMMIT}/g; s/\@SHA256\@/$ENV{SHA}/g; s/\@VERSION\@/$ENV{VERSION}/g' \
+    NOTES="$body" TOOLCHAIN="$toolchain" COMMIT="$commit" SHA="$sha" VERSION="$version" BUILD="$build_number" \
+        perl -0pe 's/\@NOTES\@/$ENV{NOTES}/g; s/\@TOOLCHAIN\@/$ENV{TOOLCHAIN}/g; s/\@COMMIT\@/$ENV{COMMIT}/g;
+                   s/\@SHA256\@/$ENV{SHA}/g; s/\@BUILD\@/$ENV{BUILD}/g; s/\@VERSION\@/$ENV{VERSION}/g' \
         packaging/release-notes.md.template >"$notes"
     printf "%s" "$notes"
+}
+
+stage_push() {
+    require_confirmation "push main and the tag ${tag} to origin"
+    tag_is_signed_on_head || die "${tag} is not a signed tag on HEAD: run just release first"
+    [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || die "not on main"
+    git push origin main
+    git push origin "$tag"
+    log_result "pushed main and ${tag} to origin"
 }
 
 stage_draft() {
@@ -458,10 +476,10 @@ stage_cask() {
     main_version="$("${prefix}/bin/dnm" --version)"
     alias_version="$("${prefix}/bin/desktop-name" --version)"
     brew uninstall --cask "${temporary_tap}/desktop-name-manager"
-    [[ "$main_version" == "$version" && "$alias_version" == "$version" ]] \
-        || die "after a local install, dnm reports ${main_version} and desktop-name ${alias_version}, not ${version}"
+    [[ "$main_version" == "$release_display" && "$alias_version" == "$release_display" ]] \
+        || die "after a local install, dnm reports ${main_version} and desktop-name ${alias_version}, not ${release_display}"
     [[ ! -e "${prefix}/bin/dnm" && ! -e "${prefix}/bin/desktop-name" ]] || die "uninstalling left dnm or desktop-name behind"
-    log_result "local install, run (dnm and desktop-name report ${version}) and uninstall passed"
+    log_result "local install, run (dnm and desktop-name report ${release_display}) and uninstall passed"
     remove_temporary_tap
 
     cp "$cask" "${tap_directory}/Casks/desktop-name-manager.rb"

@@ -13,7 +13,7 @@ How to prove the feature works end to end. Commands and options are defined in
 ## Build
 
 ```bash
-just release    # swift build -c release --scratch-path build.noindex
+just build-release  # swift build -c release --scratch-path build.noindex
 ```
 
 The binary is `build.noindex/release/dnm`. Put `desktop-name` beside it as a link to it to check

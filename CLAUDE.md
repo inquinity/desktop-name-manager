@@ -34,14 +34,15 @@ it first.
 
 ## Build and test
 
-- Build and test with `just build`, `just test` and `just release` (Swift 6.4, macOS 26 or later).
+- Build and test with `just build`, `just test` and `just build-release` (Swift 6.4, macOS 26 or later).
   They pass `--scratch-path build.noindex`, so build output goes to `build.noindex/` and not SwiftPM's
   `.build/`; keep it that way (plain `swift build` creates `.build/`, which is only git-ignored).
   Unit and contract tests use a fake wallpaper system and a temporary store; they never change the
   real wallpaper.
-- Builds made with `just` are stamped with their commit (`scripts/build-stamp.sh`), so `dnm --version` prints
-  `0.1.0-dev+<commit>[.dirty]`. Only the release procedure (spec 005) makes a build that prints the plain
-  version. Quote `dnm --version` when reporting what you tested.
+- The version and build number live in `Version.xcconfig` (as in the sibling project; `just version`).
+  Builds made with `just` are stamped with them and the commit (`scripts/build-stamp.sh`), so `dnm --version`
+  prints `0.1.0 (1) <commit>[+]`; only a release build (spec 005, `just release` then `just publish`) prints
+  `0.1.0 (1)`. Quote `dnm --version` when reporting what you tested.
 - `just periphery` (`scripts/periphery.sh`) runs the unused-code gate (it must stay clean).
 - Set `DNM_STORE_DIR` to a throwaway directory for any live run so real labels are untouched,
   and follow the backup and restore rules in the live-test bullet above.

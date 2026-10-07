@@ -33,7 +33,7 @@ first run needs a network connection once, for macOS's notarization check, and a
 offline and never connects to the network. To check a download yourself, follow the steps in its
 [release notes](https://github.com/inquinity/desktop-name-manager/releases).
 
-To build from source instead (Xcode 27 command-line tools): `just release`, then use
+To build from source instead (Xcode 27 command-line tools): `just build-release`, then use
 `build.noindex/release/dnm`.
 
 ## Try it
@@ -105,9 +105,9 @@ Exit codes: `0` success; `1` failure (for example macOS denied access to the wal
 or undo is not possible); `2` invalid input; `3` unsupported wallpaper (dynamic, aerial,
 catalog, shuffle, or none reported). Nothing is changed when a command fails.
 
-`dnm --version` says which build you have: a release prints the plain version (for example `0.1.0`);
-any other build prints the commit it was built from (for example `0.1.0-dev+9398ae4`, with `.dirty` added if
-there were uncommitted changes, and `-dev+unknown` if it was built without a stamp).
+`dnm --version` says which build you have: a release prints its version and build number (for example
+`0.1.0 (1)`); any other build adds the commit it was built from (for example `0.1.0 (1) 9398ae4`, with `+`
+if there were uncommitted changes). A build without a stamp says so.
 
 Good to know:
 - Labeling the Desktop on screen needs no macOS permissions; only `--desktop` needs Accessibility.
@@ -152,7 +152,10 @@ yet. `prototype/` holds the proof of concept that validated the approach, and
 ```sh
 just build        # build the library and the tool (output goes to build.noindex/, not .build/)
 just test         # unit and contract tests (they never change your real wallpaper)
-just release      # optimized build: build.noindex/release/dnm (the commit is stamped into the binary)
+just build-release  # optimized build: build.noindex/release/dnm (the version, build number and commit are stamped in)
+just version      # the version and build number from Version.xcconfig, e.g. "0.1.0 build 1"
+just release <s>  # cut a release: bump (major, minor, revision or current), notes, commit, signed tag
+just publish <stage> [--confirm]  # run a stage of scripts/release.sh for that version (see spec 005)
 just periphery    # unused-code scan (needs `brew install periphery`)
 just kit          # assemble the live-test kit to copy to another Mac
 ```

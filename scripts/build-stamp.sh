@@ -4,8 +4,9 @@
 # binary. Used by the justfile and the live-kit script, so `dnm --version` says exactly what you are testing.
 #
 # Usage: scripts/build-stamp.sh [--release] [--help]
-#   (no option)  an interim build: reported as <version>-dev+<commit> (with .dirty if uncommitted changes)
-#   --release    a release build: reported as the plain version. Only the release procedure (spec 005) uses this.
+#   (no option)  an interim build: reported as "<version> (<build>) <commit>" (with + if uncommitted changes)
+#   --release    a release build: reported as "<version> (<build>)". Only the release procedure (spec 005) uses this.
+# The version and build number come from Version.xcconfig.
 #
 # Prints the linker flags on standard output, one per line (so a path with spaces stays one argument);
 # everything else goes to standard error. Read them into an array, for example:
@@ -60,8 +61,11 @@ fi
 
 # The file name carries the stamp, so a different commit changes the link command and forces a relink.
 mkdir -p "$stamp_directory"
-stamp_file="${stamp_directory}/stamp-${commit}-${kind}-${dirty}.txt"
-printf 'commit=%s\ndirty=%s\nkind=%s\n' "$commit" "$dirty" "$kind" >"$stamp_file"
+# The version and build number come from Version.xcconfig, the single source (as in the sibling project).
+version="$("${repository_root}/scripts/ver")"
+build="$("${repository_root}/scripts/build-num")"
+stamp_file="${stamp_directory}/stamp-${version}-${build}-${commit}-${kind}-${dirty}.txt"
+printf 'version=%s\nbuild=%s\ncommit=%s\ndirty=%s\nkind=%s\n' "$version" "$build" "$commit" "$dirty" "$kind" >"$stamp_file"
 
 # -sectcreate takes a segment, a section and a file: the binary then holds the stamp in __DNM,build.
 printf '%s\n' -Xlinker -sectcreate -Xlinker __DNM -Xlinker build -Xlinker "$stamp_file"

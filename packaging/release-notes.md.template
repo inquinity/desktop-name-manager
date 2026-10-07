@@ -1,8 +1,6 @@
 Desktop Name Manager @VERSION@: the `dnm` command-line tool (also installed as `desktop-name`).
 
-## What is in this release
-
-@CHANGES@
+@NOTES@
 
 ## Install
 
@@ -15,16 +13,12 @@ brew install --cask inquinity/tap/desktop-name-manager
 macOS 26 or later, Apple silicon only. The first run after installing needs a network connection once, for
 macOS's notarization check; after that the tool works offline and never connects to the network.
 
-## Known gaps
-
-@KNOWN_GAPS@
-
 ## How this release was checked
 
 The gate record lists every check and its result:
 https://github.com/inquinity/desktop-name-manager/blob/v@VERSION@/specs/005-packaging-and-release/releases/@VERSION@.md
 
-- Source commit: @COMMIT@ (tag `v@VERSION@`)
+- Version: @VERSION@ (build @BUILD@); source commit: @COMMIT@ (tag `v@VERSION@`)
 - Toolchain: @TOOLCHAIN@
 
 ## Verify the download

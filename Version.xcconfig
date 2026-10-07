@@ -1,0 +1,7 @@
+// Centralized version configuration, as in the sibling project (Belvedere).
+// `just release <major|minor|revision>` bumps these; `just version` prints them.
+// The command-line build stamps both into the binary (scripts/build-stamp.sh); the app (M2) will read
+// this file directly.
+
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1

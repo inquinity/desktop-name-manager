@@ -16,7 +16,7 @@ build *args:
     swift build --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}
 
 # Optimized build of dnm (build.noindex/release/dnm).
-release *args:
+build-release *args:
     flags=(); while IFS= read -r flag; do flags+=("$flag"); done < <(scripts/build-stamp.sh); \
     swift build -c release --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}
 
@@ -38,6 +38,40 @@ observe *args:
     mkdir -p {{ scratch }}/research
     swiftc -O -o {{ scratch }}/research/space-observer prototype/space-observer.swift
     {{ scratch }}/research/space-observer {{ args }}
+
+# Print "<version> build <build number>" from Version.xcconfig.
+version:
+    @printf '%s build %s\n' "$(scripts/ver)" "$(scripts/build-num)"
+
+# Cut a release (seg: major|minor|revision, or current to keep the version): bump, compose the notes,
+# commit "Release <v> build <n>", make the signed tag, then check the gates. Pushes nothing.
+release seg: _require-clean _require-notes
+    #!/usr/bin/env bash
+    set -euo pipefail
+    scripts/bump-version.sh {{ seg }}
+    v="$(scripts/ver)"; n="$(scripts/build-num)"
+    notes="docs/release-notes/$v.md"
+    scripts/compose-release-notes.sh --version "$v" > "$notes.tmp"
+    mv "$notes.tmp" "$notes"
+    scripts/compose-release-notes.sh --stub > docs/release-notes/UNRELEASED.md
+    git add Version.xcconfig "$notes" docs/release-notes/UNRELEASED.md
+    git commit -m "Release $v build $n"
+    git tag -s "v$v" -m "Desktop Name Manager $v"
+    printf '\nTagged v%s (signed). Checking the gates; then: just publish build, notarize, verify, and push/draft/publish/cask with --confirm\n\n' "$v"
+    scripts/release.sh "$v" check
+
+# Run one stage of the release procedure for the version in Version.xcconfig (see scripts/release.sh --help).
+publish stage *args:
+    scripts/release.sh "$(scripts/ver)" {{ stage }} {{ args }}
+
+# (internal) fail before anything changes if the notes cannot be composed
+_require-notes:
+    @scripts/compose-release-notes.sh --check
+
+# (internal) fail unless the working tree is clean
+_require-clean:
+    @git diff --quiet && git diff --cached --quiet \
+        || { echo "working tree is dirty -- commit or stash first" >&2; exit 1; }
 
 # Remove build output.
 clean:

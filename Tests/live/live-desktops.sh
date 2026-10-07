@@ -259,7 +259,7 @@ while (($# > 0)); do
 done
 
 if ! "$dry_run"; then
-    [[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: just release"; exit 1; }
+    [[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: just build-release"; exit 1; }
     [[ -f "$wallpaper_store_plist" ]] || { print_colored "$COLOR_RED" "Cannot find the wallpaper store: ${wallpaper_store_plist}"; exit 1; }
     command -v perl >/dev/null || { print_colored "$COLOR_RED" "perl is needed to time the commands."; exit 1; }
     if ! accessibility_granted; then

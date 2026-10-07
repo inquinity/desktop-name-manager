@@ -164,7 +164,7 @@ done
 [[ "$samples" =~ ^[0-9]+$ && "$repetitions" =~ ^[0-9]+$ ]] || { print_colored "$COLOR_RED" "--samples and --reps take whole numbers."; exit 2; }
 
 if ! "$dry_run"; then
-    [[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: just release"; exit 1; }
+    [[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: just build-release"; exit 1; }
     [[ -x "$timing_tool" ]] || { print_colored "$COLOR_RED" "No executable at ${timing_tool}. Build it: swiftc -O -o build.noindex/research/switch-timing prototype/switch-timing.swift"; exit 1; }
     command -v perl >/dev/null || { print_colored "$COLOR_RED" "perl is needed to time the commands."; exit 1; }
     if ! accessibility_granted; then

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Print CURRENT_PROJECT_VERSION -- the build number -- from Version.xcconfig (e.g. "1").
+# The justfile and release tooling read the version through this (as in the sibling project).
+config="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/Version.xcconfig"
+value="$(awk -F' *= *' '$1 == "CURRENT_PROJECT_VERSION" { print $2; exit }' "$config")"
+[[ -n "$value" ]] || { printf 'build-num: CURRENT_PROJECT_VERSION not found in %s\n' "$config" >&2; exit 1; }
+printf '%s\n' "$value"
