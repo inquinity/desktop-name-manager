@@ -4,7 +4,7 @@ import DesktopNameCore
 struct SetCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "set",
-        abstract: "Label the current Desktop, or the one given with --desktop.",
+        abstract: "Set the Desktop label (the current Desktop, or pick one with --display and --desktop).",
         discussion: "A label is one line of 1 to 30 characters. Options you leave out use their defaults; they never inherit from a label being replaced.")
 
     @Argument(help: "The label: one line, 1 to 30 characters (emoji count as one).")

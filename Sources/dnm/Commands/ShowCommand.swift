@@ -5,7 +5,7 @@ import Foundation
 struct ShowCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "show",
-        abstract: "Show the details of the label on the current Desktop, or the one given with --desktop.")
+        abstract: "Show the label details (the current Desktop, or pick one with --display and --desktop).")
 
     @OptionGroup var target: DisplayOption
     @OptionGroup var place: DesktopOption

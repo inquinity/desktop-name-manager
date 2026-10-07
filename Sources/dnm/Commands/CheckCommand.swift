@@ -5,7 +5,7 @@ import Foundation
 struct CheckCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "check",
-        abstract: "Report how this Mac is set up for labels and --desktop, and how to fix what is missing.",
+        abstract: "Report display, label and setup information; check for issues.",
         discussion: "Changes nothing and never asks for a permission.")
 
     @Flag(name: .long, help: "Print one JSON document instead of text.")

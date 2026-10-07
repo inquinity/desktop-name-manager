@@ -4,7 +4,7 @@ import DesktopNameCore
 struct RemoveCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "remove",
-        abstract: "Remove the label and restore the original wallpaper exactly.")
+        abstract: "Remove the label and restore the original wallpaper.")
 
     @OptionGroup var target: DisplayOption
     @OptionGroup var place: DesktopOption
