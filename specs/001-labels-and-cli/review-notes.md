@@ -214,6 +214,19 @@ display, plain image wallpapers, labels named by place.
 Still open for T092: macOS 26 (the kit), a one-display and a three-display run with the new labels, and the
 speed concern (9.3 s once in the three-display run).
 
+### Live run, 2026-10-07, macOS 27.0.1, Apple silicon, two displays, `Tests/live/live-desktops.sh`, `dnm 0.1.0 (1) fdd9f34+`
+
+The M1 confirmation run with the measured `--desktop` settings (confirm wait 1.5 s, no settle, probe only for
+`--desktop 1`). Scenarios 21 to 23 all pass, no failed check (log kept locally in `working-notes/`).
+
+- Scenario 21: four `set --desktop` commands in 3.4 to 6.2 s, each label on the Desktop it names and nowhere
+  else; both displays back on their starting Desktop.
+- Scenario 22: the Desktop 1 note printed; the new Desktop (5) shared the label; `remove --desktop 5`
+  restored it while Desktop 1 kept its label.
+- Scenario 23: `undo --desktop` brought the shared label back; `prune` listed the four retired images and
+  left out the one on screen; `prune --yes` deleted the four and kept it.
+- The companion timing run: all 18 start-to-target cases within SC-008 (`docs/research/timings.md`).
+
 ### Still to record
 
 The full quickstart (T070): scenarios 4, 16, 17 and 18 on both versions, and 20 to 23 after Phase 10.
