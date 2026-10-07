@@ -401,9 +401,18 @@ stage_verify() {
     [[ "$reported" == "$release_display" ]] || die "the downloaded binary reports ${reported}, not ${release_display}"
     log_result "a quarantined copy ran and reported ${reported} (macOS's first-run check passed)"
     if command -v syspolicy_check >/dev/null; then
-        syspolicy_check distribution "$binary" >"${temporary_directory}/syspolicy.log" 2>&1 \
-            || die "syspolicy_check distribution rejected the binary: $(tail -n 3 "${temporary_directory}/syspolicy.log")"
-        log_result "syspolicy_check distribution: no issues"
+        local policy_log="${temporary_directory}/syspolicy.log" findings
+        if syspolicy_check distribution "$binary" >"$policy_log" 2>&1; then
+            log_result "syspolicy_check distribution: no issues"
+        else
+            # Each finding's title follows a line of dashes. A ticket cannot be stapled to a bare binary or a zip
+            # (research R7, FR-005), so "Notary Ticket Missing" alone is expected: macOS checks notarization
+            # online at the first run, which the quarantined run above just passed. Anything else fails.
+            findings="$(awk '/^-{10,}$/ { if ((getline line) > 0 && line !~ /^-+$/ && line ~ /[^ ]/) print line }' "$policy_log" | sort -u)"
+            [[ "$findings" == "Notary Ticket Missing" ]] \
+                || die "syspolicy_check distribution found: $(tr '\n' ';' <<<"${findings:-$(tail -n 3 "$policy_log")}")"
+            log_result "syspolicy_check distribution: only \"Notary Ticket Missing\" (expected for a zip; the online first-run check passed)"
+        fi
     fi
     log_result "checksum matches: $(recorded_sha256)"
 }
