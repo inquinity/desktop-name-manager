@@ -63,6 +63,32 @@ import Testing
         #expect(try mode(store.fileURL(named: name)) == 0o600)
     }
 
+    @Test func anExistingLooseStoreFolderIsTightened() throws {
+        let (store, root) = try makeStore(); defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: store.directory, withIntermediateDirectories: true,
+                                                attributes: [.posixPermissions: 0o755])
+        try store.transaction { _ in }
+        let mode = (try FileManager.default.attributesOfItem(atPath: store.directory.path)[.posixPermissions] as? NSNumber)?.intValue
+        #expect(mode == 0o700)
+    }
+
+    @Test func filesAreOwnerOnlyEvenWithAPermissiveUmask() throws {
+        let (store, root) = try makeStore(); defer { try? FileManager.default.removeItem(at: root) }
+        let previous = umask(0)
+        defer { umask(previous) }
+        try store.transaction { _ in }
+        let name = "\(UUID().uuidString).dnm.jpg"
+        try store.writeStampFile(Data([1, 2, 3]), named: name)
+        for url in [store.manifestURL, store.fileURL(named: name)] {
+            let mode = (try FileManager.default.attributesOfItem(atPath: url.path)[.posixPermissions] as? NSNumber)?.intValue
+            #expect(mode == 0o600, "\(url.lastPathComponent)")
+        }
+        #expect(try Data(contentsOf: store.fileURL(named: name)) == Data([1, 2, 3]))
+        // No temporary file is left behind.
+        let leftovers = try FileManager.default.contentsOfDirectory(atPath: store.directory.path).filter { $0.hasSuffix(".tmp") }
+        #expect(leftovers.isEmpty)
+    }
+
     @Test func aPlantedSymlinkAsTheLockFileIsNotFollowed() throws {
         let (store, root) = try makeStore(); defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(at: store.directory, withIntermediateDirectories: true)

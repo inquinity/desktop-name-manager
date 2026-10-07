@@ -116,13 +116,27 @@ public final class Store: Sendable {
         return try body()
     }
 
+    /// Creates the store if needed and makes it owner-only: it holds label text, original paths and copies of the
+    /// user's wallpaper. A folder that already exists (an older store, or a `DNM_STORE_DIR` the user made) is
+    /// tightened too, and one owned by another account is refused.
     private func ensureDirectory() throws {
         do {
-            // Owner-only: the store holds label text, original paths and copies of the user's wallpaper.
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
                                                     attributes: [.posixPermissions: 0o700])
         } catch {
             throw DnmError.storeNotWritable(error.localizedDescription)
+        }
+        var info = stat()
+        guard stat(directory.path, &info) == 0 else {
+            throw DnmError.storeNotWritable(String(cString: strerror(errno)))
+        }
+        guard info.st_uid == getuid() else {
+            throw DnmError.storeNotWritable("\(directory.lastPathComponent) belongs to another account")
+        }
+        if info.st_mode & 0o077 != 0 {
+            guard chmod(directory.path, 0o700) == 0 else {
+                throw DnmError.storeNotWritable(String(cString: strerror(errno)))
+            }
         }
     }
 
@@ -138,10 +152,22 @@ public final class Store: Sendable {
         }
     }
 
-    /// Atomic write, then owner-only permissions.
+    /// Atomic and owner-only from the start: the data goes to a new temporary file created with 0600, which then
+    /// replaces the target, so the file is never readable by others, not even briefly.
     private func writePrivately(_ data: Data, to url: URL) throws {
-        try data.write(to: url, options: .atomic)
-        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+        let temporary = url.deletingLastPathComponent().appendingPathComponent(".\(url.lastPathComponent).\(UUID().uuidString).tmp")
+        let descriptor = open(temporary.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600)
+        guard descriptor >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        do {
+            try handle.write(contentsOf: data)
+            try handle.synchronize()
+            try handle.close()
+            guard rename(temporary.path, url.path) == 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+        } catch {
+            unlink(temporary.path)
+            throw error
+        }
     }
 
     public func stampFileExists(named fileName: String) -> Bool {
