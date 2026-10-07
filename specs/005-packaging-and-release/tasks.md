@@ -80,7 +80,7 @@ maintainer's explicit go-ahead at that moment, and Desktop-switching runs are an
 
 ## Phase 7: Release 0.1.0 (gates and maintainer steps)
 
-- [ ] T024 Document upgrade and withdrawal for later releases in `specs/005-packaging-and-release/releases/README.md`: `brew upgrade --cask`, and withdrawing (mark the GitHub release, return the cask to the previous version), tested from 0.1.1 (User Stories 3 and 6)
+- [x] T024 Document upgrade and withdrawal for later releases in `specs/005-packaging-and-release/releases/README.md`: `brew upgrade --cask`, and withdrawing (mark the GitHub release, return the cask to the previous version), tested from 0.1.1 (User Stories 3 and 6)
 - [ ] T025 **(maintainer)** M1 confirmation runs with the measured `--desktop` settings on this Mac: `Tests/live/live-timing.sh` (every case PASS against SC-008) and `Tests/live/live-desktops.sh` (no failed check); record both in `docs/research/timings.md` and `specs/001-labels-and-cli/review-notes.md` (roadmap M1 exit criterion 1)
 - [ ] T026 Hygiene check of everything to be pushed: `git log origin/main..main` reviewed for personal paths, user names, identifiers and credentials (the hygiene scan plus a `git grep` over the range), and `just test` green
 - [ ] T027 **(maintainer)** Push `main` to `origin` after T001 and T026
