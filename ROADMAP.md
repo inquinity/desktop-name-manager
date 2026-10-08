@@ -61,6 +61,21 @@ with a cask in the `inquinity/homebrew-tap` tap. It comes in two stages:
 
 Labels on dynamic, aerial and shuffling wallpapers, which `dnm` refuses today (exit 3).
 
+### Feature map
+
+Features smaller than a milestone, with the release each is planned for. A feature gets a specification
+(or an amendment to an existing one) before it is built. "Not set" means it is in the backlog with no
+release yet.
+
+| Description | Feature | Target release |
+|---|---|---|
+| Display aliases: short names for displays, tied to the display's identity ([backlog](docs/backlog.md)). Comes before F1 | F2 | 0.1.1 |
+| Shell completions for bash and zsh: every command and option, with display names and aliases (F2) offered live for `--display` (as git offers branch names) and the fixed values of `--style`, `--color`, `--position` and `--size`; installed by the cask | F1 | 0.1.1 |
+| Clean up all labeled images after a manual reset, for example `dnm prune --all` ([backlog](docs/backlog.md)) | F4 | 0.1.2 |
+| Batch labeling: several Desktops in one command ([backlog](docs/backlog.md)) | F3 | 0.1.3 |
+| Multi-line labels: an app feature (M2), not a CLI one ([backlog](docs/backlog.md)) | F5 | After 1.0.0 at the earliest |
+| `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) | F6 | Not set |
+
 ## Minimum viable product (M1)
 
 **The command-line tool (M1's feature), signed, notarized and installable from an unlisted cask in the
@@ -98,6 +113,6 @@ constitution amendment for a preview stage; see the open decision in the maintai
 - [docs/backlog.md](docs/backlog.md): ideas not yet placed, such as display aliases, batch labeling, multi-line labels,
   cleaning up all labeled images, and a separate full-featured build.
 - [specs/001-labels-and-cli/known-issues.md](specs/001-labels-and-cli/known-issues.md): KI-1 (the left-most
-  Desktop's wallpaper is copied to new Desktops) and KI-2 (Desktops of a display arrangement that is not
-  connected are invisible).
+  Desktop's wallpaper is copied to new Desktops), KI-2 (Desktops of a display arrangement that is not
+  connected are invisible) and KI-3 (a new Desktop that inherited a label can report "No label").
 - [docs/research/](docs/research/): how macOS ties Desktops to wallpapers, and Desktop-switching timings.

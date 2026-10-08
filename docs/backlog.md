@@ -11,8 +11,9 @@ Ideas recorded for later. None is part of a current spec.
 - **App Store readiness research.** Before an App Store build: check what the sandbox allows for reading a
   wallpaper image outside the app's container, for setting wallpapers, for sending the Desktop-switching
   shortcuts with Accessibility, and for shipping the command-line tool.
-- **Multi-line labels.** Labels are one line of 30 characters for now (spec 001).
-- **Clean up all labeled images after a manual reset** (2026-10-06). After a person resets wallpapers by
+- **Multi-line labels** (roadmap F5, after 1.0.0 at the earliest). An app feature (M2), not a CLI one.
+  Labels are one line of 30 characters for now (spec 001).
+- **Clean up all labeled images after a manual reset** (2026-10-06; roadmap F4, 0.1.2). After a person resets wallpapers by
   hand (picking a picture in System Settings > Wallpaper on each Desktop, or turning "Show on all Spaces"
   on, which is one setting for every display, picking a picture, and turning it off again), the
   store still holds images and records for labels no Desktop shows. `prune` deletes only retired labels,
@@ -22,13 +23,18 @@ Ideas recorded for later. None is part of a current spec.
   shows, warn that a Desktop still showing one would lose its wallpaper, and require confirmation (`--yes`
   in the CLI). The README should describe the manual reset it follows. It must also warn about Desktops of
   display arrangements not connected now (known issue KI-2), which it cannot see.
-- **Batch labeling** (2026-10-06). Label several Desktops in one command (for example from a list of
+- **Batch labeling** (2026-10-06; roadmap F3, 0.1.3). Label several Desktops in one command (for example from a list of
   display, Desktop and label), so the walk to find each display's position happens once instead of once
   per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
   commands or scripts) is not known yet, and should set this item's priority.
-- **Display aliases** (2026-10-07). Short names for displays, for example `DP1` for a long monitor name, so
+- **Display aliases** (2026-10-07; roadmap F2, 0.1.1, before shell completions F1). Short names for displays, for example `DP1` for a long monitor name, so
   `--display DP1` works. An alias is tied to the display's stable identity (never shown), not its name, so
   it also tells apart two monitors of the same model that report the same name, which no name or partial
   name can do today. (A name that is part of another, such as `LG Ultra` and `LG Ultra HD`, already works:
   an exact name wins over a partial match.) Spec 001 planned these for display roles (M4); they could come
   sooner as a small CLI feature (`dnm alias DP1 "LG Ultra HD"`, shown by `dnm displays`).
+- **`remove` repairs a misreported Desktop** (2026-10-08; roadmap F6, no release yet). Known issue KI-3: a new Desktop that inherited
+  the left-most Desktop's label can report the original wallpaper while still showing the label. When the
+  reported image is the original of one of our labels, `remove` could set that original again (public
+  `setDesktopImageURL`, with the recorded placement) so the screen catches up. Low priority: keeping the
+  left-most Desktop unlabeled avoids the case. Confirm the cause first (KI-3).
