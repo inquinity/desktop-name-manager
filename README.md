@@ -115,7 +115,8 @@ Good to know:
 - A new Desktop starts with a copy of the wallpaper of the **left-most** Desktop on its display (hover over
   + in Mission Control to see it), label included. To choose what new Desktops start with, drag a
   different Desktop to the left-most place in Mission Control; to change one new Desktop, run `dnm set` or
-  `dnm remove` on it. See `docs/research/desktop-association.md`.
+  `dnm remove` on it. Tip: leave the left-most Desktop unlabeled, so new Desktops always start clean.
+  See `docs/research/desktop-association.md`.
 - For the same reason one labeled image can be on several Desktops, so removing or replacing a label
   never deletes its image: `dnm prune` lists the ones no longer in use and deletes them with `--yes`.
 

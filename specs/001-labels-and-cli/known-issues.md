@@ -40,3 +40,32 @@ three-monitor arrangement were still used by two Desktops of the two-monitor arr
 README should advise running them only after checking every arrangement in use. A full fix needs
 information macOS does not offer publicly.
 
+
+## KI-3: A new Desktop that inherited a label reports "no label" once the left-most label is removed
+
+**Status:** open (found live 2026-10-07, `dnm` 0.1.0). Cause not yet confirmed.
+
+**Steps.** One display with three Desktops: unlabeled, label A, label B.
+1. Label the left-most Desktop with C.
+2. Add a Desktop in Mission Control. It shows C, as expected (it copies the left-most Desktop).
+3. Switch to the left-most Desktop and run `dnm remove`. The original wallpaper returns there.
+4. Switch to the new Desktop, which still shows C, and run `dnm remove`.
+
+**Expected.** The new Desktop returns to the original wallpaper.
+**Actual.** `No label on DISPLAY.`; the Desktop keeps showing C.
+
+**What differs from the tested case.** Live scenario 22 removes the label on the new Desktop *first*, and
+that works. Here the left-most Desktop is cleared first. `remove` finds a label by the file name the system
+reports for the display's current Desktop, whatever the label's record says, so the record being retired
+in step 3 is not what fails: `NSWorkspace.desktopImageURL(for:)` must be reporting a file that is not C.
+
+**Leading hypothesis (to confirm).** Step 3 also rewrites the display's default for new Desktops back to
+the original (research finding 4). If the new Desktop's entry is only partly its own, the public reader may
+fall back to that default and report the original, while the screen still draws C. Confirm with a read-only
+`prototype/space-observer.swift` snapshot in this state: compare the new Desktop's store entries with what
+`dnm show` reports.
+
+**Workaround (maintainer).** Drag an unlabeled Desktop to the left-most place, add a new Desktop (it starts
+clean), delete the Desktop `dnm` misreads, and label the new one; shell history makes the `dnm set` easy to
+repeat. Keeping the left-most Desktop unlabeled avoids the problem altogether, because new Desktops then
+never inherit a label.
