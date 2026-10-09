@@ -152,10 +152,10 @@ Every command accepting `--display <value>` (`set`, `remove`, `undo`, `show`) ev
      ```text
      dnm: warning: resolved display DP1; alias dp1 (pointing to LG Ultra HD) is shadowed and was not used.
      ```
-4. **Exact alias** (case-insensitive) →
+4. **Exact alias** (case-insensitive; aliases are never matched partially) →
    * Target display connected → Returns that display.
    * Target display not connected → Exits `2`: `dnm: The display aliased as DP1 is not connected.`
-5. **Minimum-unique partial display name** → Matches uniquely among connected displays.
+5. **Minimum-unique partial display name** → Matches uniquely among connected displays. Only display names are matched partially: `--display des` does not find the alias `desk`.
 
 Because step 4 comes before step 5, an alias such as `LG` resolves to its own display even when `LG` is part of
 several connected display names (`LG Ultra HD`, `LG UltraFine`); it is never reported as ambiguous.

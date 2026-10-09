@@ -41,7 +41,7 @@ description: "Task list for feature F2: display aliases"
 - [ ] T010 [US1] Implement `dnm alias <name> [<display>]` in `Sources/dnm/Commands/AliasCommand.swift`: defaults to `main`; resolves the display by `main`, exact or partial name only; prints `Aliased …` or `Moved alias … from … to …` without quotes (FR-007, FR-014).
 - [ ] T011 [US1] Register `AliasCommand.self` in `Sources/dnm/Dnm.swift`.
 - [ ] T012 [US1] Update the `--display` help in `Sources/dnm/DisplayOption.swift` to mention aliases.
-- [ ] T013 [P] [US1] Contract tests in `Tests/dnmTests/AliasCommandTests.swift`: alias on main and on a named display, the same command again, moving an alias, and `--display <alias>` with `set`, `show`, `remove` and `undo`; an alias `LG` resolves while `LG` is part of two display names (US1 scenario 5).
+- [ ] T013 [P] [US1] Contract tests in `Tests/dnmTests/AliasCommandTests.swift`: alias on main and on a named display, the same command again, moving an alias, and `--display <alias>` with `set`, `show`, `remove` and `undo`; an alias `LG` resolves while `LG` is part of two display names (US1 scenario 5); a partial alias (`des` for `desk`) does not resolve.
 
 ---
 

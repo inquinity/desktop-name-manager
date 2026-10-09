@@ -45,6 +45,8 @@
   - **A**: `dnm alias` refuses (exit 2) and says why. An alias on an identity that can change after a reconnect would silently stop working, and one shared by two displays would pick either.
 - **Q: How is an alias shown when its display is not connected?**
   - **A**: By the display name recorded when the alias was set; if no name is recorded, by the display's identity.
+- **Q: Can an alias be matched partially, like a display name?**
+  - **A**: No. Aliases match exactly, ignoring case; partial matching applies only to display names. Aliases are already short, exact matching avoids ambiguity between a partial alias and a partial display name, and shell completions (F1) cover the typing.
 - **Q: What does an older `dnm` do with the new manifest?**
   - **A**: This release reads version 1 and writes version 2. An older release refuses a version 2 manifest ("newer than this tool understands"). Losing backward compatibility is an accepted risk: at 0.1 the tool has one user, who will not downgrade, so no downgrade path is provided.
 
@@ -120,6 +122,7 @@ Run `dnm displays` and verify aliases appear inline; run `dnm check` to inspect 
 - **Reserved and invalid names**: Names matching `main`, names made only of digits (`1`, `12`), strings with spaces, or shell special characters (`$`, `\`, quotes) fail with exit 2 and an explanation.
 - **Re-association**: Re-running `dnm alias <name> <new-display>` updates the alias's display without requiring prior removal, and says it moved.
 - **Case insensitivity**: `dnm alias dp "LG"` allows resolution via `--display DP` or `--display dp`. Creating an alias `DP` when `dp` already exists updates the existing alias and stores the new capitalization (cosmetic only).
+- **Partial alias**: `--display des` does not find the alias `desk`; only display names are matched partially.
 - **Alias that is part of a display name**: An alias such as `LG` resolves to its own display even when it is also part of several connected names; partial matching applies only when no exact name or alias matches.
 - **Identical monitors**: Displays are told apart by the names and identities macOS reports. When two connected displays report the same name, choosing either by name is ambiguous, so `dnm alias` cannot target it by name and refuses.
 - **Unstable or shared identity**: A display whose identity is not a stable UUID (the fallback built from the display's current connection), or whose identity another connected display also reports, cannot be aliased.
@@ -145,7 +148,7 @@ Run `dnm displays` and verify aliases appear inline; run `dnm check` to inspect 
   1. Empty / `main` → Main display.
   2. Only digits → Rejected (exit 2).
   3. Exact connected display name → Physical display (shadowing any alias of that name; more than one display of that name is ambiguous, exit 2).
-  4. Exact alias (case-insensitive) → Its display (or exit 2 if not connected).
+  4. Exact alias (case-insensitive; aliases are never matched partially) → Its display (or exit 2 if not connected).
   5. Minimum-unique partial display name → Matched display (or exit 2 if ambiguous / no match).
 - **FR-012**: If an alias is shadowed by a connected display, `dnm alias` and commands resolving `--display` with that name MUST emit a warning to stderr.
 - **FR-013**: `dnm displays` MUST show each display's active aliases after its name and include an `aliases` array for every display in JSON output.
