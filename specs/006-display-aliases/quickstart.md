@@ -97,10 +97,10 @@ Verify rejection with exit code 2 for each invalid name:
 1. After any change, check that `$DNM_STORE_DIR/manifest.json` has `"schemaVersion" : 2`.
 2. `dnm alias --json desk` exits 2 (`--json` is only for listing).
 
-### Scenario 8: Shadowing Behavior
+### Scenario 8: Override Behavior
 1. Create an alias when the matching display is not connected.
 2. Connect the display (or simulate via mock in tests).
-3. Verify `dnm alias` marks it as shadowed and prints warning to stderr.
+3. Verify `dnm alias` marks it as overridden and prints warning to stderr.
 4. Verify `--display <name>` targets the physical display and warns on stderr.
 
 ---

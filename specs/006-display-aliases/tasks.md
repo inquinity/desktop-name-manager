@@ -36,9 +36,9 @@ description: "Task list for feature F2: display aliases"
 
 **Purpose**: Enable setting an alias and resolving it with `--display <value>`.
 
-- [ ] T008 [US1] Update `DisplayResolver.resolve` in `Sources/DesktopNameCore/Displays/DisplayResolver.swift` to accept aliases and apply the order in FR-011: exact display name, then exact alias (not connected → exit 2), then partial name.
+- [ ] T008 [US1] Update `DisplayResolver.resolve` in `Sources/DesktopNameCore/Displays/DisplayResolver.swift` to take a full or display-only mode and apply the order in FR-011: exact display name, then exact alias (full mode only; not connected → exit 2), then partial name. It stays the only display resolution in the code (FR-019).
 - [ ] T009 [US1] Update `Sources/dnm/Context.swift` to read aliases from the store and pass them to `DisplayResolver`.
-- [ ] T010 [US1] Implement `dnm alias <name> [<display>]` in `Sources/dnm/Commands/AliasCommand.swift`: defaults to `main`; resolves the display by `main`, exact or partial name only; prints `Aliased …` or `Moved alias … from … to …` without quotes (FR-007, FR-014).
+- [ ] T010 [US1] Implement `dnm alias <name> [<display>]` in `Sources/dnm/Commands/AliasCommand.swift`: defaults to `main`; resolves the display with `DisplayResolver` in display-only mode (FR-003, FR-019); prints `Aliased …` or `Moved alias … from … to …` without quotes (FR-007, FR-014).
 - [ ] T011 [US1] Register `AliasCommand.self` in `Sources/dnm/Dnm.swift`.
 - [ ] T012 [US1] Update the `--display` help in `Sources/dnm/DisplayOption.swift` to mention aliases.
 - [ ] T013 [P] [US1] Contract tests in `Tests/dnmTests/AliasCommandTests.swift`: alias on main and on a named display, the same command again, moving an alias, and `--display <alias>` with `set`, `show`, `remove` and `undo`; an alias `LG` resolves while `LG` is part of two display names (US1 scenario 5); a partial alias (`des` for `desk`) does not resolve.
@@ -56,13 +56,13 @@ description: "Task list for feature F2: display aliases"
 
 ---
 
-## Phase 4: User Story 3 - Collision Handling and Shadowing (P3)
+## Phase 4: User Story 3 - Collision Handling and Overrides (P3)
 
-**Purpose**: Precedence, collision prevention on creation, and shadowing warnings.
+**Purpose**: Precedence, collision prevention on creation, and override warnings.
 
-- [ ] T018 [US3] In `DisplayResolver`, when an exact display name also matches an alias, return the display and a shadowing warning; `Context` prints it to stderr.
-- [ ] T019 [US3] Mark shadowed aliases in the listing as `(shadowed by connected display <name>)` and print the warning to stderr.
-- [ ] T020 [P] [US3] Unit tests in `DisplayResolverTests.swift` and contract tests in `AliasCommandTests.swift` for the collision refusal, shadowing precedence and warnings.
+- [ ] T018 [US3] In `DisplayResolver`, when an exact display name also matches an alias, return the display and an override warning; `Context` prints it to stderr.
+- [ ] T019 [US3] Mark overridden aliases in the listing as `(overridden by connected display <name>)` and print the warning to stderr.
+- [ ] T020 [P] [US3] Unit tests in `DisplayResolverTests.swift` for both modes (display-only ignores aliases), the DP1 case (alias `DP1` → LG Ultra HD while a display named `DP1` is connected: `DP1` reaches the display, `LG Ultra` reaches the LG), and contract tests in `AliasCommandTests.swift` for the collision refusal, overrides precedence and warnings.
 
 ---
 
@@ -70,7 +70,7 @@ description: "Task list for feature F2: display aliases"
 
 **Purpose**: Surface aliases in existing display inspection commands.
 
-- [ ] T021 [US4] Add `aliases: [String]` to `Reports.Display` in `Sources/DesktopNameCore/Operations/Reports.swift` (always present, empty when none; shadowed aliases left out).
+- [ ] T021 [US4] Add `aliases: [String]` to `Reports.Display` in `Sources/DesktopNameCore/Operations/Reports.swift` (always present, empty when none; overridden aliases left out).
 - [ ] T022 [US4] Update `Sources/dnm/Commands/DisplaysCommand.swift` to print `aliases: a, b` after the name and main marker (contract §5).
 - [ ] T023 [US4] Add the Aliases row to `check` in `Sources/DesktopNameCore/Operations/Check.swift` (contract §6) and update the expected rows in `AboutCheckTests.swift` and `SetOptionsContractTests.swift`.
 - [ ] T024 [P] [US4] Contract tests for `dnm displays` text and JSON and the `check` Aliases row.

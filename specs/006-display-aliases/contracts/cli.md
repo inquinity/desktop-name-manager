@@ -36,7 +36,7 @@ dnm alias [--json]
   * Any name matching a currently connected display (case-insensitive): `dnm: <display-name> is already the name of a connected display and cannot be used as an alias.`
 
 ### Display Targeting Rules
-* `[<display>]` accepts:
+* `[<display>]` is resolved by the same algorithm as `--display` (§4), in display-only mode. It accepts:
   * `main` (the primary display).
   * An exact display name as macOS shows it (case-insensitive).
   * A minimum-unique partial display name (case-insensitive).
@@ -95,12 +95,12 @@ desk  Built-in Retina Display  (main)
 DP1   LG Ultra HD
 work  LG Ultra HD
 old   Studio Display           (not connected)
-dp2   LG Ultra HD              (shadowed by connected display DP2)
+dp2   LG Ultra HD              (overridden by connected display DP2)
 ```
 
-If an alias is shadowed, a diagnostic notice is printed to stderr:
+If an alias is overridden, a diagnostic notice is printed to stderr:
 ```text
-dnm: warning: alias dp2 is inactive because a connected display is named DP2.
+dnm: warning: alias dp2 is not used while a display named DP2 is connected.
 ```
 
 ### JSON Output (`dnm alias --json`)
@@ -115,22 +115,22 @@ One object, like every other `--json` output:
       "display": "Built-in Retina Display",
       "connected": true,
       "isMain": true,
-      "shadowed": false
+      "overridden": false
     },
     {
       "name": "old",
       "display": "Studio Display",
       "connected": false,
       "isMain": false,
-      "shadowed": false
+      "overridden": false
     },
     {
       "name": "dp2",
       "display": "LG Ultra HD",
       "connected": true,
       "isMain": false,
-      "shadowed": true,
-      "shadowedBy": "DP2"
+      "overridden": true,
+      "overriddenBy": "DP2"
     }
   ]
 }
@@ -143,14 +143,14 @@ when the display is not connected.
 
 ## 4. Updates to `--display <value>`
 
-Every command accepting `--display <value>` (`set`, `remove`, `undo`, `show`) evaluates `<value>` in this order:
+Every command accepting `--display <value>` (`set`, `remove`, `undo`, `show`) evaluates `<value>` with the one resolution algorithm, in full mode, in this order (display-only mode, used by `dnm alias`, skips step 4):
 
 1. Empty / `main` → Main display.
 2. Only digits → Rejected (exit `2`).
 3. **Exact connected display name** → Returns the connected display (exit `2` if several displays have that name).
    * *If an alias with the same name exists, emits stderr warning*:
      ```text
-     dnm: warning: resolved display DP1; alias dp1 (pointing to LG Ultra HD) is shadowed and was not used.
+     dnm: warning: DP1 is a connected display, which overrides alias dp1 (LG Ultra HD).
      ```
 4. **Exact alias** (case-insensitive; aliases are never matched partially) →
    * Target display connected → Returns that display.
@@ -164,7 +164,7 @@ several connected display names (`LG Ultra HD`, `LG UltraFine`); it is never rep
 
 ## 5. Updates to `dnm displays`
 
-* **Text format**: active (not shadowed) aliases follow the name and the main marker.
+* **Text format**: active (not overridden) aliases follow the name and the main marker.
   ```text
   Built-in Retina Display  (main)  aliases: desk
   LG Ultra HD                      aliases: DP1, work
@@ -191,4 +191,4 @@ A new **Aliases** row after **Displays**:
 
 * No aliases: information, `None set.`
 * All fine: `ok`, for example `3 aliases; 1 for a display not connected now.`
-* A shadowed alias: `fix`, naming it and the display that shadows it, with how to fix it (`dnm alias --remove <name>`, or set it under another name).
+* An overridden alias: `fix`, naming it and the display that overrides it, with how to fix it (`dnm alias --remove <name>`, or set it under another name).

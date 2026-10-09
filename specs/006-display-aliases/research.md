@@ -39,12 +39,12 @@ questions 396530 and 418067; MacRumors thread 2195237; Stack Overflow question 3
 
 ---
 
-## R2. Precedence and Shadowing
+## R2. Precedence and Overrides
 
 ### Finding
 If a display named `DP1` is connected, allowing an alias named `dp1` pointing to a different display would lead to severe user confusion and potential misapplication of desktop changes.
 - **Decision**: An alias cannot be created if its name matches any connected display.
-- If an alias was created while that display was disconnected, connecting the physical display takes precedence and **shadows** the alias.
+- If an alias was created while that display was disconnected, connecting the physical display takes precedence and **overrides** the alias.
 - Emitting diagnostic warnings on stderr and annotating `dnm alias` keeps users informed without breaking scripted workflows or changing wallpapers unexpectedly.
 - An exact alias is checked before partial display names, so an alias such as `LG` resolves to its display even when `LG` is also part of several connected names.
 

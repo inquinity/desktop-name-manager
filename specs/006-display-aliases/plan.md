@@ -12,7 +12,7 @@ The implementation covers:
 1. Alias data model in `Manifest`, reading versions 1 and 2 and writing the version from the content.
 2. Alias operations (set, move, remove, list) on `DesktopLabeler`, using `Store.transaction`.
 3. Name validation rules (1–30 chars, alphanumeric + `_`/`-`, no spaces/special chars, not only digits, not `main`, no matching connected display) and identity checks (stable UUID, unique among connected displays).
-4. `DisplayResolver` updates: exact display name → alias → minimum unique substring. Shadowing detection and stderr warnings.
+4. `DisplayResolver` updates: exact display name → alias → minimum unique substring. Override detection and stderr warnings.
 5. New CLI command `dnm alias` with set, remove, and list modes (text and JSON).
 6. Integration with `dnm displays` and `dnm check`.
 7. Documentation: spec 001 FR-023 and its CLI contract, the README, the `--display` help, and the release notes.
@@ -45,7 +45,7 @@ The implementation covers:
 | **IV. Local-only** | **Pass** | Stored strictly in local `manifest.json`. No network frameworks imported; zero telemetry or analytics. |
 | **V. Reversible changes** | **Pass** | Creating or deleting aliases modifies only local alias mappings and touches no wallpapers. Aliases can be cleanly removed via `dnm alias --remove`. |
 | **VI. Distributable via Homebrew** | **Pass** | Compiled into the standard `dnm` binary; signs and notarizes cleanly for Homebrew cask distribution. |
-| **VII. Tested** | **Pass** | Unit tests cover decoding, CRUD, name validation, precedence, and shadowing. Contract tests cover CLI argument parsing and formatting. |
+| **VII. Tested** | **Pass** | Unit tests cover decoding, CRUD, name validation, precedence, and overrides. Contract tests cover CLI argument parsing and formatting. |
 | **VIII. Public-repo hygiene** | **Pass** | Tests use synthetic display names and mock UUIDs. No real machine paths, usernames, or hardware UUIDs committed. |
 
 No violations exist. Complexity Tracking table is empty.
@@ -76,7 +76,7 @@ Sources/
 │   │   ├── DisplayAlias.swift         # New: DisplayAlias model and name validation
 │   │   └── Stamp.swift                # Updated: Manifest includes aliases; version from content
 │   ├── Displays/
-│   │   └── DisplayResolver.swift      # Updated: Alias resolution, precedence, shadowing
+│   │   └── DisplayResolver.swift      # Updated: Alias resolution, precedence, overrides
 │   ├── Operations/
 │   │   ├── Aliases.swift              # New: set, move, remove and list on DesktopLabeler
 │   │   ├── Check.swift                # Updated: Aliases row
@@ -95,7 +95,7 @@ Tests/
 ├── DesktopNameCoreTests/
 │   ├── DisplayAliasTests.swift        # New: Alias validation, model, schema version tests
 │   ├── AliasOperationTests.swift      # New: set, move, remove, identity checks
-│   └── DisplayResolverTests.swift     # Updated: Alias resolution and shadowing tests
+│   └── DisplayResolverTests.swift     # Updated: Alias resolution and override tests
 └── dnmTests/
     └── AliasCommandTests.swift        # New: Contract tests for dnm alias
 ```
@@ -117,11 +117,12 @@ Tests/
    - `setAlias(_ name:, display:) throws -> AliasChange` (`.created`, `.unchanged`, `.moved(from:)`)
    - `removeAlias(named:) throws`
 
-### Phase 2: Resolver & Shadowing Logic
-1. Update `DisplayResolver.resolve`:
-   - Signature accepts `aliases: [DisplayAlias]` and returns any shadowing warning with the display.
+### Phase 2: Resolver & Override Logic
+1. Update `DisplayResolver.resolve`, the **only** display resolution in the code (FR-019):
+   - Signature takes a mode: full (`aliases: [DisplayAlias]`) or display-only (no aliases), and returns any override warning with the display. The display-only mode is the same function without the alias step, not a copy.
+   - No command, including `dnm alias`, matches names or aliases itself; they all call this function.
    - Exact connected display name checked first (the physical display takes precedence over an alias).
-   - If an alias matches the query but a connected display has that exact name, report shadowing.
+   - If an alias matches the query but a connected display has that exact name, report the override.
    - If no exact display name matches, check exact alias name (case-insensitive):
      - Target display UUID connected → return it.
      - Not connected → throw `DnmError.invalidInput("The display aliased as <name> is not connected.")`.
@@ -136,7 +137,7 @@ Tests/
    - Branching:
      - `--remove <name>`: delete alias.
      - `name` provided: set/update alias for `display` (defaulting to `main`). Check that `name` does not match any currently connected display name.
-     - `name` omitted: list aliases (text table or JSON). Warn if any alias is shadowed.
+     - `name` omitted: list aliases (text table or JSON). Warn if any alias is overridden.
    - `--json` only when listing; with a name it is invalid input (exit 2).
    - Messages print alias and display names without quotes (FR-014). Moving an alias prints `Moved alias …`.
 2. Update `Dnm.swift`: register `AliasCommand.self`.
@@ -151,6 +152,6 @@ Tests/
 
 ### Phase 4: Testing & Quality Gates
 1. Unit tests for `DisplayAlias` validation and `Manifest` versions (1 reads; 2 is written; newer is refused).
-2. Unit tests for `DisplayResolver` precedence and shadowing.
+2. Unit tests for `DisplayResolver` precedence and overrides.
 3. Contract tests for CLI commands and error exits.
 4. Run `just test` and `just periphery` to ensure clean build and zero dead code.

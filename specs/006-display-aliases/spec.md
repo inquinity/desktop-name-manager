@@ -29,13 +29,13 @@
 - **Q: Can an alias match a connected display name?**
   - **A**: No. At creation time, `dnm alias <name>` refuses if `<name>` matches any currently connected display name (exit code 2).
 - **Q: What happens if an alias exists and a display with that name connects later?**
-  - **A**: The connected display's name takes precedence over the alias. The alias becomes shadowed and inactive while that display is connected. A warning is emitted when listing aliases (`dnm alias`), when resolving `--display` using that name, and in `dnm check`.
+  - **A**: The connected display's name takes precedence over the alias. The alias is overridden: it is not used while that display is connected. A warning is emitted when listing aliases (`dnm alias`), when resolving `--display` using that name, and in `dnm check`.
 - **Q: How should output be quoted?**
   - **A**: Messages print alias names and display names without quotes (e.g., `Aliased DP1 to LG Ultra HD.`). Revisit if this proves confusing.
 - **Q: Where are aliases stored, and is storage user-modifiable?**
   - **A**: In the existing `manifest.json` under `~/Library/Application Support/com.altmansoftwaredesign.desktop-name-manager/` (or `$DNM_STORE_DIR`), not in a separate file, so the store does not fragment as the schema grows. This release writes schema version 2. It is valid JSON but not meant for manual editing: aliases bind to display identities and are managed under the store's file lock.
 - **Q: How do aliases integrate with `dnm displays`?**
-  - **A**: Aliases appear after the display name: `LG Ultra HD  aliases: DP1, work`. In `dnm displays --json`, each display object includes an `aliases` array (empty when it has none). Shadowed aliases are left out.
+  - **A**: Aliases appear after the display name: `LG Ultra HD  aliases: DP1, work`. In `dnm displays --json`, each display object includes an `aliases` array (empty when it has none). Overridden aliases are left out.
 
 ### Review 2026-10-08
 
@@ -45,6 +45,10 @@
   - **A**: `dnm alias` refuses (exit 2) and says why. An alias on an identity that can change after a reconnect would silently stop working, and one shared by two displays would pick either.
 - **Q: How is an alias shown when its display is not connected?**
   - **A**: By the display name recorded when the alias was set; if no name is recorded, by the display's identity.
+- **Q: Why does a connected display's exact name win over an alias of the same name?**
+  - **A**: So every monitor stays reachable. Example: alias `DP1` points to `LG Ultra HD`, then a monitor named `DP1` is plugged in. With the display first, `--display DP1` reaches the new monitor (with an override warning) and `--display "LG Ultra"` still reaches the LG. With the alias first, the monitor named `DP1` could not be targeted at all. The order is: (1) exact display name, (2) exact alias, (3) unambiguous partial display name, after `main` and the digits check.
+- **Q: Where is that order implemented?**
+  - **A**: In one resolution algorithm, used everywhere a display is chosen. It has two modes: *full* (display names and aliases), for `--display`; and *display-only* (no aliases), for choosing the target of `dnm alias`. No command may match display names or aliases on its own.
 - **Q: Can an alias be matched partially, like a display name?**
   - **A**: No. Aliases match exactly, ignoring case; partial matching applies only to display names. Aliases are already short, exact matching avoids ambiguity between a partial alias and a partial display name, and shell completions (F1) cover the typing.
 - **Q: What does an older `dnm` do with the new manifest?**
@@ -79,14 +83,14 @@ Run `dnm alias` to view configured aliases in tabular text format and `dnm alias
 
 **Acceptance Scenarios**:
 1. **Given** aliases `desk` and `dp` exist, **When** the user runs `dnm alias`, **Then** the tool lists each alias, its display's name, and its status.
-2. **Given** the user runs `dnm alias --json`, **Then** standard output is one JSON object, `{"aliases": [...]}`, whose entries have the fields `name`, `display`, `connected`, `isMain` and `shadowed` (plus `shadowedBy` when shadowed).
+2. **Given** the user runs `dnm alias --json`, **Then** standard output is one JSON object, `{"aliases": [...]}`, whose entries have the fields `name`, `display`, `connected`, `isMain` and `overridden` (plus `overriddenBy` when overridden).
 3. **Given** an alias `dp` exists, **When** the user runs `dnm alias --remove dp`, **Then** `dnm` outputs `Removed alias dp.` and deletes the mapping.
 4. **Given** no alias `unknown` exists, **When** the user runs `dnm alias --remove unknown`, **Then** `dnm` exits 2 with `dnm: No alias named unknown exists.`.
 5. **Given** an alias whose display is not connected, **When** the user runs `dnm alias`, **Then** the alias is listed with its recorded display name (or, if none is recorded, the display's identity) and marked not connected.
 
 ---
 
-### User Story 3 - Collision Handling and Shadowing (Priority: P3)
+### User Story 3 - Collision Handling and Overrides (Priority: P3)
 
 As a user whose display configuration changes (e.g. plugging in or unplugging monitors), I want clear safeguards when an alias collides with a connected display's name.
 
@@ -95,8 +99,8 @@ Attempt to create an alias matching an active display; connect a display that ma
 
 **Acceptance Scenarios**:
 1. **Given** a connected display named `DP1`, **When** the user runs `dnm alias DP1 main`, **Then** `dnm` exits 2 with `dnm: DP1 is already the name of a connected display and cannot be used as an alias.`.
-2. **Given** an alias `dp1` pointing to display A, and a display named `DP1` (display B) is currently connected, **When** the user runs `dnm alias`, **Then** `dp1` is marked `(shadowed by connected display DP1)` and a warning is printed to stderr.
-3. **Given** alias `dp1` is shadowed by display B, **When** the user runs `dnm show --display dp1`, **Then** display B is targeted, and a warning is printed to stderr indicating `dp1` was shadowed.
+2. **Given** an alias `dp1` pointing to display A, and a display named `DP1` (display B) is currently connected, **When** the user runs `dnm alias`, **Then** `dp1` is marked `(overridden by connected display DP1)` and a warning is printed to stderr.
+3. **Given** alias `dp1` is overridden by display B, **When** the user runs `dnm show --display dp1`, **Then** display B is targeted, and a warning is printed to stderr indicating `dp1` was overridden. Display A is still reachable by its own name or a unique partial of it.
 4. **Given** a display with no stable identity, or two connected displays that report the same identity, **When** the user tries to alias it, **Then** `dnm` exits 2, says why, and stores nothing.
 
 ---
@@ -112,7 +116,7 @@ Run `dnm displays` and verify aliases appear inline; run `dnm check` to inspect 
 1. **Given** display `LG Ultra HD` has alias `dp`, **When** the user runs `dnm displays`, **Then** it prints `LG Ultra HD  aliases: dp`.
 2. **Given** a display has multiple aliases `dp` and `work`, **Then** it prints `LG Ultra HD  aliases: dp, work`.
 3. **Given** `dnm displays --json`, **Then** each display entry includes an `aliases` array, for example `"aliases": ["dp", "work"]`, and `[]` for a display with none.
-4. **Given** a shadowed alias exists, **When** running `dnm check`, **Then** the check output flags the shadowed alias.
+4. **Given** an overridden alias exists, **When** running `dnm check`, **Then** the check output flags the overridden alias.
 
 ---
 
@@ -136,27 +140,28 @@ Run `dnm displays` and verify aliases appear inline; run `dnm check` to inspect 
 
 - **FR-001**: The CLI MUST provide a `dnm alias` command supporting creation, removal, and listing.
 - **FR-002**: `dnm alias <name> [<display>]` MUST associate `<name>` with the specified display's identity (defaulting to the main display if omitted), and record that display's name as shown by macOS.
-- **FR-003**: Display resolution for alias creation MUST support `main`, exact display name, and minimum-unique-string partial matching (case-insensitive). It does not accept other aliases.
+- **FR-003**: Display resolution for alias creation MUST use the single resolution algorithm (FR-019) in display-only mode: `main`, exact display name, and minimum-unique partial display name (case-insensitive). It does not accept aliases.
 - **FR-004**: `dnm alias <name>` MUST refuse with exit 2 if `<name>` matches any currently connected display name (case-insensitive).
 - **FR-005**: Alias names MUST be 1–30 characters, consisting only of ASCII alphanumeric characters, `-`, and `_`. Names made only of digits and `main` MUST be rejected.
 - **FR-006**: Multiple aliases MAY map to the same physical display.
 - **FR-007**: Re-assigning an existing alias MUST update its target display without error. When the display changes, the confirmation MUST say it moved (`Moved alias <name> from <old display> to <new display>.`). The capitalization given last is stored.
 - **FR-008**: `dnm alias --remove <name>` (or `-d <name>`) MUST delete the alias, or exit 2 if it does not exist.
-- **FR-009**: Bare `dnm alias` MUST list all configured aliases, their display names, and connection / shadow status. A disconnected alias's display MUST be shown by its recorded name, or by its identity if no name is recorded.
+- **FR-009**: Bare `dnm alias` MUST list all configured aliases, their display names, and connection / override status. A disconnected alias's display MUST be shown by its recorded name, or by its identity if no name is recorded.
 - **FR-010**: `dnm alias --json` MUST output one JSON object with an `aliases` array. `--json` is accepted only when listing.
 - **FR-011**: Resolution of `--display <value>` in `set`, `remove`, `undo` and `show` MUST evaluate:
   1. Empty / `main` → Main display.
   2. Only digits → Rejected (exit 2).
-  3. Exact connected display name → Physical display (shadowing any alias of that name; more than one display of that name is ambiguous, exit 2).
+  3. Exact connected display name → Physical display (overriding any alias of that name; more than one display of that name is ambiguous, exit 2).
   4. Exact alias (case-insensitive; aliases are never matched partially) → Its display (or exit 2 if not connected).
   5. Minimum-unique partial display name → Matched display (or exit 2 if ambiguous / no match).
-- **FR-012**: If an alias is shadowed by a connected display, `dnm alias` and commands resolving `--display` with that name MUST emit a warning to stderr.
+- **FR-012**: If an alias is overridden by a connected display, `dnm alias` and commands resolving `--display` with that name MUST emit a warning to stderr.
 - **FR-013**: `dnm displays` MUST show each display's active aliases after its name and include an `aliases` array for every display in JSON output.
 - **FR-014**: Messages added or changed by this feature MUST print display and alias names without quotes.
 - **FR-015**: Aliases MUST be stored in `manifest.json`, changed only under the store's lock, and never change a wallpaper or need a permission.
 - **FR-016**: `dnm alias` MUST refuse (exit 2, nothing stored) to alias a display whose identity is not a stable UUID, or whose identity another connected display also reports.
 - **FR-017**: The manifest MUST be written as schema version 2. This release MUST read versions 1 and 2. Backward compatibility with older releases is not kept (accepted risk).
 - **FR-018**: The documentation MUST be updated with the feature: spec 001's FR-023 and CLI contract (the `--display` resolution order), the README, the `--display` help text, and the release notes.
+- **FR-019**: There MUST be exactly one display resolution algorithm, in the core library, used by every command that chooses a display. It MUST offer a full mode (the FR-011 order, with aliases) and a display-only mode (the same order without the alias step). No other code may match display names or aliases.
 
 ### Dependencies
 
