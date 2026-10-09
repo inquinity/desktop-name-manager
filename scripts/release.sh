@@ -496,6 +496,11 @@ stage_cask() {
     require_confirmation "test the cask in a temporary local tap (${temporary_tap}), then write Casks/desktop-name-manager.rb into the tap clone given with --tap"
     require_command brew
     [[ -n "$tap_directory" && -d "${tap_directory}/Casks" ]] || die "--tap must name the local clone of the tap (a folder with Casks/)"
+    # The test below installs and then uninstalls a cask with the same name, which would remove an installation
+    # of dnm from this Mac (it did, for 0.1.1). Refuse, and say how to carry on.
+    if brew list --cask desktop-name-manager >/dev/null 2>&1; then
+        die "desktop-name-manager is installed on this Mac, and the cask test would uninstall it. Run: brew uninstall --cask desktop-name-manager, then run this stage again, then reinstall it from the tap."
+    fi
     local is_draft
     is_draft="$(gh release view "$tag" --repo "$release_repository" --json isDraft -q .isDraft 2>/dev/null || printf 'missing')"
     [[ "$is_draft" == "false" ]] || die "${tag} is not published yet: the cask must point at a public download"
