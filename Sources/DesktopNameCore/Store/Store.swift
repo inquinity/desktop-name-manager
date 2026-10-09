@@ -89,6 +89,7 @@ public final class Store: Sendable {
         try exclusive {
             var manifest = hasManifest ? try loadManifest() : Manifest()
             let result = try body(&manifest)
+            manifest.schemaVersion = Manifest.currentSchemaVersion
             do {
                 try writePrivately(Self.makeEncoder().encode(manifest), to: manifestURL)
             } catch {

@@ -8,6 +8,13 @@ public enum Reports {
         public var isMain: Bool
     }
 
+    /// A display as `displays` lists it: with the aliases in use for it, sorted; empty when it has none.
+    public struct ListedDisplay: Codable, Equatable, Sendable {
+        public var name: String
+        public var isMain: Bool
+        public var aliases: [String]
+    }
+
     public struct Desktop: Codable, Equatable, Sendable {
         public var display: String
         public var connected: Bool
@@ -67,7 +74,7 @@ public enum Reports {
     }
 
     public struct Displays: Codable, Equatable, Sendable {
-        public var displays: [Display]
+        public var displays: [ListedDisplay]
     }
 
     public struct PruneEntry: Codable, Equatable, Sendable {
@@ -100,9 +107,17 @@ public enum Reports {
              createdAt: result.createdAt, originalRecorded: result.originalRecorded, stampMissing: result.stampMissing)
     }
 
-    public static func displays(_ displays: [DesktopNameCore.Display]) -> Displays {
-        Displays(displays: displays.map { Display(name: $0.name, isMain: $0.isMain) })
+    public static func displays(_ displays: [DesktopNameCore.Display], aliases: [DisplayAlias] = []) -> Displays {
+        Displays(displays: displays.map {
+            ListedDisplay(name: $0.name, isMain: $0.isMain, aliases: DisplayResolver.activeAliases(of: $0, in: aliases, displays: displays))
+        })
     }
+
+    public struct Aliases: Codable, Equatable, Sendable {
+        public var aliases: [AliasEntry]
+    }
+
+    public static func aliases(_ entries: [AliasEntry]) -> Aliases { Aliases(aliases: entries) }
 
     public static func prune(_ result: PruneResult) -> Prune {
         Prune(candidates: result.candidates.map { PruneEntry(label: $0.label, reason: $0.reason.rawValue, retiredAt: $0.retiredAt, bytes: $0.bytes) },

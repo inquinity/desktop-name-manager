@@ -13,6 +13,7 @@ dnm about
 dnm check  [--json]
 dnm list   [--json]
 dnm displays [--json]
+dnm alias [<name> [<display>]] [--remove <name>] [--json]   (spec 006)
 dnm --help | dnm <command> --help | dnm --version
 ```
 
@@ -22,7 +23,8 @@ dnm --help | dnm <command> --help | dnm --version
   current Desktop of the display chosen by `--display`, or of the main display when it is
   omitted (FR-023).
 - **`--display <value>`**: `main`; or a display's name as macOS shows it
-  (case-insensitive); or a partial name matching exactly one connected display. No match or
+  (case-insensitive); or an alias (spec 006); or a partial name matching exactly one connected display, in the
+  order of `specs/006-display-aliases/contracts/cli.md` §4. No match or
   more than one match exits `2`, prints the candidates, and changes nothing. Numbers and
   position keywords are not accepted.
 - **Cleanup**: every command first deletes retired stamps older than the cool-down (30

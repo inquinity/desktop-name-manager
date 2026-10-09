@@ -26,7 +26,7 @@ import Testing
     @Test func aReadyMacHasNothingToFixExceptWhatCannotBeRead() throws {
         let h = try LabelerHarness(); defer { h.cleanUp() }
         let report = h.labeler.check(Self.ready)
-        #expect(report.items.map(\.name) == ["macOS", "Separate Spaces", "Displays", "Accessibility", "Space shortcuts", "Stored labels"])
+        #expect(report.items.map(\.name) == ["macOS", "Separate Spaces", "Displays", "Aliases", "Accessibility", "Space shortcuts", "Stored labels"])
         #expect(report.items.allSatisfy { $0.state != .attention })
         #expect(try item("Space shortcuts", in: report).state == .unknown)
         #expect(try item("Displays", in: report).detail == "Built-in Display (main)")
@@ -71,5 +71,32 @@ import Testing
         let first = try #require((root["items"] as? [[String: Any]])?.first)
         #expect(Set(first.keys) == ["name", "state", "detail", "fix"])
         #expect(first["fix"] is NSNull)
+    }
+
+    // MARK: Aliases row (spec 006)
+
+    @Test func noAliasesIsInformation() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        let row = try item("Aliases", in: h.labeler.check(Self.ready))
+        #expect(row.state == .info && row.detail == "None set.")
+    }
+
+    @Test func aliasesAreCountedAndAbsentOnesNoted() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        try h.labeler.setAlias("desk", display: nil)
+        #expect(try item("Aliases", in: h.labeler.check(Self.ready)).detail == "1 alias.")
+        try h.store.transaction { $0.aliases.append(DisplayAlias(name: "old", displayUUID: "GONE", displayName: "Studio Display")) }
+        let row = try item("Aliases", in: h.labeler.check(Self.ready))
+        #expect(row.state == .ok && row.detail == "2 aliases; 1 for a display not connected now.")
+    }
+
+    @Test func anOverriddenAliasNeedsAttentionAndSaysHowToFixIt() throws {
+        let h = try LabelerHarness(extraDisplays: [FakeWallpaperSystem.makeDisplay(name: "DP1", uuid: "DISPLAY-B", isMain: false)])
+        defer { h.cleanUp() }
+        try h.store.transaction { $0.aliases.append(DisplayAlias(name: "dp1", displayUUID: "DISPLAY-A", displayName: "Built-in Display")) }
+        let row = try item("Aliases", in: h.labeler.check(Self.ready))
+        #expect(row.state == .attention)
+        #expect(row.detail == "Alias dp1 is not used while a display named DP1 is connected.")
+        #expect(row.fix?.contains("dnm alias --remove dp1") == true)
     }
 }

@@ -20,7 +20,7 @@ import Testing
         defer { try? FileManager.default.removeItem(at: dir.deletingLastPathComponent()) }
         try store.transaction { $0.changes.append(Fixtures.change()) }
         let manifest = try store.readManifest()
-        #expect(manifest.schemaVersion == 1)
+        #expect(manifest.schemaVersion == Manifest.currentSchemaVersion)
         #expect(manifest.changes.count == 1)
     }
 
@@ -54,8 +54,8 @@ import Testing
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let original = Data(#"{"schemaVersion": 99, "stamps": [], "changes": [], "future": true}"#.utf8)
         try original.write(to: store.manifestURL)
-        #expect(throws: DnmError.newerManifest(found: 99, supported: 1)) { try store.readManifest() }
-        #expect(throws: DnmError.newerManifest(found: 99, supported: 1)) { try store.transaction { $0.stamps = [] } }
+        #expect(throws: DnmError.newerManifest(found: 99, supported: 2)) { try store.readManifest() }
+        #expect(throws: DnmError.newerManifest(found: 99, supported: 2)) { try store.transaction { $0.stamps = [] } }
         #expect(try Data(contentsOf: store.manifestURL) == original)   // untouched
     }
 

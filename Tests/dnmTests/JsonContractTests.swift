@@ -31,7 +31,7 @@ import Testing
     func displaysJSONHasNamesAndTheMainFlag() throws {
         let root = try document(try CLI.run(["displays", "--json"]))
         let displays = try #require(root["displays"] as? [[String: Any]])
-        for display in displays { #expect(Set(display.keys) == ["name", "isMain"]) }
+        for display in displays { #expect(Set(display.keys) == ["name", "isMain", "aliases"]) }
         if !displays.isEmpty { #expect(displays.contains { $0["isMain"] as? Bool == true }) }
     }
 

@@ -92,7 +92,7 @@ import Testing
         #expect(check.output.contains("Space shortcuts"))
         let json = try CLI.run(["check", "--json"], store: store)
         let root = try #require(try JSONSerialization.jsonObject(with: Data(json.output.utf8)) as? [String: Any])
-        #expect((root["items"] as? [[String: Any]])?.count == 6)
+        #expect((root["items"] as? [[String: Any]])?.count == 7)
         #expect(!FileManager.default.fileExists(atPath: store))
     }
 

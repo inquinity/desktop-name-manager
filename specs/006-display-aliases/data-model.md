@@ -47,7 +47,7 @@ public struct Manifest: Codable, Equatable, Sendable {
 
 ### JSON Representation
 
-The identities below are placeholders; never commit real display UUIDs.
+The identities below are placeholders (not UUID-shaped, so the hygiene scan stays clean); never commit real display UUIDs.
 
 ```json
 {
@@ -57,12 +57,12 @@ The identities below are placeholders; never commit real display UUIDs.
   "aliases": [
     {
       "name": "desk",
-      "displayUUID": "00000000-0000-0000-0000-00000000000A",
+      "displayUUID": "<uuid of the built-in display>",
       "displayName": "Built-in Retina Display"
     },
     {
       "name": "DP1",
-      "displayUUID": "00000000-0000-0000-0000-00000000000B",
+      "displayUUID": "<uuid of the external display>",
       "displayName": "LG Ultra HD"
     }
   ]

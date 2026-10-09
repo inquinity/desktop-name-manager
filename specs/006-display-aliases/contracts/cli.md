@@ -32,6 +32,7 @@ dnm alias [--json]
   * `main` (case-insensitive): `dnm: main is reserved and cannot be used as an alias.`
   * Only digits (e.g., `1`, `12`): `dnm: An alias cannot be only digits, because --display does not accept numbers.`
   * Names containing spaces or special characters (`$`, `\`, quotes, etc.): `dnm: Alias names cannot contain spaces or special characters. Use letters, numbers, hyphens, or underscores.`
+  * Empty: `dnm: An alias name cannot be empty.`
   * Longer than 30 characters: `dnm: Alias names can be at most 30 characters.`
   * Any name matching a currently connected display (case-insensitive): `dnm: <display-name> is already the name of a connected display and cannot be used as an alias.`
 
@@ -76,6 +77,7 @@ dnm alias [--json]
   ```text
   Moved alias DP1 from LG Ultra HD to Studio Display.
   ```
+  (`(main)` follows the new display's name when it is the main display, as in the line above.)
 * **Remove alias**:
   ```text
   Removed alias DP1.

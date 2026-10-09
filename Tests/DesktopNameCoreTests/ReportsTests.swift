@@ -57,6 +57,29 @@ import Testing
         #expect(list[0]["isMain"] as? Bool == true)
     }
 
+    @Test func displaysJSONListsActiveAliasesAndAnEmptyArrayOtherwise() throws {
+        let h = try LabelerHarness(extraDisplays: [FakeWallpaperSystem.makeDisplay(name: "LG Ultra HD", uuid: "DISPLAY-B", isMain: false)])
+        defer { h.cleanUp() }
+        try h.labeler.setAlias("work", display: "LG")
+        try h.labeler.setAlias("DP1", display: "LG")
+        let json = try Reports.json(Reports.displays(try h.system.displays(), aliases: try h.labeler.aliases()))
+        let list = try #require(try object(json)["displays"] as? [[String: Any]])
+        let byName = Dictionary(uniqueKeysWithValues: list.map { ($0["name"] as! String, $0["aliases"] as! [String]) })
+        #expect(byName["LG Ultra HD"] == ["DP1", "work"])
+        #expect(byName["Built-in Display"] == [])
+        #expect(!json.contains("DISPLAY-"))
+    }
+
+    @Test func aliasesJSONIsOneObjectWithoutIdentifiers() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        try h.labeler.setAlias("desk", display: nil)
+        let json = try Reports.json(Reports.aliases(try h.labeler.listAliases()))
+        let list = try #require(try object(json)["aliases"] as? [[String: Any]])
+        #expect(list.count == 1)
+        #expect(Set(list[0].keys) == ["name", "display", "connected", "isMain", "overridden"])
+        #expect(!json.contains("DISPLAY-A"))
+    }
+
     @Test func reportsNeverContainIdentifiersOrPaths() throws {
         let h = try LabelerHarness(); defer { h.cleanUp() }
         try h.showOriginal()

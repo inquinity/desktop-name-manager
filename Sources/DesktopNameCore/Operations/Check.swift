@@ -86,6 +86,7 @@ extension DesktopLabeler {
                             fix: "System Settings > Desktop & Dock > Mission Control: turn on \"Displays have separate Spaces\", then log out and in."),
         ]
         items.append(displaysItem())
+        items.append(aliasesItem())
         items.append(configuration.accessibilityGranted
             ? CheckItem(name: "Accessibility", state: .ok, detail: "Granted to the app running dnm, so --desktop can switch Desktops. \(About.accessibilityScope)")
             : CheckItem(name: "Accessibility", state: .attention, detail: "Not granted to the app running dnm. Only --desktop needs it; labeling the current Desktop works without it. \(About.accessibilityScope)",
@@ -103,6 +104,26 @@ extension DesktopLabeler {
             return CheckItem(name: "Displays", state: .info, detail: names.joined(separator: ", "))
         } catch {
             return CheckItem(name: "Displays", state: .attention, detail: "Cannot list the displays: \(error.localizedDescription)")
+        }
+    }
+
+    private func aliasesItem() -> CheckItem {
+        do {
+            let aliases = try store.readManifest().aliases
+            guard !aliases.isEmpty else { return CheckItem(name: "Aliases", state: .info, detail: "None set.") }
+            let displays = try system.displays()
+            let overridden = aliases.compactMap { alias in DisplayResolver.overrider(of: alias, in: displays).map { (alias, $0) } }
+            if let (alias, display) = overridden.first {
+                let more = overridden.count > 1 ? " (and \(overridden.count - 1) more)" : ""
+                return CheckItem(name: "Aliases", state: .attention,
+                                 detail: "Alias \(alias.name) is not used while a display named \(display.name) is connected\(more).",
+                                 fix: "Remove it with `dnm alias --remove \(alias.name)`, or set it again under another name.")
+            }
+            let away = aliases.filter { alias in !displays.contains { $0.uuid == alias.displayUUID } }.count
+            let count = "\(aliases.count) alias\(aliases.count == 1 ? "" : "es")"
+            return CheckItem(name: "Aliases", state: .ok, detail: away == 0 ? "\(count)." : "\(count); \(away) for a display not connected now.")
+        } catch {
+            return CheckItem(name: "Aliases", state: .attention, detail: "Cannot read the aliases: \(error.localizedDescription)")
         }
     }
 

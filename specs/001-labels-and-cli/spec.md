@@ -378,8 +378,9 @@ the expected labels; the other Desktops are unchanged.
 - **FR-023**: Commands that act on a Desktop (set, remove, undo, show) MUST act on the main display
   unless the user passes `--display`, and on that display's current Desktop unless the user passes
   `--desktop` (FR-027). The option MUST accept
-  `main`, a display's name exactly as macOS shows it, or a case-insensitive partial name that
-  matches exactly one connected display. A value that matches no display or more than one
+  `main`, a display's name exactly as macOS shows it, an alias (spec 006), or a case-insensitive partial name
+  that matches exactly one connected display, resolved in the order given in spec 006 FR-011 by one
+  algorithm (spec 006 FR-019). A value that matches no display or more than one
   MUST be rejected with the candidates listed and no change made. Numbered displays and
   position keywords MUST NOT be accepted.
 - **FR-024**: The system MUST provide a `displays` command that lists the connected displays

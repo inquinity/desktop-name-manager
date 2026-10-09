@@ -1,33 +1,81 @@
 import Foundation
 
-/// Resolves the `--display` value (FR-023).
+/// The one place a display is chosen from what the user typed (FR-023, spec 006 FR-011 and FR-019).
+/// No command matches display names or aliases itself.
 ///
-/// Accepted: nothing (the main display), `main`, a display's name as macOS shows it
-/// (case-insensitive), or a partial name that matches exactly one connected display.
-/// Numbers and position keywords are not interpreted. They only match if they appear in a name.
+/// In order:
+/// 1. nothing, or `main`: the main display;
+/// 2. only digits: rejected, because macOS can reorder displays;
+/// 3. an exact display name (case-insensitive). A connected display's name overrides an alias of the same
+///    name, so every monitor stays reachable;
+/// 4. an exact alias (case-insensitive; aliases are never matched partially), only when `aliases` is given;
+/// 5. a partial display name that matches exactly one connected display.
+///
+/// `aliases: nil` is the display-only mode, used to choose the target of `dnm alias`.
 public enum DisplayResolver {
-    public static func resolve(_ value: String?, in displays: [Display]) throws -> Display {
+    public struct Resolution: Equatable, Sendable {
+        public var display: Display
+        /// A warning for standard error when an alias of the same name was overridden.
+        public var notice: String?
+    }
+
+    public static func resolve(_ value: String?, in displays: [Display], aliases: [DisplayAlias]? = nil) throws -> Display {
+        try resolution(value, in: displays, aliases: aliases).display
+    }
+
+    public static func resolution(_ value: String?, in displays: [Display], aliases: [DisplayAlias]? = nil) throws -> Resolution {
         guard !displays.isEmpty else { throw DnmError.failure("No displays are connected.") }
 
         guard let raw = value?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else {
-            return try mainDisplay(in: displays)
+            return Resolution(display: try mainDisplay(in: displays), notice: nil)
         }
-        if raw.caseInsensitiveCompare("main") == .orderedSame { return try mainDisplay(in: displays) }
+        if raw.caseInsensitiveCompare("main") == .orderedSame { return Resolution(display: try mainDisplay(in: displays), notice: nil) }
         if raw.allSatisfy(\.isNumber) {
             throw DnmError.invalidInput("Numbered displays are not supported because macOS can reorder them. Use a display's name; \(listing(displays)).")
         }
 
         let needle = raw.lowercased()
         let exact = displays.filter { $0.name.lowercased() == needle }
-        if exact.count == 1 { return exact[0] }
         if exact.count > 1 { throw ambiguous(raw, exact) }
+        if let display = exact.first {
+            let overridden = aliases?.first { $0.matches(raw) && $0.displayUUID != display.uuid }
+            let notice = overridden.map {
+                "\(display.name) is a connected display, which overrides alias \($0.name) (\(targetName(of: $0, in: displays)))."
+            }
+            return Resolution(display: display, notice: notice)
+        }
+
+        if let alias = aliases?.first(where: { $0.matches(raw) }) {
+            guard let display = displays.first(where: { $0.uuid == alias.displayUUID }) else {
+                throw DnmError.invalidInput("The display aliased as \(alias.name) is not connected.")
+            }
+            return Resolution(display: display, notice: nil)
+        }
 
         let partial = displays.filter { $0.name.lowercased().contains(needle) }
         switch partial.count {
-        case 1: return partial[0]
+        case 1: return Resolution(display: partial[0], notice: nil)
         case 0: throw DnmError.invalidInput("No display matches \"\(raw)\"; \(listing(displays)).")
         default: throw ambiguous(raw, partial)
         }
+    }
+
+    /// The connected display whose name hides this alias, if any (a different display than the alias's own).
+    public static func overrider(of alias: DisplayAlias, in displays: [Display]) -> Display? {
+        displays.first { $0.name.lowercased() == alias.name.lowercased() && $0.uuid != alias.displayUUID }
+    }
+
+    /// The aliases a person can use for `display` now, sorted: those that no other connected display's name overrides.
+    public static func activeAliases(of display: Display, in aliases: [DisplayAlias], displays: [Display]) -> [String] {
+        aliases.filter { $0.displayUUID == display.uuid && overrider(of: $0, in: displays) == nil }
+            .map { TerminalText.sanitized($0.name) }
+            .sorted { $0.lowercased() < $1.lowercased() }
+    }
+
+    /// How to show an alias's display: its connected name, else the name recorded with the alias, else its identity.
+    public static func targetName(of alias: DisplayAlias, in displays: [Display]) -> String {
+        // Stored text is untrusted on the way back out, like a display's name from macOS.
+        TerminalText.sanitized(displays.first { $0.uuid == alias.displayUUID }?.name ?? alias.displayName ?? alias.displayUUID)
     }
 
     private static func mainDisplay(in displays: [Display]) throws -> Display {

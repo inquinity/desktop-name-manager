@@ -97,17 +97,32 @@ public struct ChangeRecord: Codable, Equatable, Sendable {
 }
 
 /// Everything the tool stores in `manifest.json`.
+///
+/// Version 2 added `aliases` (spec 006). This build reads versions 1 and 2 and writes 2; older builds refuse
+/// version 2, an accepted risk at 0.1.
 public struct Manifest: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 1
+    public static let currentSchemaVersion = 2
 
     public var schemaVersion: Int
     public var stamps: [Stamp]
     /// At most one record per display.
     public var changes: [ChangeRecord]
+    /// Unique by lowercased name.
+    public var aliases: [DisplayAlias]
 
-    public init(schemaVersion: Int = Manifest.currentSchemaVersion, stamps: [Stamp] = [], changes: [ChangeRecord] = []) {
+    public init(schemaVersion: Int = Manifest.currentSchemaVersion, stamps: [Stamp] = [], changes: [ChangeRecord] = [],
+                aliases: [DisplayAlias] = []) {
         self.schemaVersion = schemaVersion
         self.stamps = stamps
         self.changes = changes
+        self.aliases = aliases
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try container.decode(Int.self, forKey: .schemaVersion)
+        stamps = try container.decode([Stamp].self, forKey: .stamps)
+        changes = try container.decode([ChangeRecord].self, forKey: .changes)
+        aliases = try container.decodeIfPresent([DisplayAlias].self, forKey: .aliases) ?? []
     }
 }

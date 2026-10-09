@@ -54,14 +54,35 @@ Desktop for you (see below).
 | `dnm undo` | Undo the last change on a display, for 30 minutes (one level). |
 | `dnm show` | Show the label on the current Desktop. |
 | `dnm list` | List labeled Desktops and the current Desktop of each display. Only those are shown. |
-| `dnm displays` | List the connected displays, as `--display` accepts them. |
+| `dnm displays` | List the connected displays, as `--display` accepts them, with their aliases. |
+| `dnm alias` | Give a display a short name for `--display`: `dnm alias <name> [<display>]`. Without arguments it lists the aliases; `--remove <name>` deletes one. |
 | `dnm prune` | List labeled images no longer in use as a label, and with `--yes` delete them. |
 | `dnm about` | Version, where data is kept, and what permissions the tool uses and why. |
 | `dnm check` | How this Mac is set up for labels and `--desktop`, and how to fix what is missing. |
 
-`--display <name>` picks another display: its name as macOS shows it, or part of the name if
-it matches only one display. `main` always works, and it is the default. `show`, `list`,
-`displays`, `prune`, `about` and `check` accept `--json`.
+`--display <name>` picks another display: its name as macOS shows it, an alias (below), or part of the
+name if it matches only one display. `main` always works, and it is the default. `show`, `list`,
+`displays`, `alias`, `prune`, `about` and `check` accept `--json`.
+
+## Display aliases
+
+A long monitor name is tedious to type. Give it a short one:
+
+```sh
+dnm alias desk                     # the main display
+dnm alias dp "LG Ultra HD"         # a display, by its name or part of it
+dnm set "Mail" --display dp --desktop 2
+dnm alias                          # list; dnm alias --remove dp deletes
+```
+
+An alias is 1 to 30 letters, digits, hyphens or underscores (not only digits, and not `main`). It is matched
+in full, ignoring case, never partially. `--display` looks, in order, for `main`, a display's exact name,
+an alias, then a unique part of a name. So a connected display's own name wins over an alias of the same
+name (say you alias `DP1` to the LG and then plug in a monitor called `DP1`): `--display DP1` reaches the
+monitor, with a warning, and `--display "LG Ultra"` still reaches the LG. `dnm alias` and `dnm check` flag
+such an alias. `dnm` refuses to alias a display that macOS gives no stable identity, or two displays that
+share one. Aliases are kept in the store, so they follow the display, not its name. They make the stored
+data format 2, which 0.1.0 cannot read.
 
 ## Label sets of Desktops
 

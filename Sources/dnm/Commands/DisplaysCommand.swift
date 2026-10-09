@@ -14,13 +14,20 @@ struct DisplaysCommand: ParsableCommand {
             let context = Context()
             try context.labeler.cleanUp()
             let displays = try context.system.displays()
+            let aliases = try context.labeler.aliases()
             if json {
-                Output.out(try Reports.json(Reports.displays(displays)))
+                Output.out(try Reports.json(Reports.displays(displays, aliases: aliases)))
                 return
             }
             let width = displays.map(\.name.count).max() ?? 0
             for display in displays {
-                Output.out("\(display.name.padding(toLength: width, withPad: " ", startingAt: 0))\(display.isMain ? "  (main)" : "")")
+                let name = display.name.padding(toLength: width, withPad: " ", startingAt: 0)
+                let names = DisplayResolver.activeAliases(of: display, in: aliases, displays: displays)
+                if names.isEmpty {
+                    Output.out("\(name)\(display.isMain ? "  (main)" : "")")
+                } else {
+                    Output.out("\(name)\(display.isMain ? "  (main)" : "        ")  aliases: \(names.joined(separator: ", "))")
+                }
             }
         }
     }
