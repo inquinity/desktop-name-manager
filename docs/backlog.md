@@ -13,7 +13,7 @@ Ideas recorded for later. None is part of a current spec.
   shortcuts with Accessibility, and for shipping the command-line tool.
 - **Multi-line labels** (roadmap F5, after 1.0.0 at the earliest). An app feature (M2), not a CLI one.
   Labels are one line of 30 characters for now (spec 001).
-- **Clean up all labeled images after a manual reset** (2026-10-06; roadmap F4, 0.1.2). After a person resets wallpapers by
+- **Clean up all labeled images after a manual reset** (2026-10-06; roadmap F4, 0.1.3). After a person resets wallpapers by
   hand (picking a picture in System Settings > Wallpaper on each Desktop, or turning "Show on all Spaces"
   on, which is one setting for every display, picking a picture, and turning it off again), the
   store still holds images and records for labels no Desktop shows. `prune` deletes only retired labels,
@@ -23,11 +23,11 @@ Ideas recorded for later. None is part of a current spec.
   shows, warn that a Desktop still showing one would lose its wallpaper, and require confirmation (`--yes`
   in the CLI). The README should describe the manual reset it follows. It must also warn about Desktops of
   display arrangements not connected now (known issue KI-2), which it cannot see.
-- **Batch labeling** (2026-10-06; roadmap F3, 0.1.3). Label several Desktops in one command (for example from a list of
+- **Batch labeling** (2026-10-06; roadmap F3, 0.1.4). Label several Desktops in one command (for example from a list of
   display, Desktop and label), so the walk to find each display's position happens once instead of once
   per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
   commands or scripts) is not known yet, and should set this item's priority.
-- **Display aliases** (2026-10-07; roadmap F2, 0.1.1, before shell completions F1). Short names for displays, for example `DP1` for a long monitor name, so
+- **Display aliases** (2026-10-07; roadmap F2, 0.1.1, before shell completions F1 in 0.1.2). Short names for displays, for example `DP1` for a long monitor name, so
   `--display DP1` works. An alias is tied to the display's stable identity (never shown), not its name, so
   it also tells apart two monitors of the same model that report the same name, which no name or partial
   name can do today. (A name that is part of another, such as `LG Ultra` and `LG Ultra HD`, already works:
