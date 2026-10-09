@@ -69,7 +69,7 @@ release yet.
 
 | Description | Feature | Target release |
 |---|---|---|
-| Display aliases: short names for displays, tied to the display's identity ([backlog](docs/backlog.md)). Comes before F1 | F2 | 0.1.1 |
+| Display aliases: short names for displays, tied to the display's identity ([specs/006-display-aliases](specs/006-display-aliases/)). Comes before F1 | F2 | 0.1.1 |
 | Shell completions for bash and zsh: every command and option, with display names and aliases (F2) offered live for `--display` (as git offers branch names) and the fixed values of `--style`, `--color`, `--position` and `--size`; installed by the cask | F1 | 0.1.1 |
 | Clean up all labeled images after a manual reset, for example `dnm prune --all` ([backlog](docs/backlog.md)) | F4 | 0.1.2 |
 | Batch labeling: several Desktops in one command ([backlog](docs/backlog.md)) | F3 | 0.1.3 |
