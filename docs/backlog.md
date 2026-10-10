@@ -49,6 +49,27 @@ Ideas recorded for later. None is part of a current spec.
   - **Never delete a stamp inside the 30-minute undo window.**
   - **Staging:** the age-based part is small (the rename of `prune`); the scan is the larger piece
     (navigator support to enumerate Desktops, timings, live tests) and could ship after it.
+
+  **Decisions so far (maintainer, 2026-10-10)**
+  - **No automatic deletion** of labeled images by any command, in the CLI. A label that is in use suddenly
+    replaced by the Mac's default wallpaper, with no visible cause, is the worst failure; a store that grows is
+    not. (Reverses nothing: FR-018 of spec 001 already forbids it.)
+  - **A nudge instead:** about 50 MB of images that cleanup could free (roughly 8 to 25 labels) triggers a one-line
+    stderr note after `set`, `remove` or `undo`, on a terminal only, at most weekly (sooner only if the amount
+    doubled), reset by a cleanup, silenced by the quiet flag (F7) later. It counts labels retired for long and
+    labels not seen for long, so it needs the "last seen" record from the first stage, and it points at
+    `dnm cleanup --scan`, which is exact and asks first.
+  - **Reuse of identical labeled images** is worthwhile and comes first (it can revive a retired image).
+  - **No grace period** (not the same need as undo); **no kept record** of deleted images.
+  - **`--scan` is an inspection**, so `--days` does not apply to it.
+  - **"Last seen"** (a table of images and dates) is wanted; written by commands that already write, by the scan, and
+    by the app.
+  - **Leaning, not final:** remove `prune`; one name, `cleanup`; `--days N` per run with a default of 30, and a stored
+    preference left to the app's Settings.
+  - **Still open:** the non-scan cleanup (retired for N days) can also delete an image that another Desktop still
+    uses, for the same reason as above. Options: make the scan the default whenever Accessibility is granted, so
+    most deletions are proven; and have the non-scan description say plainly that a Desktop not currently on
+    screen might still show one.
 - **Batch labeling** (2026-10-06; roadmap F3, 0.2.2). Label several Desktops in one command (for example from a list of
   display, Desktop and label), so the walk to find each display's position happens once instead of once
   per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
