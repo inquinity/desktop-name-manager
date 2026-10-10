@@ -26,8 +26,19 @@
   options. Separate arguments (not one list) let the generated completion scripts supply each position (as they
   already do for `alias`), so no code of ours counts words or knows which options take a value. `extra` exists so
   that we, not the parser, report too many words, with our message. `remove`, `undo` and `show` take
-  `first: String?` and `extra: [String]`. To be confirmed by a spike in the first task (optional arguments
-  followed by an array, with options interleaved).
+  `first: String?` and `extra: [String]`.
+- **Spike result (2026-10-09, a throwaway package on the pinned parser 1.8.2): the design works.**
+  - Words land in `first`, `second` and `extra` in order, with `--style`, `--desktop`, `--json`, `--label` and
+    `--display` placed before, between or after them; `--` makes the rest words (`set DP1 -- -x`).
+  - `--display` as a `[String]` option with single values sees a repeat (`["DP1", "main"]`); the order is kept.
+  - A custom `usage:` string replaces the generated usage; `help: .private` keeps `extra` out of the help.
+  - `--label -x` fails ("Missing value"); a label that starts with a dash is written `--label=-x` (or after `--`).
+  - The generated zsh and bash scripts hook only the argument that has a custom completion (`positional@0`), so the
+    first word offers `main` and the displays, and the second word, `--label` and the option values offer
+    nothing: no file-name fallback (checked with a real zsh and bash on a pseudo-terminal).
+  - `@testable import dnm` works from `dnmTests`: `SetCommand.parse([...])` parses without running
+    (`Tests/dnmTests/CommandParsingTests.swift`).
+  - So the fallback (one list of words plus a counting helper) is not needed.
 - `--display` becomes an array option (`[String]`, single values), so that a repeat is seen and refused; today a
   `String?` option keeps the last value silently (checked 2026-10-09).
 - Errors are `DnmError` thrown from `run`, like every other message, not `ValidationError` from `validate()` (the
@@ -50,6 +61,13 @@ matchers (name equality, alias equality) instead of copying the rules.
 With separate positional arguments the scripts call back with `positional@0`, `positional@1` and so on (as for
 `alias`), so the first word offers displays and the second offers nothing, with no counting of our own. (An
 earlier idea, a helper that counts words and skips option values, would have copied knowledge the parser owns.)
+
+## R4b. Quoting in messages
+
+Suggested commands are quoted the way a POSIX shell would: a word made only of letters, digits and
+`_ - . / : = @ % + ,` stays bare; anything else (spaces, `$`, quotes, an empty word, non-ASCII) is wrapped in
+single quotes, with an embedded single quote written `'\''`. One small function, tested with a space, `$`,
+a single quote, a double quote, an empty word and a non-ASCII name.
 
 ## R5. Compatibility
 

@@ -113,7 +113,7 @@ As a user with scripts, I want `--display` to keep working.
 
 - **A label that equals a display or alias**: `dnm set --label "<label>"`, `dnm set main "<label>"` or `--display main`.
 - **Digits**: `dnm set 2 "x"` fails as before (numbered displays are not accepted); a lone `dnm set 2` labels the main display "2".
-- **A label starting with `-`**: after `--`, as today (`dnm set DP1 -- "-x"`), or `--label=-x`.
+- **A label starting with `-`**: after `--` (`dnm set DP1 -- "-x"`), or `--label=-x`; `--label -x` does not work (the parser reads `-x` as an option; checked 2026-10-09).
 - **A display name that is also a sensible label** (`dnm set Mail Inbox` when a display is named `Mail`): the display wins; quote the label or use `--label`.
 - **An alias for a display that is not connected** as the first word: the usual error ("The display aliased as ... is not connected").
 - **`main` as a lone word** is a display reference: refused; `dnm set main main` and `dnm set --label main` label the main display "main". The same holds for `Main`.
@@ -132,7 +132,7 @@ As a user with scripts, I want `--display` to keep working.
 - **FR-004**: `--display` MUST remain. A display given twice in any way (word and `--display`, or `--display` repeated) MUST be an error (exit 2) even if it is the same display. A label given twice (`--label` repeated, or `--label` with a label word) MUST be an error.
 - **FR-005**: How the words and flags are read (how many, which is the display, which the label, every refusal) MUST be decided in one function in the core library, used by all four commands, and MUST return the resolved display, so a display is resolved once.
 - **FR-006**: Too many words MUST exit 2, change nothing, and say what the command takes, to quote anything with spaces and that an alias avoids quoting.
-- **FR-007**: With two words whose first resolves to no display, the command MUST exit 2 with the resolver's message and the quoting hint; every command suggested in a message MUST quote words that contain spaces.
+- **FR-007**: With two words whose first resolves to no display, the command MUST exit 2 with the resolver's message and the quoting hint; every command suggested in a message MUST be quoted the way a POSIX shell would quote it (spaces, `$`, quotes, an empty word), by one small tested function.
 - **FR-008**: (decision 1) `set` with one word and neither `--display` nor `--label` MUST refuse (exit 2, nothing changed) when the word equals `main`, a connected display's name or any alias's name, exactly, ignoring case, and MUST give both forms. The test for "is a display reference" MUST be in the resolver, built from the same matchers as the resolution so the two cannot drift.
 - **FR-009**: Tab MUST offer displays and usable aliases for the first word of the four commands and nothing for the second word of `set` or for `--label`; the positions MUST come from the parser's positional arguments, with no counting of option values in our code.
 - **FR-010**: Help (a custom usage line showing the real grammar), the README, the release notes and the CLI contracts MUST show the new grammar; spec 001 FR-023 and its CLI contract, spec 006 FR-011 and spec 007's contract MUST be amended; the README MUST say scripts should use `--display` and `--label`.
@@ -148,6 +148,7 @@ As a user with scripts, I want `--display` to keep working.
 - **SC-002**: Every `--display` invocation in the `Tests/live` scripts and the previous README behaves as before.
 - **SC-003**: The commands contain no display matching or word counting of their own: a test fails if a file under `Sources/dnm/Commands` calls the resolver or compares display names.
 - **SC-004**: `just test` and `just periphery` pass; in-process parse tests cover the interleaving of options and words for `set` without changing a wallpaper.
+- **SC-005**: A positional syntax suite exists at four levels (table-driven, in-process parsing, the binary's error cases, and a live script over every connected display including the multi-display forms that must be refused), and the live script passes in each display configuration the maintainer has before 0.2.0 is released.
 
 ## Assumptions
 

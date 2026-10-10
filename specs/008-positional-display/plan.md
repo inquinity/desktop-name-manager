@@ -48,6 +48,10 @@ README.md, docs/release-notes/UNRELEASED.md, specs/001 (FR-023, contracts/cli.md
    A test fails if a command file calls the resolver or compares display names (SC-003).
 3. **Completion**: nothing to count; check by position that the first word offers displays and usable aliases
    and the second word and `--label` offer nothing (spec 007 contract updated).
-4. **Docs and verification**: README (grammar, aliases to avoid quotes, scripts use `--display`/`--label`), help,
+4. **The positional syntax suite** (four layers): the table-driven unit test of the interpretation; the in-process
+   parse tests (`CommandParsingTests`); the binary error tests (exit 2, nothing created); and a live script,
+   `Tests/live/live-syntax.sh`, that runs the syntax on every connected display and the multi-display cases that
+   must be refused.
+5. **Docs and verification**: README (grammar, aliases to avoid quotes, scripts use `--display`/`--label`), help,
    release notes with the two changes of behavior, the amended specs; the interactive Tab check; a live `set`,
    `remove`, `undo` on a throwaway wallpaper under the project's live-test rules (back up `Index.plist` first).
