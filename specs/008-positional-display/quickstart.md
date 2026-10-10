@@ -9,10 +9,14 @@ and restore it afterwards.
 1. `dnm show` and `dnm show main --json` agree; `dnm show "<a display name>"` and `dnm show --display "<same>"`
    print the same.
 2. `dnm alias lg "<a display name>"`, then `dnm show lg` names that display.
-3. Errors, each exit 2 with nothing changed: `dnm show main main` (E5); `dnm show main --display main` (E4);
-   `dnm set a b c` (E1); `dnm set Nonexistent Inbox` (E2, with the quoting hint); `dnm set main` and
-   `dnm set lg` (E3, naming both forms).
-4. `dnm set 2` is not refused (a number is a label); with a display named `2` impossible (digits are rejected).
+3. Each of these exits 2 with nothing changed and a message that says what to type:
+   - `dnm show main main` (too many words) and `dnm show main --display main` (display given twice);
+   - `dnm show --display main --display "<a display name>"` (display given twice, as `--display` repeated);
+   - `dnm set a b c` (too many words; the message mentions quoting and aliases);
+   - `dnm set Nonexistent Inbox` (no display matches; the hint says to quote the label);
+   - `dnm set main` and `dnm set lg` (a lone word that is a display; both forms are shown, quoted if the name has spaces);
+   - `dnm set "x" --label "y"` and `dnm set --label "a" --label "b"` (label given twice).
+4. `dnm set 2` is not refused (a number is a label); `dnm set 2 "x"` fails as before (numbered displays).
 
 ## Live scenarios (change the wallpaper; back up and restore)
 
@@ -20,9 +24,11 @@ and restore it afterwards.
    brings the label back; `dnm set main "Main label"`; `dnm remove main`.
 6. `dnm set lg "Via alias"` with the alias from 2; `dnm remove lg`.
 7. `dnm set "Plain label"` still labels the main display; `dnm set --display "<name>" "Old syntax"` still works.
-8. With `--desktop`: `dnm set "<name>" "On two" --desktop 2` (needs Accessibility; announce live control).
+8. Fully named: `dnm set --label main` labels the main display "main"; `dnm set "<name>" --label "Named"` labels that display.
+9. With `--desktop`: `dnm set "<name>" "On two" --desktop 2` (needs Accessibility; announce live control).
 
 ## Completion
 
-9. In zsh and bash, `dnm set <Tab>`, `dnm show <Tab>` and `dnm remove <Tab>` offer `main`, the displays and the
-   aliases; `dnm set DP <Tab>` offers nothing; `dnm set x --style <Tab>` still offers the styles.
+10. In zsh and bash, `dnm set <Tab>`, `dnm show <Tab>` and `dnm remove <Tab>` offer `main`, the displays and the
+    aliases; `dnm set DP <Tab>` and `dnm set x --label <Tab>` offer nothing; `dnm set x --style <Tab>` still
+    offers the styles.

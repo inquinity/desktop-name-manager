@@ -72,7 +72,7 @@ release yet.
 | Display aliases: short names for displays, tied to the display's identity ([specs/006-display-aliases](specs/006-display-aliases/)). Comes before F1 | F2 | 0.1.1 (released 2026-10-09) |
 | Shell completions for bash and zsh: every command and option, with display names and aliases (F2) offered live for `--display` (as git offers branch names) and the fixed values of `--style`, `--color`, `--position` and `--size`; installed by the cask ([specs/007-shell-completions](specs/007-shell-completions/)) | F1 | 0.1.2 (released 2026-10-09) |
 | Clean up all labeled images after a manual reset, for example `dnm prune --all` ([backlog](docs/backlog.md)) | F4 | 0.2.1 |
-| Batch labeling: several Desktops in one command ([backlog](docs/backlog.md)) | F3 | 0.2.2 |
+| Batch labeling: several Desktops, and several displays (`--display` repeated), in one command ([backlog](docs/backlog.md)) | F3 | 0.2.2 |
 | Multi-line labels: an app feature (M2), not a CLI one ([backlog](docs/backlog.md)) | F5 | After 1.0.0 at the earliest |
 | `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) | F6 | Not set |
 | Display as a positional argument: `dnm set [<display>] <label>` and `dnm remove\|undo\|show [<display>]`, with `--display` still accepted ([specs/008-positional-display](specs/008-positional-display/)); a change of syntax, so it takes 0.2.0 and moves every later feature back | F8 | 0.2.0 |

@@ -27,6 +27,14 @@ Ideas recorded for later. None is part of a current spec.
   display, Desktop and label), so the walk to find each display's position happens once instead of once
   per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
   commands or scripts) is not known yet, and should set this item's priority.
+
+  Several displays in one command (2026-10-09, raised while specifying F8): `dnm set "x" --display DP1 --display main`.
+  `--display` repeated is an error until this exists (spec 008). Rules to decide: resolve every display first so a
+  typo never half-applies, then apply in order and stop at the first failure, naming the displays already changed
+  (each is undone with `undo`); the same display named twice is collapsed; a positional display plus `--display`
+  is an error; `--desktop` means that Desktop of each display; `set`, `remove` and `undo` only, because
+  `show --json` prints one document.
+
 - **Display aliases** (2026-10-07; roadmap F2, 0.1.1, before shell completions F1 in 0.1.2). Short names for displays, for example `DP1` for a long monitor name, so
   `--display DP1` works. An alias is tied to the display's stable identity (never shown), not its name, so
   it also tells apart two monitors of the same model that report the same name, which no name or partial

@@ -5,58 +5,79 @@
 ## 1. Syntax
 
 ```text
-dnm set    [<display>] <label> [--display <name>] [--desktop <n>] [--position <p>] [--size <s>] [--style <look>] [--color <c>]
+dnm set    [<display>] [<label>] [--label <text>] [--display <name>] [--desktop <n>] [--position <p>] [--size <s>] [--style <look>] [--color <c>]
 dnm remove [<display>] [--display <name>] [--desktop <n>]
 dnm undo   [<display>] [--display <name>] [--desktop <n>]
 dnm show   [<display>] [--display <name>] [--desktop <n>] [--json]
 ```
 
-Options may come before, between or after the arguments. A display argument is resolved exactly as `--display`
-is (spec 006 contract §4): `main`, an exact display name, an exact alias, then a unique partial name; a
-connected display's own name overrides an alias, with the same warning.
+Options may come before, between or after the words. The help shows the real grammar with a custom usage line
+(`dnm set [<display>] <label>` and `dnm set [<display>] --label <text>`), not the parser's generic one.
 
-## 2. Interpretation (one function in the core)
+A display word (or `--display` value) is resolved as spec 006 contract §4 says: `main`, an exact display name, an
+exact alias, then a unique partial name; a connected display's own name overrides an alias, with the same
+warning. A *display reference* is `main`, the exact name of a connected display, or the exact name of any stored
+alias (connected or not, overridden or not), ignoring case; partial names and digits are not display references.
+The reference test and the resolution share their matchers.
 
-Let *words* be the arguments without options, and *flag* the value of `--display`, if given.
+## 2. How a command line is read (one function in the core)
 
-| Command | Words | Flag | Result |
+*Words* are the arguments that are not options. *Display flag* is `--display`; *label flag* is `--label`.
+Giving `--display` or `--label` more than once is always an error ("Give the display once" / "Give the label once").
+
+### `set`
+
+| Label flag | Words | Display flag | Reading |
 |---|---|---|---|
-| `set` | 0 | any | error: a label is required (as today) |
-| `set` | 1 | given | label = the word, display = flag |
-| `set` | 1 | none | if the word is a display reference: refuse (§3 E3); else label = the word, display = main |
-| `set` | 2 | given | error E4 |
-| `set` | 2 | none | display = word 1, label = word 2; if word 1 does not resolve: error E2 |
-| `set` | 3 or more | any | error E1 |
-| `remove`, `undo`, `show` | 0 | any | display = flag, else main |
-| `remove`, `undo`, `show` | 1 | none | display = the word |
-| `remove`, `undo`, `show` | 1 | given | error E4 |
-| `remove`, `undo`, `show` | 2 or more | any | error E5 |
+| given | 0 | any | display = the flag, or main; label = the flag |
+| given | 1 | none | display = the word; label = the flag |
+| given | 1 | given | error: display given twice |
+| given | 2 or more | any | error: with `--label`, `set` takes at most one display |
+| none | 0 | any | error: a label is required |
+| none | 1 | given | label = the word; display = the flag |
+| none | 1 | none | if the word is a display reference: refuse (lone word is a display); else label = the word, display = main |
+| none | 2 | given | error: display given twice |
+| none | 2 | none | display = word 1; label = word 2 (if word 1 resolves to no display: error with the quoting hint) |
+| none | 3 or more | any | error: too many words |
 
-A *display reference* is `main`, the exact name of a connected display, or the exact name of any stored
-alias (connected or not, overridden or not), compared ignoring case. Partial names and digits are not display
-references.
+### `remove`, `undo`, `show`
 
-## 3. Errors (exit 2, nothing changed, to standard error)
-
-| | Case | Message |
+| Words | Display flag | Reading |
 |---|---|---|
-| E1 | `set` with 3 or more words | `dnm: set takes a label, or a display and a label (got <n> arguments). Quote anything with spaces; an alias avoids quoting a display name: dnm alias lg "LG Ultra".` |
-| E2 | `set`, 2 words, the first resolves to no display | the resolver's message, then `To label the main display with several words, quote the whole label: dnm set "<word1> <word2>".` |
-| E3 | `set`, 1 word, a display reference, no flag | `dnm: "<word>" is a display. To label it: dnm set <word> "<label>". To use "<word>" as the label of the main display: dnm set main <word>.` |
-| E4 | display given as an argument and with `--display` | `dnm: Give the display once, as an argument or with --display.` |
-| E5 | `remove`, `undo` or `show` with 2 or more words | `dnm: <command> takes at most one display (got <n> arguments). Quote a name with spaces, or use an alias.` |
+| 0 | any | display = the flag, or main |
+| 1 | none | display = the word |
+| 1 | given | error: display given twice |
+| 2 or more | any | error: too many words |
+
+The function returns the resolved display (and the override warning, if any) with the label, so the command
+never resolves again. A repeated `--label`, or `--label` together with a label word, is an error.
+
+## 3. Error messages (exit 2, nothing changed, standard error)
+
+Words that contain spaces are quoted in every suggested command: `dnm set "LG Ultra" "<label>"`.
+
+| Case | Message |
+|---|---|
+| Too many words for `set` (no `--label`) | `dnm: set takes a label, or a display and a label (got <n> words). Quote anything with spaces; an alias avoids quoting a display name: dnm alias lg "LG Ultra".` |
+| Too many words with `--label` | `dnm: with --label, set takes at most one display (got <n> words). Quote a name with spaces, or use an alias.` |
+| Too many words for `remove`, `undo`, `show` | `dnm: <command> takes at most one display (got <n> words). Quote a name with spaces, or use an alias.` |
+| First of two words is no display | the resolver's message, then `To label the main display with several words, quote the whole label: dnm set "<word 1> <word 2>".` |
+| Lone word is a display reference | `dnm: "<word>" is a display. To label it: dnm set <word> "<label>". To use "<word>" as the label of the main display: dnm set --label <word>.` |
+| Display given twice | `dnm: Give the display once, as a word or with --display (not both, and not --display twice).` |
+| Label given twice | `dnm: Give the label once, as a word or with --label (not both, and not --label twice).` |
 
 ## 4. Completion (spec 007)
 
+The words are separate parser arguments, so the generated scripts give each its position.
+
 | Position | Offered |
 |---|---|
-| first argument of `set`, `remove`, `undo`, `show` | `main`, connected display names, usable aliases (as `--display`) |
-| second argument of `set` | nothing |
+| first word of `set`, `remove`, `undo`, `show` | `main`, connected display names, usable aliases (as `--display`) |
+| second word of `set`; `--label` | nothing |
 | `--display` | unchanged |
-
-The position counts arguments, not option values (`--style plain` is no argument).
 
 ## 5. Compatibility
 
-`--display` is unchanged. The one behavior that changes is E3: `dnm set <word>` where the word is `main`, a
-display or an alias used to label the main display with that word and is now refused (0.2.0).
+Every invocation valid in 0.1.2 behaves the same, except two: a lone word that is a display reference (it used to
+label the main display; now refused) and `--display` repeated (it used to use the last one silently; now an
+error). Both are in the 0.2.0 release notes.
