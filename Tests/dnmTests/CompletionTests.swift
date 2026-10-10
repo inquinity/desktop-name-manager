@@ -93,4 +93,27 @@ import Testing
         #expect(try CLI.run(["--generate-completion-script", "zsh"]).output.hasPrefix("#compdef dnm\n"))
         #expect(try CLI.run(["--generate-completion-script", "bash"]).output.contains("complete -o filenames -F _dnm dnm"))
     }
+
+    @Test(.enabled(if: CLI.connectedDisplayCount() > 0), arguments: ["set", "remove", "undo", "show"])
+    func theFirstWordOffersDisplaysAndUsableAliases(_ command: String) throws {
+        let store = CLI.scratchStore()
+        defer { try? FileManager.default.removeItem(atPath: store) }
+        _ = try CLI.run(["alias", "desk"], store: store)
+        let result = try CLI.run(["---completion", command, "--", "positional@0", "2", "0", "dnm", command, ""], store: store)
+        #expect(result.status == 0 && result.errors.isEmpty, "\(command)")
+        let offered = lines(result)
+        #expect(offered.first == "main" && offered.contains("desk"), "\(command)")
+        for name in try connectedDisplayNames() { #expect(offered.contains(name), "\(command)") }
+    }
+
+    @Test(.enabled(if: CLI.binary != nil), arguments: ["zsh", "bash"])
+    func onlyTheFirstWordHasACallback(_ shell: String) throws {
+        let script = try CLI.run(["--generate-completion-script", shell]).output
+        for command in ["set", "remove", "undo", "show"] {
+            #expect(script.contains("---completion \(command) -- positional@0"), "\(shell) \(command)")
+        }
+        // The label word and --label offer nothing: no callback for them.
+        #expect(!script.contains("---completion set -- positional@1"), "\(shell)")
+        #expect(!script.contains("---completion set -- --label"), "\(shell)")
+    }
 }

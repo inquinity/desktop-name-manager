@@ -148,7 +148,7 @@ Run `dnm displays` and verify aliases appear inline; run `dnm check` to inspect 
 - **FR-008**: `dnm alias --remove <name>` MUST delete the alias, or exit 2 if it does not exist.
 - **FR-009**: Bare `dnm alias` MUST list all configured aliases, their display names, and connection / override status. A disconnected alias's display MUST be shown by its recorded name, or by its identity if no name is recorded.
 - **FR-010**: `dnm alias --json` MUST output one JSON object with an `aliases` array. `--json` is accepted only when listing.
-- **FR-011**: Resolution of `--display <value>` in `set`, `remove`, `undo` and `show` MUST evaluate:
+- **FR-011**: Resolution of the display (given as `--display <value>`, or since 0.2.0 as the first word, spec 008) in `set`, `remove`, `undo` and `show` MUST evaluate:
   1. Empty / `main` → Main display.
   2. Only digits → Rejected (exit 2).
   3. Exact connected display name → Physical display (overriding any alias of that name; more than one display of that name is ambiguous, exit 2).

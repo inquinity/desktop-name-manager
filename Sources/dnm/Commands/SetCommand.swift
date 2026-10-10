@@ -4,11 +4,28 @@ import DesktopNameCore
 struct SetCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "set",
-        abstract: "Set the Desktop label (the current Desktop, or pick one with --display and --desktop).",
-        discussion: "A label is one line of 1 to 30 characters. Options you leave out use their defaults; they never inherit from a label being replaced.")
+        abstract: "Set the Desktop label (the current Desktop, or pick one with a display and --desktop).",
+        usage: "dnm set [<display>] <label> [options]\n       dnm set [<display>] --label <text> [options]",
+        discussion: """
+        A label is one line of 1 to 30 characters. Options you leave out use their defaults; they never inherit from a label being replaced.
 
-    @Argument(help: "The label: one line, 1 to 30 characters (emoji count as one).")
-    var label: String
+        With two words, the first is the display and the second the label: dnm set DP1 "Mail". With one word it is the label \
+        for the main display, unless it is the name of a display or an alias (then it is refused: say which you mean). \
+        Quote anything with spaces; an alias avoids quoting a display name. --label names the label outright.
+        """)
+
+    @Argument(help: ArgumentHelp("The display, or, when it is the only word, the label.", valueName: "display"),
+              completion: .custom { _, _, _ in Completions.displays(includeAliases: true) })
+    var first: String?
+
+    @Argument(help: ArgumentHelp("The label: one line, 1 to 30 characters (emoji count as one).", valueName: "label"))
+    var second: String?
+
+    @Argument(help: .private)
+    var extra: [String] = []
+
+    @Option(name: .customLong("label"), parsing: .singleValue, help: ArgumentHelp("The label, named outright (a label that starts with a dash is written --label=-x). Any word given is then the display.", valueName: "text"))
+    var labelFlag: [String] = []
 
     @OptionGroup var target: DisplayOption
     @OptionGroup var place: DesktopOption
@@ -27,10 +44,12 @@ struct SetCommand: ParsableCommand {
 
     func run() throws {
         try Self.guarded {
-            let text = try LabelText(label)
-            let options = try LabelOptions.parse(style: style, color: color, position: position, size: size)
             let context = Context()
-            let display = try context.resolveDisplay(target)
+            let request = try context.setRequest(words: (first.map { [$0] } ?? []) + (second.map { [$0] } ?? []) + extra,
+                                                 option: target, labelFlags: labelFlag)
+            let text = try LabelText(request.label)
+            let options = try LabelOptions.parse(style: style, color: color, position: position, size: size)
+            let display = request.target.display
             var result = try context.onDesktop(place, of: display) { try context.labeler.setLabel(text, options: options, on: display) }
             result.displayName = place.describe(result.displayName)
             Output.out(result.confirmation)

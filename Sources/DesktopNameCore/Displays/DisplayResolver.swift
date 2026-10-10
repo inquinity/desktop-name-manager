@@ -29,13 +29,13 @@ public enum DisplayResolver {
         guard let raw = value?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else {
             return Resolution(display: try mainDisplay(in: displays), notice: nil)
         }
-        if raw.caseInsensitiveCompare("main") == .orderedSame { return Resolution(display: try mainDisplay(in: displays), notice: nil) }
+        if isMain(raw) { return Resolution(display: try mainDisplay(in: displays), notice: nil) }
         if raw.allSatisfy(\.isNumber) {
             throw DnmError.invalidInput("Numbered displays are not supported because macOS can reorder them. Use a display's name; \(listing(displays)).")
         }
 
         let needle = raw.lowercased()
-        let exact = displays.filter { $0.name.lowercased() == needle }
+        let exact = exactMatches(raw, in: displays)
         if exact.count > 1 { throw ambiguous(raw, exact) }
         if let display = exact.first {
             let overridden = aliases?.first { $0.matches(raw) && $0.displayUUID != display.uuid }
@@ -45,7 +45,7 @@ public enum DisplayResolver {
             return Resolution(display: display, notice: notice)
         }
 
-        if let alias = aliases?.first(where: { $0.matches(raw) }) {
+        if let alias = aliasNamed(raw, in: aliases) {
             guard let display = displays.first(where: { $0.uuid == alias.displayUUID }) else {
                 throw DnmError.invalidInput("The display aliased as \(alias.name) is not connected.")
             }
@@ -58,6 +58,26 @@ public enum DisplayResolver {
         case 0: throw DnmError.invalidInput("No display matches \"\(raw)\"; \(listing(displays)).")
         default: throw ambiguous(raw, partial)
         }
+    }
+
+    /// True when `value` is, exactly and ignoring case, `main`, a connected display's name, or the name of any stored
+    /// alias (connected or not, overridden or not). Partial names and numbers are not references. It shares its
+    /// matchers with `resolution`, so the two cannot drift (spec 008 FR-008).
+    public static func isReference(_ value: String, in displays: [Display], aliases: [DisplayAlias]) -> Bool {
+        let raw = value.trimmingCharacters(in: .whitespaces)
+        guard !raw.isEmpty else { return false }
+        return isMain(raw) || !exactMatches(raw, in: displays).isEmpty || aliasNamed(raw, in: aliases) != nil
+    }
+
+    private static func isMain(_ raw: String) -> Bool { raw.caseInsensitiveCompare("main") == .orderedSame }
+
+    private static func exactMatches(_ raw: String, in displays: [Display]) -> [Display] {
+        let needle = raw.lowercased()
+        return displays.filter { $0.name.lowercased() == needle }
+    }
+
+    private static func aliasNamed(_ raw: String, in aliases: [DisplayAlias]?) -> DisplayAlias? {
+        aliases?.first { $0.matches(raw) }
     }
 
     /// The connected display whose name hides this alias, if any (a different display than the alias's own).

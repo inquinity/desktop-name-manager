@@ -40,6 +40,7 @@ To build from source instead (Xcode 27 command-line tools): `just build-release`
 
 ```sh
 dnm set "Status Report"   # label the Desktop you are on
+dnm set DP "Status Report"  # the Desktop showing on the display named DP
 dnm remove                # put the original wallpaper back
 ```
 
@@ -49,10 +50,10 @@ Desktop for you (see below).
 
 | Command | What it does |
 |---|---|
-| `dnm set <label>` | Label the current Desktop. Options: `--style plain\|halo\|frosted`, `--color light\|dark\|#RRGGBB`, `--position bottom-left\|bottom-right\|top-left\|top-right\|bottom\|top`, `--size small\|medium\|large`. Anything left out is chosen from the wallpaper or uses its default. |
-| `dnm remove` | Remove the label and restore the original wallpaper exactly. |
-| `dnm undo` | Undo the last change on a display, for 30 minutes (one level). |
-| `dnm show` | Show the label on the current Desktop. |
+| `dnm set [<display>] <label>` | Label the current Desktop (of the main display, or of the display you name first). Options: `--style plain\|halo\|frosted`, `--color light\|dark\|#RRGGBB`, `--position bottom-left\|bottom-right\|top-left\|top-right\|bottom\|top`, `--size small\|medium\|large`. Anything left out is chosen from the wallpaper or uses its default. |
+| `dnm remove [<display>]` | Remove the label and restore the original wallpaper exactly. |
+| `dnm undo [<display>]` | Undo the last change on a display, for 30 minutes (one level). |
+| `dnm show [<display>]` | Show the label on the current Desktop. |
 | `dnm list` | List labeled Desktops and the current Desktop of each display. Only those are shown. |
 | `dnm displays` | List the connected displays, as `--display` accepts them, with their aliases. |
 | `dnm alias` | Give a display a short name for `--display`: `dnm alias <name> [<display>]`. Without arguments it lists the aliases; `--remove <name>` deletes one. |
@@ -60,9 +61,35 @@ Desktop for you (see below).
 | `dnm about` | Version, where data is kept, and what permissions the tool uses and why. |
 | `dnm check` | How this Mac is set up for labels and `--desktop`, and how to fix what is missing. |
 
-`--display <name>` picks another display: its name as macOS shows it, an alias (below), or part of the
-name if it matches only one display. `main` always works, and it is the default. `show`, `list`,
-`displays`, `alias`, `prune`, `about` and `check` accept `--json`.
+`show`, `list`, `displays`, `alias`, `prune`, `about` and `check` accept `--json`.
+
+## Choosing a display
+
+The display comes first: `dnm set DP "Mail"`, `dnm show DP`, `dnm remove DP`, `dnm undo DP`. A display is `main`
+(the default), a display's name as macOS shows it, an alias (below), or part of a name that matches only one
+display. Quote a name with spaces:
+
+```sh
+dnm set "LG Ultra" "My label is great"   # a unique part of the display's name, then the label
+dnm set main "Notes"                     # the main display, said outright
+dnm set "Notes"                          # the same: one word is the label for the main display
+dnm set lg "Mail"                        # an alias avoids the quotes
+```
+
+- **One word or two.** With two words to `set`, the first is the display and the second the label; with one, it is
+  the label for the main display. More than that is an error that says what to type (`set` takes a label, or a
+  display and a label; quote anything with spaces). `remove`, `undo` and `show` take at most one display.
+- **A lone word that is a display is refused.** `dnm set DP` is probably a label forgotten after the display, so
+  `dnm` stops and shows both ways: `dnm set DP "<label>"` to label that display, and `dnm set --label DP` to use
+  `DP` as the label. This covers exactly `main`, a display's full name and an alias, ignoring case; a part of a
+  name (`dnm set LG`) is a label. The same goes for a label that equals an alias: write `dnm set --label desk`.
+- **`--label` names the label outright** (`dnm set DP --label "Mail"`), and then the only word is the display. A
+  label that starts with a dash is written `--label=-x`.
+- **`--display` still works** (`dnm set "Mail" --display DP`) and is the explicit form for scripts, together with
+  `--label`: whether a lone word is refused depends on the displays connected and the aliases you have, which the
+  flags do not. Give the display once: a word and `--display`, or `--display` twice, is an error.
+- **Order.** Options may come before, between or after the words; the examples put the display first because it
+  reads best.
 
 ## Display aliases
 
@@ -71,15 +98,18 @@ A long monitor name is tedious to type. Give it a short one:
 ```sh
 dnm alias desk                     # the main display
 dnm alias dp "LG Ultra HD"         # a display, by its name or part of it
-dnm set "Mail" --display dp --desktop 2
+dnm set dp "Mail" --desktop 2
 dnm alias                          # list; dnm alias --remove dp deletes
 ```
 
+`dnm alias` reads like a shell alias: the new name first, then what it stands for. `set` reads display, then
+label.
+
 An alias is 1 to 30 letters, digits, hyphens or underscores (not only digits, and not `main`). It is matched
-in full, ignoring case, never partially. `--display` looks, in order, for `main`, a display's exact name,
+in full, ignoring case, never partially. A display is looked up, in order, as `main`, a display's exact name,
 an alias, then a unique part of a name. So a connected display's own name wins over an alias of the same
-name (say you alias `DP1` to the LG and then plug in a monitor called `DP1`): `--display DP1` reaches the
-monitor, with a warning, and `--display "LG Ultra"` still reaches the LG. `dnm alias` and `dnm check` flag
+name (say you alias `DP1` to the LG and then plug in a monitor called `DP1`): `DP1` reaches the
+monitor, with a warning, and `"LG Ultra"` still reaches the LG. `dnm alias` and `dnm check` flag
 such an alias. `dnm` refuses to alias a display that macOS gives no stable identity, or two displays that
 share one. Aliases are kept in the store, so they follow the display, not its name. They make the stored
 data format 2, which 0.1.0 cannot read.
@@ -111,11 +141,13 @@ dnm --generate-completion-script bash > ~/.dnm-completion.bash && echo 'source ~
 Mission Control numbers them. A script can then label the same position on every display:
 
 ```sh
-dnm set "Mail"     --display main --desktop 2
-dnm set "Mail"     --display DP   --desktop 2
-dnm set "Projects" --display main --desktop 3
-dnm set "Projects" --display DP   --desktop 3
+dnm set main "Mail"     --desktop 2
+dnm set DP   "Mail"     --desktop 2
+dnm set main "Projects" --desktop 3
+dnm set DP   "Projects" --desktop 3
 ```
+
+In a script, prefer the explicit form, which cannot be misread: `dnm set --display DP --label "Mail" --desktop 2`.
 
 What you see: the display slides to that Desktop, the label is applied, and it slides back to the
 Desktop it started on. The pointer moves to that display and returns. Don't type while it runs.

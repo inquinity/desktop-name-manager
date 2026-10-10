@@ -4,10 +4,10 @@ The binary is `dnm`. The same binary is installed as `desktop-name` and behaves
 identically (FR-013). Commands never prompt and never read from standard input.
 
 ```text
-dnm set <label> [--display <name>] [--desktop <n>] [--position <p>] [--size <s>] [--style <look>] [--color <c>]
-dnm remove [--display <name>] [--desktop <n>]
-dnm undo   [--display <name>] [--desktop <n>]
-dnm show   [--display <name>] [--desktop <n>] [--json]
+dnm set [<display>] <label> [--label <text>] [--display <name>] [--desktop <n>] [--position <p>] [--size <s>] [--style <look>] [--color <c>]
+dnm remove [<display>] [--display <name>] [--desktop <n>]
+dnm undo   [<display>] [--display <name>] [--desktop <n>]
+dnm show   [<display>] [--display <name>] [--desktop <n>] [--json]
 dnm prune  [--yes] [--json]
 dnm about
 dnm check  [--json]
@@ -23,7 +23,7 @@ dnm --help | dnm <command> --help | dnm --version
   current Desktop of the display chosen by `--display`, or of the main display when it is
   omitted (FR-023).
 - **`--display <value>`**: `main`; or a display's name as macOS shows it
-  (case-insensitive); or an alias (spec 006); or a partial name matching exactly one connected display, in the
+  (case-insensitive); or an alias (spec 006); given as the first word or with `--display` (the reading of the words and the errors are in `specs/008-positional-display/contracts/cli.md`); or a partial name matching exactly one connected display, in the
   order of `specs/006-display-aliases/contracts/cli.md` §4. No match or
   more than one match exits `2`, prints the candidates, and changes nothing. Numbers and
   position keywords are not accepted.
@@ -66,7 +66,7 @@ Lists labeled images that are no longer an active label (removed, replaced or un
 the space they use, and warns that a Desktop still showing one would lose its wallpaper. Deletes them only
 with `--yes`; never deletes an image shown on any display's current Desktop. Exit `0`.
 
-## `dnm set <label>`
+## `dnm set [<display>] <label>`
 
 Labels the target Desktop. A label is 1 to 30 characters after trimming, on one line, with no control
 characters (escape, tab and so on) or text-direction marks; emoji are allowed and count as one

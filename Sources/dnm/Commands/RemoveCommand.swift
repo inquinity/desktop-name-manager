@@ -4,15 +4,17 @@ import DesktopNameCore
 struct RemoveCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "remove",
-        abstract: "Remove the label and restore the original wallpaper.")
+        abstract: "Remove the label and restore the original wallpaper.",
+        usage: "dnm remove [<display>] [options]")
 
+    @OptionGroup var words: DisplayWords
     @OptionGroup var target: DisplayOption
     @OptionGroup var place: DesktopOption
 
     func run() throws {
         try Self.guarded {
             let context = Context()
-            let display = try context.resolveDisplay(target)
+            let display = try context.target(command: "remove", words: words, option: target)
             var result = try context.onDesktop(place, of: display) { try context.labeler.removeLabel(on: display) }
             result.displayName = place.describe(result.displayName)
             switch result.outcome {

@@ -5,8 +5,10 @@ import Foundation
 struct ShowCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "show",
-        abstract: "Show the label details (the current Desktop, or pick one with --display and --desktop).")
+        abstract: "Show the label details (the current Desktop, or pick one with a display and --desktop).",
+        usage: "dnm show [<display>] [options]")
 
+    @OptionGroup var words: DisplayWords
     @OptionGroup var target: DisplayOption
     @OptionGroup var place: DesktopOption
 
@@ -16,7 +18,7 @@ struct ShowCommand: ParsableCommand {
     func run() throws {
         try Self.guarded {
             let context = Context()
-            let display = try context.resolveDisplay(target)
+            let display = try context.target(command: "show", words: words, option: target)
             var result = try context.onDesktop(place, of: display) { try context.labeler.showLabel(on: display) }
             if json {
                 Output.out(try Reports.json(Reports.show(result)))

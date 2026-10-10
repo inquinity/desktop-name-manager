@@ -4,15 +4,17 @@ import DesktopNameCore
 struct UndoCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "undo",
-        abstract: "Undo the last label change on a display (one level, within 30 minutes).")
+        abstract: "Undo the last label change on a display (one level, within 30 minutes).",
+        usage: "dnm undo [<display>] [options]")
 
+    @OptionGroup var words: DisplayWords
     @OptionGroup var target: DisplayOption
     @OptionGroup var place: DesktopOption
 
     func run() throws {
         try Self.guarded {
             let context = Context()
-            let display = try context.resolveDisplay(target)
+            let display = try context.target(command: "undo", words: words, option: target)
             var result = try context.onDesktop(place, of: display) { try context.labeler.undoLastChange(on: display) }
             result.displayName = place.describe(result.displayName)
             let change = switch result.undone { case .set: "set"; case .replace: "replaced"; case .remove: "removed" }

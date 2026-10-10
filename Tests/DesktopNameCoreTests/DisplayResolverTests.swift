@@ -179,4 +179,16 @@ import Testing
             _ = try DisplayResolver.resolve(candidate, in: displays)
         }
     }
+
+    // MARK: Display references (spec 008)
+
+    @Test func aDisplayReferenceIsMainAnExactDisplayNameOrAnyAliasName() {
+        let aliases = [alias("work", lg), DisplayAlias(name: "old", displayUUID: "GONE", displayName: nil)]
+        for word in ["main", "MAIN", "Built-in Display", "built-in display", "LG HDR 4K", "work", "WORK", "old"] {
+            #expect(DisplayResolver.isReference(word, in: displays, aliases: aliases), "\(word)")
+        }
+        for word in ["Mail", "LG", "built", "2", "", "  "] {
+            #expect(!DisplayResolver.isReference(word, in: displays, aliases: aliases), "\(word)")
+        }
+    }
 }

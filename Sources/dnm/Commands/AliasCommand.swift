@@ -19,7 +19,7 @@ struct AliasCommand: ParsableCommand {
               completion: .custom { arguments, _, _ in Self.isRemoving(arguments) ? Completions.aliasNames() : [] })
     var name: String?
 
-    // The target is a display, never an alias, as in `DisplayResolver`'s display-only mode.
+    // The target is a display, never an alias, as in the resolver's display-only mode.
     @Argument(help: ArgumentHelp("The display to point the alias at: main, a display's name, or part of a name that matches one display. Default: main.", valueName: "display"),
               completion: .custom { arguments, _, _ in Self.isRemoving(arguments) ? [] : Completions.displays(includeAliases: false) })
     var display: String?
