@@ -25,7 +25,7 @@ import Testing
     @Test func uniquePartialNameMatches() throws {
         #expect(try DisplayResolver.resolve("Built", in: displays) == builtIn)
         #expect(try DisplayResolver.resolve("lg", in: displays) == lg)
-        #expect(try DisplayResolver.resolve("u27", in: displays) == dell)
+        #expect(try DisplayResolver.resolve("dell u", in: displays) == dell)
     }
 
     @Test func ambiguousPartialNameListsCandidates() {
@@ -190,5 +190,49 @@ import Testing
         for word in ["Mail", "LG", "built", "2", "", "  "] {
             #expect(!DisplayResolver.isReference(word, in: displays, aliases: aliases), "\(word)")
         }
+    }
+
+    // MARK: A name is matched from its start (decided 2026-10-10)
+
+    func names(_ list: [String]) -> [Display] {
+        list.enumerated().map { FakeWallpaperSystem.makeDisplay(name: $1, uuid: "N\($0)", isMain: $0 == 0) }
+    }
+
+    func resolved(_ value: String, in list: [String]) -> String? {
+        try? DisplayResolver.resolve(value, in: names(list)).name
+    }
+
+    @Test func aPartMustBeTheBeginningOfTheName() {
+        let set = ["Retina Display", "InSight HD", "HD Axiom"]
+        #expect(resolved("in", in: set) == "InSight HD", "retINa no longer counts")
+        #expect(resolved("HD", in: set) == "HD Axiom", "the trailing HD of InSight HD no longer counts")
+        #expect(resolved("hd a", in: set) == "HD Axiom")
+        #expect(resolved("Axiom", in: set) == nil)
+        #expect(resolved("Display", in: set) == nil)
+        #expect(resolved("sight", in: set) == nil)
+    }
+
+    @Test func similarNamesNeedEnoughOfTheName() {
+        let set = ["LG Ultra HD", "LG Ultrafine"]
+        #expect(resolved("LG", in: set) == nil, "ambiguous")
+        #expect(resolved("LG Ultra", in: set) == nil, "ambiguous")
+        #expect(resolved("LG Ultra H", in: set) == "LG Ultra HD")
+        #expect(resolved("LG Ultraf", in: set) == "LG Ultrafine")
+        #expect(resolved("HD", in: set) == nil, "not the beginning of either")
+        #expect(resolved("ultra", in: set) == nil)
+    }
+
+    @Test func anExactNameStillWinsOverALongerNameThatStartsWithIt() throws {
+        // "LG" is an exact name here, so it is not reported as ambiguous with "LG Ultra HD".
+        #expect(resolved("lg", in: ["LG", "LG Ultra HD"]) == "LG")
+    }
+
+    @Test func theNoMatchMessageSaysHowANameIsMatched() {
+        do {
+            _ = try DisplayResolver.resolve("ultra", in: names(["LG Ultra HD"]))
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").contains("a part of a name must be its beginning"))
+        } catch { Issue.record("wrong error") }
     }
 }

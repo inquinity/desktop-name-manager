@@ -15,7 +15,7 @@ Options may come before, between or after the words. The help shows the real gra
 (`dnm set [<display>] <label>` and `dnm set [<display>] --label <text>`), not the parser's generic one.
 
 A display word (or `--display` value) is resolved as spec 006 contract §4 says: `main`, an exact display name, an
-exact alias, then a unique partial name; a connected display's own name overrides an alias, with the same
+exact alias, then the beginning of a name that one display's name starts with; a connected display's own name overrides an alias, with the same
 warning. A *display reference* is `main`, the exact name of a connected display, or the exact name of any stored
 alias (connected or not, overridden or not), ignoring case; partial names and digits are not display references.
 The reference test and the resolution share their matchers.

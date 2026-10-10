@@ -118,7 +118,7 @@ As a user with scripts, I want `--display` to keep working.
 - **An alias for a display that is not connected** as the first word: the usual error ("The display aliased as ... is not connected").
 - **`main` as a lone word** is a display reference: refused; `dnm set main main` and `dnm set --label main` label the main display "main". The same holds for `Main`.
 - **An empty display** (`dnm set "" Mail`, a script's empty variable, or `--display ""`) is an error, not the main display: leave the display out to mean the main one. (Before, `--display ""` meant main.)
-- **A first word that is only part of a display's name** resolves like `--display` does (`dnm set in progress` would take `in` as part of `Built-in Retina Display`): the confirmation line names the display that was labeled, and `dnm undo` reverses it. Quote a label of several words.
+- **A first word that is the beginning of a display's name** resolves like `--display` does, and only from the start of the name (decided 2026-10-10: start strict, relax if needed). Given `Retina Display`, `InSight HD` and `HD Axiom`: `in` is `InSight HD` and `HD` is `HD Axiom`; `Axiom` and `Display` match nothing (use an alias). Given `LG Ultra HD` and `LG Ultrafine`: `LG` and `LG Ultra` are ambiguous, `LG Ultraf` is the second. The confirmation line names the display that was labeled and `dnm undo` reverses it; quote a label of several words.
 - **`--desktop`** is unchanged and still needs the Accessibility permission.
 - **Compatibility**: every invocation valid in 0.1.2 behaves the same, except (a) a lone word that is a display reference is now refused, and (b) repeating `--display` is now an error.
 

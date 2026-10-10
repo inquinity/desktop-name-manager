@@ -40,7 +40,7 @@ dnm alias [--json]
 * `[<display>]` is resolved by the same algorithm as `--display` (§4), in display-only mode. It accepts:
   * `main` (the primary display).
   * An exact display name as macOS shows it (case-insensitive).
-  * A minimum-unique partial display name (case-insensitive).
+  * The beginning of a display name (case-insensitive) that exactly one display's name starts with.
   * Not another alias.
 * If ambiguous (matches multiple displays, including two displays with the same name): exits `2` with candidates listed.
 * If no match: exits `2` with connected displays listed.
@@ -157,7 +157,7 @@ Every command accepting `--display <value>` (`set`, `remove`, `undo`, `show`) ev
 4. **Exact alias** (case-insensitive; aliases are never matched partially) →
    * Target display connected → Returns that display.
    * Target display not connected → Exits `2`: `dnm: The display aliased as DP1 is not connected.`
-5. **Minimum-unique partial display name** → Matches uniquely among connected displays. Only display names are matched partially: `--display des` does not find the alias `desk`.
+5. **The beginning of a display name** (case-insensitive; from the start of the name, not anywhere inside it, amended 2026-10-10) → matches when exactly one connected display's name starts with it. Only display names are matched this way: `--display des` does not find the alias `desk`.
 
 Because step 4 comes before step 5, an alias such as `LG` resolves to its own display even when `LG` is part of
 several connected display names (`LG Ultra HD`, `LG UltraFine`); it is never reported as ambiguous.

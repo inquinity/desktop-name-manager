@@ -9,7 +9,9 @@ import Foundation
 /// 3. an exact display name (case-insensitive). A connected display's name overrides an alias of the same
 ///    name, so every monitor stays reachable;
 /// 4. an exact alias (case-insensitive; aliases are never matched partially), only when `aliases` is given;
-/// 5. a partial display name that matches exactly one connected display.
+/// 5. the beginning of a display name (case-insensitive), when exactly one connected display's name starts with it.
+///    A name is matched from its start, not anywhere inside it, so a short word (`in`, `hd`) does not match half the
+///    displays; start strict, relax if needed.
 ///
 /// `aliases: nil` is the display-only mode, used to choose the target of `dnm alias`.
 public enum DisplayResolver {
@@ -52,10 +54,10 @@ public enum DisplayResolver {
             return Resolution(display: display, notice: nil)
         }
 
-        let partial = displays.filter { $0.name.lowercased().contains(needle) }
+        let partial = displays.filter { $0.name.lowercased().hasPrefix(needle) }
         switch partial.count {
         case 1: return Resolution(display: partial[0], notice: nil)
-        case 0: throw DnmError.invalidInput("No display matches \"\(raw)\"; \(listing(displays)).")
+        case 0: throw DnmError.invalidInput("No display matches \"\(raw)\" (a part of a name must be its beginning); \(listing(displays)).")
         default: throw ambiguous(raw, partial)
         }
     }

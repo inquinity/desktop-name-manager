@@ -18,7 +18,7 @@ import Testing
 
     @Test func aPartialNameChoosesTheDisplay() throws {
         let h = try harness(); defer { h.cleanUp() }
-        let result = try h.labeler.setAlias("dp", display: "ultra")
+        let result = try h.labeler.setAlias("dp", display: "LG Ult")
         #expect(result.displayName == "LG Ultra HD" && !result.isMain)
     }
 

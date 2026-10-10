@@ -66,11 +66,11 @@ Desktop for you (see below).
 ## Choosing a display
 
 The display comes first: `dnm set DP "Mail"`, `dnm show DP`, `dnm remove DP`, `dnm undo DP`. A display is `main`
-(the default), a display's name as macOS shows it, an alias (below), or part of a name that matches only one
-display. Quote a name with spaces:
+(the default), a display's name as macOS shows it, an alias (below), or the beginning of a name that matches only one
+display (`LG Ultra` for `LG Ultra HD`, not `Ultra` or `HD`). Quote a name with spaces:
 
 ```sh
-dnm set "LG Ultra" "My label is great"   # a unique part of the display's name, then the label
+dnm set "LG Ultra" "My label is great"   # the beginning of the display's name, then the label
 dnm set main "Notes"                     # the main display, said outright
 dnm set "Notes"                          # the same: one word is the label for the main display
 dnm set lg "Mail"                        # an alias avoids the quotes
@@ -107,7 +107,7 @@ label.
 
 An alias is 1 to 30 letters, digits, hyphens or underscores (not only digits, and not `main`). It is matched
 in full, ignoring case, never partially. A display is looked up, in order, as `main`, a display's exact name,
-an alias, then a unique part of a name. So a connected display's own name wins over an alias of the same
+an alias, then the beginning of a name (case-insensitive) that only one display's name starts with. So a connected display's own name wins over an alias of the same
 name (say you alias `DP1` to the LG and then plug in a monitor called `DP1`): `DP1` reaches the
 monitor, with a warning, and `"LG Ultra"` still reaches the LG. `dnm alias` and `dnm check` flag
 such an alias. `dnm` refuses to alias a display that macOS gives no stable identity, or two displays that

@@ -17,8 +17,8 @@
   the current Desktop of a display while the cool-down has not expired.
 - Q: Which display do the commands act on when the user does not say? → A: The main display.
   Users pick another display with `--display`, given as the display's name as macOS shows it
-  (for example "Built-in Display") or a partial name that matches only one display
-  (for example "Built"). `main` always works. Position keywords (here, left, right) and
+  (for example "Built-in Display") or the beginning of a name that matches only one display
+  (for example "Built"; amended 2026-10-10: a name is matched from its start, not anywhere inside it). `main` always works. Position keywords (here, left, right) and
   numbered displays are rejected as a rabbit hole; short monitor aliases come later with
   display roles (spec 004). A `displays` command lists the displays. The graphical app
   (spec 002) decides its target from where the user interacts.
@@ -378,8 +378,8 @@ the expected labels; the other Desktops are unchanged.
 - **FR-023**: Commands that act on a Desktop (set, remove, undo, show) MUST act on the main display
   unless the user names a display (as the first word, or with `--display`; spec 008), and on that display's current Desktop unless the user passes
   `--desktop` (FR-027). The option MUST accept
-  `main`, a display's name exactly as macOS shows it, an alias (spec 006), or a case-insensitive partial name
-  that matches exactly one connected display, resolved in the order given in spec 006 FR-011 by one
+  `main`, a display's name exactly as macOS shows it, an alias (spec 006), or the beginning of a name (case-insensitive; from the start of the name, amended 2026-10-10)
+  that exactly one connected display's name starts with, resolved in the order given in spec 006 FR-011 by one
   algorithm (spec 006 FR-019). A value that matches no display or more than one
   MUST be rejected with the candidates listed and no change made. Numbered displays and
   position keywords MUST NOT be accepted. How the words and flags are read is spec 008.

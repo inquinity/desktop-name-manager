@@ -21,7 +21,7 @@
     - Bare `dnm alias` (with no arguments) to list current aliases.
     - `--json` applies to the listing only.
 - **Q: How does `dnm` match display names when assigning an alias?**
-  - **A**: Public interfaces only. Matching supports `main`, exact display name, and minimum-unique-string partial matching (e.g., `LG Ultraf` matches `LG UltraFine` vs `LG Ultra HD`). Matching is case-insensitive, and strings with embedded spaces require quotes. Discovering cursor position or active display via private APIs is rejected.
+  - **A**: Public interfaces only. Matching supports `main`, exact display name, and matching the beginning of a name when exactly one name starts with it (e.g., `LG Ultraf` matches `LG UltraFine` but not `LG Ultra HD`; changed from "anywhere in the name" on 2026-10-10). Matching is case-insensitive, and strings with embedded spaces require quotes. Discovering cursor position or active display via private APIs is rejected.
 - **Q: Can a display have more than one alias?**
   - **A**: Yes. A display can have multiple aliases (many-to-one: distinct alias names mapping to the same display identity). Each alias name is unique, case-insensitively. Repeating `dnm alias <name> <display>` updates the association and succeeds idempotently without error.
 - **Q: What syntax rules apply to alias names?**
@@ -153,7 +153,7 @@ Run `dnm displays` and verify aliases appear inline; run `dnm check` to inspect 
   2. Only digits → Rejected (exit 2).
   3. Exact connected display name → Physical display (overriding any alias of that name; more than one display of that name is ambiguous, exit 2).
   4. Exact alias (case-insensitive; aliases are never matched partially) → Its display (or exit 2 if not connected).
-  5. Minimum-unique partial display name → Matched display (or exit 2 if ambiguous / no match).
+  5. The beginning of a display name (from the start of the name) that exactly one display's name starts with → Matched display (or exit 2 if ambiguous / no match).
 - **FR-012**: If an alias is overridden by a connected display, `dnm alias` and commands resolving `--display` with that name MUST emit a warning to stderr.
 - **FR-013**: `dnm displays` MUST show each display's active aliases after its name and include an `aliases` array for every display in JSON output.
 - **FR-014**: Messages added or changed by this feature MUST print display and alias names without quotes.
