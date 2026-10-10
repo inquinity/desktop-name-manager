@@ -29,4 +29,4 @@ description: "Task list for feature F1: shell completions"
 - [x] T011 [P] `docs/release-notes/UNRELEASED.md` (bullets only, no heading)
 - [x] T012 `just test` and `just periphery` pass (SC-005)
 - [x] T013 Simulated Tab in bash and zsh against the debug build (quickstart 1 to 4); also a real interactive zsh and bash on a pseudo-terminal with the exact files from the release zip's payload, for `dnm` and `desktop-name` (2026-10-09)
-- [ ] T014 After publishing: live install check on the maintainer's Mac (quickstart 6; SC-004)
+- [x] T014 After publishing: live install check on the maintainer's Mac (quickstart 6; SC-004)

@@ -13,7 +13,7 @@ Ideas recorded for later. None is part of a current spec.
   shortcuts with Accessibility, and for shipping the command-line tool.
 - **Multi-line labels** (roadmap F5, after 1.0.0 at the earliest). An app feature (M2), not a CLI one.
   Labels are one line of 30 characters for now (spec 001).
-- **Clean up all labeled images after a manual reset** (2026-10-06; roadmap F4, 0.1.3). After a person resets wallpapers by
+- **Clean up all labeled images after a manual reset** (2026-10-06; roadmap F4, 0.2.1). After a person resets wallpapers by
   hand (picking a picture in System Settings > Wallpaper on each Desktop, or turning "Show on all Spaces"
   on, which is one setting for every display, picking a picture, and turning it off again), the
   store still holds images and records for labels no Desktop shows. `prune` deletes only retired labels,
@@ -23,7 +23,7 @@ Ideas recorded for later. None is part of a current spec.
   shows, warn that a Desktop still showing one would lose its wallpaper, and require confirmation (`--yes`
   in the CLI). The README should describe the manual reset it follows. It must also warn about Desktops of
   display arrangements not connected now (known issue KI-2), which it cannot see.
-- **Batch labeling** (2026-10-06; roadmap F3, 0.1.4). Label several Desktops in one command (for example from a list of
+- **Batch labeling** (2026-10-06; roadmap F3, 0.2.2). Label several Desktops in one command (for example from a list of
   display, Desktop and label), so the walk to find each display's position happens once instead of once
   per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
   commands or scripts) is not known yet, and should set this item's priority.
@@ -45,7 +45,7 @@ Ideas recorded for later. None is part of a current spec.
   `2>/dev/null` would hide real errors too. It covers every command, so it needs its own spec: it amends the
   streams rule in spec 001's CLI contract and spec 006 FR-012 (which says the warning MUST be emitted). The
   `(overridden by …)` marker in `dnm alias` and the `dnm check` row stay, as information that was asked for.
-- **Display as a positional argument** (2026-10-09; roadmap F8, no release yet). With several monitors the display
+- **Display as a positional argument** (2026-10-09; roadmap F8, 0.2.0: a change of syntax, so a minor version). With several monitors the display
   is the main selector, and labeling `main` is the least frequent case, so `dnm set DP1 "label"` and
   `dnm set main "label"` read better than `--display`. Sketch: `dnm set [<display>] <label>` (one argument is a
   label for the main display; two are display and label), `dnm remove|undo|show [<display>]`, `--display` kept as

@@ -94,7 +94,9 @@ needs no permission, never creates the store, and prints nothing if something is
 With Homebrew the completion files come with the cask and go with it. Your shell has to load Homebrew's
 completions, as for any Homebrew program (see Homebrew's
 [shell completion](https://docs.brew.sh/Shell-Completion) page: in zsh, Homebrew's `site-functions` folder
-on `fpath` before `compinit`; in bash, `bash-completion@2`). Open a new shell after installing.
+on `fpath` before `compinit`; in bash, `bash-completion@2`). Open a new shell after installing. zsh keeps a
+cache of the completions it found: if Tab still completes file names, rebuild it with `rm -f ~/.zcompdump*; compinit`
+(a `.zshrc` that runs `compinit -C` never rescans, so it needs this after every new completion).
 
 Without Homebrew, print the script and load it yourself:
 

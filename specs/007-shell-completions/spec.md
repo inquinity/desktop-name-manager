@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-09
 
-**Status**: Implemented (0.1.2)
+**Status**: Implemented and released in 0.1.2 (build 3), 2026-10-09
 
 **Target release**: 0.1.2
 
@@ -86,6 +86,7 @@ As a Homebrew user, I want the completions to be installed with `dnm`, and remov
 - **Names with spaces or control characters**: control characters are replaced as everywhere else; spaces are quoted or escaped by the shell script.
 - **Typed prefix**: the shell filters the candidates; the tool offers all of them.
 - **Slow or failing display lookup**: the lookup is the same one `dnm displays` uses (about 20 ms); there is no timeout logic and no caching.
+- **zsh's completion cache**: zsh reuses the cache it built earlier, and a `.zshrc` that runs `compinit -C` never rescans, so after installing, Tab completes file names until the cache is rebuilt (`rm -f ~/.zcompdump*; compinit`). The README says so; it is shell behavior, not something the tool can fix.
 - **Old completion script, newer binary**: the script only calls back into whichever `dnm` is on the path with the parser's fixed arguments, so a script older than the binary offers old commands but never fails.
 - **Alias `desk` vs a display named `desk`**: the display wins in `--display` (spec 006); only the display name is offered once.
 
