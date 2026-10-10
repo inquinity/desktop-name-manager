@@ -55,7 +55,7 @@ Ideas recorded for later. None is part of a current spec.
     replaced by the Mac's default wallpaper, with no visible cause, is the worst failure; a store that grows is
     not. (Reverses nothing: FR-018 of spec 001 already forbids it.)
   - **A nudge instead:** about 50 MB of images that cleanup could free (roughly 8 to 25 labels) triggers a one-line
-    stderr note after `set`, `remove` or `undo`, on a terminal only, at most weekly (sooner only if the amount
+    stderr note after `set` or `remove` (not `undo`: the person is fixing a mistake), on a terminal only, at most weekly (sooner only if the amount
     doubled), reset by a cleanup, silenced by the quiet flag (F7) later. It counts labels retired for long and
     labels not seen for long, so it needs the "last seen" record from the first stage, and it points at
     `dnm cleanup --scan`, which is exact and asks first.

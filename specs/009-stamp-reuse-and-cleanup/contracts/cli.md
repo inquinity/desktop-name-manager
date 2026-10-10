@@ -65,7 +65,7 @@ No new syntax. `dnm set` output is unchanged. A reused image is not re-rendered,
 
 ## 5. The nudge
 
-Standard error, one line, after `set`, `remove` or `undo` complete, when stderr is a terminal and cleanup could free at least 50 MB at the default days, at most every 7 days (sooner if the amount at least doubled since it was shown), reset by `cleanup`:
+Standard error, one line, after `set` or `remove` completes (never after `undo`: the person is fixing a mistake), when stderr is a terminal and cleanup could free at least 50 MB at the default days, at most every 7 days (sooner if the amount at least doubled since it was shown), reset by `cleanup`:
 
 ```text
 dnm: note: about 62 MB (14 labels) of old labeled images could be freed: run dnm cleanup.

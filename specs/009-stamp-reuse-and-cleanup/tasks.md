@@ -20,7 +20,7 @@ description: "Task list for feature F4: reuse of labeled images and dnm cleanup"
 - [ ] T008 Remove `Prune.swift`, `PruneCommand`, the prune report; `dnm prune` reports the rename and exits 2; update completion (spec 007) and its tests
 - [ ] T009 [P] Contract tests for `cleanup` against the binary (scratch store; no wallpaper changed): description, `--json`, no-terminal behavior, invalid `--days`, `prune` message
 - [ ] T010 Housekeeping estimate (sum of candidate sizes at the default days) and the nudge decision; the throttle (shown, within 7 days, doubled, reset by cleanup); performance test: 1,000 labels under 50 ms
-- [ ] T011 `Nudge.swift` in `dnm`: after `set`, `remove`, `undo` only, standard error a terminal, never for other commands or `--json`; table-driven test (terminal or not, size, last shown, doubling, command)
+- [ ] T011 `Nudge.swift` in `dnm`: after `set` and `remove` only (not `undo`), standard error a terminal, never for other commands or `--json`; table-driven test (terminal or not, size, last shown, doubling, command)
 - [ ] T012 `check` stored-labels row says what cleanup could free (contract §6); update its tests
 - [ ] T013 [P] README (cleanup, the plain warning, reuse, the nudge, what the scan adds), release notes (bullets only: `prune` removed, `cleanup`, reuse, nudge)
 - [ ] T014 [P] Amend spec 001 (FR-013, FR-018, FR-029, SC-006: `cleanup` replaces `prune`; housekeeping), spec 005 wording, spec 007 contract
