@@ -23,6 +23,32 @@ Ideas recorded for later. None is part of a current spec.
   shows, warn that a Desktop still showing one would lose its wallpaper, and require confirmation (`--yes`
   in the CLI). The README should describe the manual reset it follows. It must also warn about Desktops of
   display arrangements not connected now (known issue KI-2), which it cannot see.
+
+  **Revised 2026-10-10: cleanup after deleted Desktops (maintainer's proposal; to be continued).** The common
+  workflow is deleting a Desktop in Mission Control, not unlabeling and reusing it. `dnm` is never told, so the
+  label stays active (a ghost in `list` and `check`, about 1.9 MB of image). Proposal: `dnm cleanup` (also
+  `dnm clean`) replaces `dnm prune`, which has little value outside a scan:
+  - `dnm cleanup [--days N]`: remove anything older than N days (default 30, suggested).
+  - `dnm cleanup --scan`: after checking that Accessibility is granted (before saying anything else), describe what
+    it is about to do and ask permission, then walk every Desktop of each connected display to find labels that
+    no Desktop shows.
+  Points raised in review, still open:
+  - **What "older" measures.** Age since creation would delete labels on Desktops that are alive. `--days` can
+    safely mean "retired at least N days ago" (removed, replaced or undone), not "unused for N days"; ghosts need
+    the scan (or, later, the menu-bar app's record of which labels it has seen, spec 002).
+  - **Age is not proof.** A retired image can still be another Desktop's wallpaper (new Desktops copy the
+    left-most one). Idea: delete the image but keep a small record of it, so a Desktop left pointing at the
+    deleted file can still be put right with `dnm remove` (needs a live check that macOS still reports the path).
+  - **Describe, then ask.** Every mode describes what it will do; on a terminal it asks, otherwise it needs
+    `--yes` (and without it only describes). A confirmation prompt is new behavior for the tool.
+  - **The scan's risk** is reading a Desktop's wallpaper before macOS updates it (as the settle wait in `set`
+    handles); a missed read means a false ghost. Needs a settle and a live test; the kept record is the net.
+  - **What `--days` means with `--scan`** (probably nothing: whatever no Desktop shows is eligible).
+  - **Names:** two spellings (`clean`, `cleanup`) both appear in Tab and sit next to `check`; and the automatic
+    per-command housekeeping is called "Cleanup" in specs 001 and 005, which clashes; rename it in the docs.
+  - **Never delete a stamp inside the 30-minute undo window.**
+  - **Staging:** the age-based part is small (the rename of `prune`); the scan is the larger piece
+    (navigator support to enumerate Desktops, timings, live tests) and could ship after it.
 - **Batch labeling** (2026-10-06; roadmap F3, 0.2.2). Label several Desktops in one command (for example from a list of
   display, Desktop and label), so the walk to find each display's position happens once instead of once
   per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
