@@ -14,10 +14,14 @@ struct AliasCommand: ParsableCommand {
         an alias of the same name. Aliases are matched in full, ignoring case.
         """)
 
-    @Argument(help: ArgumentHelp("The alias to set, or with --remove the one to delete.", valueName: "name"))
+    // A new alias name is typed freehand, so only --remove offers names (the stored aliases).
+    @Argument(help: ArgumentHelp("The alias to set, or with --remove the one to delete.", valueName: "name"),
+              completion: .custom { arguments, _, _ in Self.isRemoving(arguments) ? Completions.aliasNames() : [] })
     var name: String?
 
-    @Argument(help: ArgumentHelp("The display to point the alias at: main, a display's name, or part of a name that matches one display. Default: main.", valueName: "display"))
+    // The target is a display, never an alias, as in `DisplayResolver`'s display-only mode.
+    @Argument(help: ArgumentHelp("The display to point the alias at: main, a display's name, or part of a name that matches one display. Default: main.", valueName: "display"),
+              completion: .custom { arguments, _, _ in Self.isRemoving(arguments) ? [] : Completions.displays(includeAliases: false) })
     var display: String?
 
     @Flag(name: [.customLong("remove"), .customShort("d")], help: "Delete the alias <name>.")
@@ -42,6 +46,10 @@ struct AliasCommand: ParsableCommand {
                 try list(context)
             }
         }
+    }
+
+    private static func isRemoving(_ arguments: [String]) -> Bool {
+        arguments.contains("--remove") || arguments.contains("-d")
     }
 
     static func confirmation(_ result: SetAliasResult) -> String {

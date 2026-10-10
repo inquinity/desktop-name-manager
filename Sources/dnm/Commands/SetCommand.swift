@@ -13,16 +13,16 @@ struct SetCommand: ParsableCommand {
     @OptionGroup var target: DisplayOption
     @OptionGroup var place: DesktopOption
 
-    @Option(name: .long, help: "plain, halo or frosted. Default: chosen from the wallpaper.")
+    @Option(name: .long, help: "plain, halo or frosted. Default: chosen from the wallpaper.", completion: Completions.values(of: Look.self))
     var style: String?
 
-    @Option(name: .long, help: "light, dark or #RRGGBB. Default: chosen from the wallpaper.")
+    @Option(name: .long, help: "light, dark or #RRGGBB. Default: chosen from the wallpaper.", completion: .list(["light", "dark"]))
     var color: String?
 
-    @Option(name: .long, help: "bottom-left (default), bottom-right, top-left, top-right, bottom or top.")
+    @Option(name: .long, help: "bottom-left (default), bottom-right, top-left, top-right, bottom or top.", completion: Completions.values(of: Position.self))
     var position: String?
 
-    @Option(name: .long, help: "small, medium (default) or large.")
+    @Option(name: .long, help: "small, medium (default) or large.", completion: Completions.values(of: Size.self))
     var size: String?
 
     func run() throws {

@@ -84,6 +84,25 @@ such an alias. `dnm` refuses to alias a display that macOS gives no stable ident
 share one. Aliases are kept in the store, so they follow the display, not its name. They make the stored
 data format 2, which 0.1.0 cannot read.
 
+## Shell completions
+
+Tab completes `dnm` and `desktop-name` in zsh and bash: commands, options, the values of `--style`,
+`--position`, `--size` and `--color`, and, for `--display`, `main`, the displays connected right now and your
+aliases, as git completes branch names. `dnm alias --remove` completes your aliases. Completion only reads: it
+needs no permission, never creates the store, and prints nothing if something is wrong.
+
+With Homebrew the completion files come with the cask and go with it. Your shell has to load Homebrew's
+completions, as for any Homebrew program (see Homebrew's
+[shell completion](https://docs.brew.sh/Shell-Completion) page: in zsh, Homebrew's `site-functions` folder
+on `fpath` before `compinit`; in bash, `bash-completion@2`). Open a new shell after installing.
+
+Without Homebrew, print the script and load it yourself:
+
+```sh
+dnm --generate-completion-script zsh > ~/.zfunc/_dnm     # a folder on your fpath
+dnm --generate-completion-script bash > ~/.dnm-completion.bash && echo 'source ~/.dnm-completion.bash' >> ~/.bashrc
+```
+
 ## Label sets of Desktops
 
 `set`, `remove`, `undo` and `show` accept `--desktop <n>`: the Nth Desktop of the display, numbered as

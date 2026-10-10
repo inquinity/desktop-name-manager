@@ -15,6 +15,7 @@ Rendered by `scripts/release.sh <version> cask` from `packaging/desktop-name-man
 | `depends_on macos:` | `:tahoe` (macOS 26 or later) | FR-009, FR-012 |
 | `depends_on arch:` | `:arm64` | FR-009, FR-012 (Apple silicon only for 0.1.0) |
 | `binary` | `"dnm"` and `"dnm", target: "desktop-name"` | both commands on the PATH (FR-009) |
+| `zsh_completion`, `bash_completion` | `"completions/_dnm"`, `"completions/_desktop-name"`, and `"completions/dnm.bash", target: "dnm"` | shell completions from 0.1.2 (spec 007) |
 | `caveats` | the Accessibility note (security plan S1) and where full removal is documented | FR-015 |
 
 Must not contain:
@@ -24,5 +25,7 @@ Must not contain:
 - anything that changes the tap's README (FR-010).
 
 Acceptance: `brew audit --cask --strict --online` passes in a temporary local tap, and installing it there
-gives working `dnm --version` and `desktop-name --version` with the same output, before anything is pushed
-(FR-011).
+gives working `dnm --version` and `desktop-name --version` with the same output, the three completion files in
+Homebrew's `share/zsh/site-functions` and `etc/bash_completion.d`, and uninstalling removes them, before
+anything is pushed (FR-011). The test installs and uninstalls the cask under its real name, so the `cask` stage
+refuses to run while the cask is installed on that Mac.

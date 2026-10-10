@@ -72,6 +72,21 @@ public enum DisplayResolver {
             .sorted { $0.lowercased() < $1.lowercased() }
     }
 
+    /// What Tab offers for a display (spec 007): `main`, the connected displays' names, and, when `includeAliases`,
+    /// the aliases that `resolve` would accept (not overridden, for a connected display). Each one resolves to a
+    /// display; a name shared by two displays is still offered once. Aliases of absent displays are left out,
+    /// because choosing one would only fail.
+    public static func completionCandidates(in displays: [Display], aliases: [DisplayAlias], includeAliases: Bool) -> [String] {
+        var candidates = ["main"] + displays.map(\.name)
+        if includeAliases {
+            candidates += aliases.filter { alias in displays.contains { $0.uuid == alias.displayUUID } && overrider(of: alias, in: displays) == nil }
+                .map(\.name)
+                .sorted { $0.lowercased() < $1.lowercased() }
+        }
+        var seen = Set<String>()
+        return candidates.map(TerminalText.sanitized).filter { seen.insert($0.lowercased()).inserted }
+    }
+
     /// How to show an alias's display: its connected name, else the name recorded with the alias, else its identity.
     public static func targetName(of alias: DisplayAlias, in displays: [Display]) -> String {
         // Stored text is untrusted on the way back out, like a display's name from macOS.

@@ -129,4 +129,54 @@ import Testing
         #expect(try DisplayResolver.resolve("main", in: displays, aliases: [tricky]) == builtIn)
         #expect(throws: DnmError.self) { try DisplayResolver.resolve("2", in: displays, aliases: [tricky]) }
     }
+
+    // MARK: Completion candidates (spec 007)
+
+    func alias(_ name: String, _ display: Display) -> DisplayAlias { DisplayAlias(name: name, displayUUID: display.uuid, displayName: display.name) }
+
+    @Test func candidatesAreMainTheDisplaysThenTheSortedAliases() {
+        let aliases = [alias("work", lg), alias("Desk", builtIn), alias("dp", dell)]
+        #expect(DisplayResolver.completionCandidates(in: displays, aliases: aliases, includeAliases: true)
+            == ["main", "LG HDR 4K", "Built-in Display", "Dell U2723QE", "Desk", "dp", "work"])
+    }
+
+    @Test func withoutAliasesOnlyMainAndTheDisplaysAreOffered() {
+        #expect(DisplayResolver.completionCandidates(in: displays, aliases: [alias("desk", builtIn)], includeAliases: false)
+            == ["main", "LG HDR 4K", "Built-in Display", "Dell U2723QE"])
+    }
+
+    @Test func anAliasForAnAbsentDisplayIsNotOffered() {
+        let away = DisplayAlias(name: "old", displayUUID: "GONE", displayName: "Studio Display")
+        #expect(!DisplayResolver.completionCandidates(in: displays, aliases: [away], includeAliases: true).contains("old"))
+    }
+
+    @Test func anOverriddenAliasIsNotOffered() {
+        let dp1 = FakeWallpaperSystem.makeDisplay(name: "DP1", uuid: "E", isMain: false)
+        let candidates = DisplayResolver.completionCandidates(in: displays + [dp1], aliases: [alias("dp1", lg)], includeAliases: true)
+        #expect(candidates.filter { $0.lowercased() == "dp1" } == ["DP1"])   // the display, once
+    }
+
+    @Test func aNameSharedByTwoDisplaysIsOfferedOnce() {
+        let twin = FakeWallpaperSystem.makeDisplay(name: "LG HDR 4K", uuid: "E", isMain: false)
+        #expect(DisplayResolver.completionCandidates(in: displays + [twin], aliases: [], includeAliases: true).filter { $0 == "LG HDR 4K" }.count == 1)
+    }
+
+    @Test func controlCharactersNeverReachTheShell() {
+        let rogue = FakeWallpaperSystem.makeDisplay(name: "Bad\u{1B}[2JName", uuid: "E", isMain: false)
+        let candidates = DisplayResolver.completionCandidates(in: [rogue], aliases: [], includeAliases: true)
+        #expect(candidates.allSatisfy { !$0.unicodeScalars.contains(where: TerminalText.isUnsafe) })
+    }
+
+    @Test func everyCandidateResolvesToADisplay() throws {
+        let aliases = [alias("work", lg), alias("Desk", builtIn)]
+        for candidate in DisplayResolver.completionCandidates(in: displays, aliases: aliases, includeAliases: true) {
+            _ = try DisplayResolver.resolve(candidate, in: displays, aliases: aliases)
+        }
+    }
+
+    @Test func displayOnlyCandidatesResolveWithoutAliases() throws {
+        for candidate in DisplayResolver.completionCandidates(in: displays, aliases: [alias("work", lg)], includeAliases: false) {
+            _ = try DisplayResolver.resolve(candidate, in: displays)
+        }
+    }
 }
