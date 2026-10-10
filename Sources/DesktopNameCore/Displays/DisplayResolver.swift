@@ -13,17 +13,17 @@ import Foundation
 ///
 /// `aliases: nil` is the display-only mode, used to choose the target of `dnm alias`.
 public enum DisplayResolver {
-    public struct Resolution: Equatable, Sendable {
-        public var display: Display
+    struct Resolution: Equatable, Sendable {
+        var display: Display
         /// A warning for standard error when an alias of the same name was overridden.
-        public var notice: String?
+        var notice: String?
     }
 
-    public static func resolve(_ value: String?, in displays: [Display], aliases: [DisplayAlias]? = nil) throws -> Display {
+    static func resolve(_ value: String?, in displays: [Display], aliases: [DisplayAlias]? = nil) throws -> Display {
         try resolution(value, in: displays, aliases: aliases).display
     }
 
-    public static func resolution(_ value: String?, in displays: [Display], aliases: [DisplayAlias]? = nil) throws -> Resolution {
+    static func resolution(_ value: String?, in displays: [Display], aliases: [DisplayAlias]? = nil) throws -> Resolution {
         guard !displays.isEmpty else { throw DnmError.failure("No displays are connected.") }
 
         guard let raw = value?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else {
@@ -38,7 +38,7 @@ public enum DisplayResolver {
         let exact = exactMatches(raw, in: displays)
         if exact.count > 1 { throw ambiguous(raw, exact) }
         if let display = exact.first {
-            let overridden = aliases?.first { $0.matches(raw) && $0.displayUUID != display.uuid }
+            let overridden = aliasNamed(raw, in: aliases).flatMap { $0.displayUUID != display.uuid ? $0 : nil }
             let notice = overridden.map {
                 "\(display.name) is a connected display, which overrides alias \($0.name) (\(targetName(of: $0, in: displays)))."
             }
@@ -63,7 +63,7 @@ public enum DisplayResolver {
     /// True when `value` is, exactly and ignoring case, `main`, a connected display's name, or the name of any stored
     /// alias (connected or not, overridden or not). Partial names and numbers are not references. It shares its
     /// matchers with `resolution`, so the two cannot drift (spec 008 FR-008).
-    public static func isReference(_ value: String, in displays: [Display], aliases: [DisplayAlias]) -> Bool {
+    static func isReference(_ value: String, in displays: [Display], aliases: [DisplayAlias]) -> Bool {
         let raw = value.trimmingCharacters(in: .whitespaces)
         guard !raw.isEmpty else { return false }
         return isMain(raw) || !exactMatches(raw, in: displays).isEmpty || aliasNamed(raw, in: aliases) != nil
@@ -82,7 +82,7 @@ public enum DisplayResolver {
 
     /// The connected display whose name hides this alias, if any (a different display than the alias's own).
     public static func overrider(of alias: DisplayAlias, in displays: [Display]) -> Display? {
-        displays.first { $0.name.lowercased() == alias.name.lowercased() && $0.uuid != alias.displayUUID }
+        exactMatches(alias.name, in: displays).first { $0.uuid != alias.displayUUID }
     }
 
     /// The aliases a person can use for `display` now, sorted: those that no other connected display's name overrides.

@@ -97,6 +97,30 @@ import Testing
         expect(read([], label: ["a", "b"]), .error(contains: ["Give the label once"]))
     }
 
+    @Test func theQuotingHintIsOnlyForAFirstWordThatIsNoDisplay() {
+        // "old" is an alias of a display that is away: it is a display, so the hint (which would suggest labeling the
+        // main display "old x") must not be added.
+        let missing = read(["old", "x"])
+        expect(missing, .error(contains: ["The display aliased as old is not connected"]))
+        if case .error(let text) = missing { #expect(!text.joined().contains("quote the whole label")) }
+        let withLabel = read(["old"], label: ["x"])
+        if case .error(let text) = withLabel { #expect(!text.joined().contains("read as the display")) }
+    }
+
+    @Test func anEmptyDisplayIsAnErrorNotTheMainDisplay() {
+        expect(read(["", "x"]), .error(contains: ["The display is empty"]))
+        expect(read(["x"], display: [""]), .error(contains: ["The display is empty"]))
+        expect(read(["  ", "x"]), .error(contains: ["The display is empty"]))
+        expect(target([""]), .error(contains: ["The display is empty"]))
+        expect(target([], display: [" "]), .error(contains: ["The display is empty"]))
+    }
+
+    @Test func aDisplayNamedWithALeadingDashIsSuggestedInAFormTheParserReads() {
+        let odd = FakeWallpaperSystem.makeDisplay(name: "-odd", uuid: "Z", isMain: false)
+        expect(read(["-odd"], using: displays + [odd]),
+               .error(contains: ["dnm set --display=-odd \"<label>\"", "dnm set --label=-odd"]))
+    }
+
     @Test func noLabelIsAnError() {
         expect(read([]), .error(contains: ["set needs a label"]))
         expect(read([], display: ["DP"]), .error(contains: ["set needs a label"]))

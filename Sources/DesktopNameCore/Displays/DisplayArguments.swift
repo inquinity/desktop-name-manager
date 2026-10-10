@@ -58,7 +58,11 @@ public enum DisplayArguments {
             let word = words[0]
             if displayFlags.isEmpty, DisplayResolver.isReference(word, in: displays, aliases: aliases) {
                 let quoted = ShellQuoting.quote(word)
-                throw DnmError.invalidInput("\"\(word)\" is a display. To label it: dnm set \(quoted) \"<label>\". To use \"\(word)\" as the label of the main display: dnm set --label \(quoted).")
+                // A word that starts with a dash is read as an option, so it is written with `=`.
+                let dashed = word.hasPrefix("-")
+                let labelThis = dashed ? "dnm set --display=\(quoted) \"<label>\"" : "dnm set \(quoted) \"<label>\""
+                let useAsLabel = dashed ? "dnm set --label=\(quoted)" : "dnm set --label \(quoted)"
+                throw DnmError.invalidInput("\"\(word)\" is a display. To label it: \(labelThis). To use \"\(word)\" as the label of the main display: \(useAsLabel).")
             }
             return SetRequest(target: try resolve(displayFlags.first, in: displays, aliases: aliases), label: word)
         case 2:
@@ -76,12 +80,17 @@ public enum DisplayArguments {
         .invalidInput("Give the display once, as a word or with --display (not both, and not --display twice).")
     }
 
-    /// Resolves through `DisplayResolver`; a hint, when given, is added to its message.
+    /// Resolves through `DisplayResolver`. A hint is added to its message only when the word is no display at all: an
+    /// alias of a display that is away, say, is a display, and the hint would suggest a wrong command. A display
+    /// that is given but empty is an error, not the main display (a script's empty variable must not pick one).
     private static func resolve(_ value: String?, in displays: [Display], aliases: [DisplayAlias], hint: String? = nil) throws -> Target {
+        if let value, value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            throw DnmError.invalidInput("The display is empty: name a display, or leave it out for the main display.")
+        }
         do {
             let resolution = try DisplayResolver.resolution(value, in: displays, aliases: aliases)
             return Target(display: resolution.display, notice: resolution.notice)
-        } catch DnmError.invalidInput(let message) where hint != nil {
+        } catch DnmError.invalidInput(let message) where hint != nil && !(value.map { DisplayResolver.isReference($0, in: displays, aliases: aliases) } ?? false) {
             throw DnmError.invalidInput("\(message) \(hint ?? "")")
         }
     }

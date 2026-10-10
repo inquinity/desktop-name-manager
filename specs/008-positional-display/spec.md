@@ -117,6 +117,8 @@ As a user with scripts, I want `--display` to keep working.
 - **A display name that is also a sensible label** (`dnm set Mail Inbox` when a display is named `Mail`): the display wins; quote the label or use `--label`.
 - **An alias for a display that is not connected** as the first word: the usual error ("The display aliased as ... is not connected").
 - **`main` as a lone word** is a display reference: refused; `dnm set main main` and `dnm set --label main` label the main display "main". The same holds for `Main`.
+- **An empty display** (`dnm set "" Mail`, a script's empty variable, or `--display ""`) is an error, not the main display: leave the display out to mean the main one. (Before, `--display ""` meant main.)
+- **A first word that is only part of a display's name** resolves like `--display` does (`dnm set in progress` would take `in` as part of `Built-in Retina Display`): the confirmation line names the display that was labeled, and `dnm undo` reverses it. Quote a label of several words.
 - **`--desktop`** is unchanged and still needs the Accessibility permission.
 - **Compatibility**: every invocation valid in 0.1.2 behaves the same, except (a) a lone word that is a display reference is now refused, and (b) repeating `--display` is now an error.
 

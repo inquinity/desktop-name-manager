@@ -23,13 +23,13 @@ struct Context {
 
     /// What `set` was asked: the display and the label, from the words and the flags.
     func setRequest(words: [String], option: DisplayOption, labelFlags: [String]) throws -> DisplayArguments.SetRequest {
-        let request = try DisplayArguments.setRequest(words: words, displayFlags: option.display, labelFlags: labelFlags,
-                                                      in: try system.displays(), aliases: try labeler.aliases())
-        warn(request.target)
-        return request
+        try DisplayArguments.setRequest(words: words, displayFlags: option.display, labelFlags: labelFlags,
+                                        in: try system.displays(), aliases: try labeler.aliases())
     }
 
-    private func warn(_ target: DisplayArguments.Target) {
+    /// An alias of the same name that the display overrode is reported on standard error. `set` calls it after it has
+    /// validated the label and options, so a warning never comes before an input error.
+    func warn(_ target: DisplayArguments.Target) {
         if let notice = target.notice { Output.err("dnm: warning: \(notice)") }
     }
 

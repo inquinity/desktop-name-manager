@@ -79,12 +79,17 @@ dnm() {
 
 # shows_label <display word> <label>: `dnm show` for that display names the label.
 shows_label() {
-    "$dnm_binary" show "$1" 2>/dev/null | grep -qF "\"$2\""
+    # Capture first: `grep -q` closing a pipe would kill dnm with SIGPIPE, which pipefail reports as a failure.
+    local output
+    output="$("$dnm_binary" show "$1" 2>/dev/null)" || return 1
+    grep -qF "\"$2\"" <<<"$output"
 }
 
 # shows_no_label <display word>
 shows_no_label() {
-    "$dnm_binary" show "$1" 2>/dev/null | grep -qF "No label"
+    local output
+    output="$("$dnm_binary" show "$1" 2>/dev/null)" || return 1
+    grep -qF "No label" <<<"$output"
 }
 
 # shows_the_same_both_ways <display word>: the word and --display give the same `dnm show`.
@@ -143,14 +148,15 @@ if "$dry_run"; then
 else
     [[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: just build-release"; exit 1; }
     [[ -f "$wallpaper_store_plist" ]] || { print_colored "$COLOR_RED" "Cannot find the wallpaper store: ${wallpaper_store_plist}"; exit 1; }
+    # The private store first: even `dnm displays` runs housekeeping on the store it is pointed at.
+    work_directory="$(mktemp -d "${TMPDIR:-/tmp}/dnm-live.XXXXXX")"
+    cp "$wallpaper_store_plist" "${work_directory}/Index.plist.backup"
+    export DNM_STORE_DIR="${work_directory}/store"
     # One display name per line, from the JSON report (pretty-printed, one key per line).
     while IFS= read -r line; do
         display_names+=("$line")
     done < <("$dnm_binary" displays --json | sed -n 's/^ *"name" : "\(.*\)",\{0,1\}$/\1/p')
     ((${#display_names[@]} > 0)) || { print_colored "$COLOR_RED" "dnm reports no displays."; exit 1; }
-    work_directory="$(mktemp -d "${TMPDIR:-/tmp}/dnm-live.XXXXXX")"
-    cp "$wallpaper_store_plist" "${work_directory}/Index.plist.backup"
-    export DNM_STORE_DIR="${work_directory}/store"
     print_colored "$COLOR_BRIGHTYELLOW" "Backed up the wallpaper store to ${work_directory}"
     print_colored "$COLOR_BRIGHTYELLOW" "Using a private store: ${DNM_STORE_DIR}"
     print_colored "$COLOR_YELLOW" "Displays: ${display_names[*]}"

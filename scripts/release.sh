@@ -3,7 +3,7 @@
 # The release procedure for the dnm command-line tool (spec 005, contracts/release-procedure.md).
 # Runs on the maintainer's Mac, one stage at a time:
 #
-#   check -> build -> notarize -> verify -> push -> draft -> publish -> cask -> record
+#   check -> build -> notarize -> verify -> push -> draft -> publish -> cask -> reinstall -> record
 #
 # `just release <segment>` prepares a release first (bump, notes, "Release X build N" commit, signed tag), and
 # `just publish <stage>` runs these stages for the version in Version.xcconfig.
@@ -12,7 +12,7 @@
 # from the environment (DNM_SIGNING_IDENTITY, DNM_NOTARY_PROFILE) or the local, git-ignored Secrets.xcconfig
 # (SIGNING_IDENTITY, NOTARY_PROFILE); the identity can also be found in the keychain. They are never printed.
 #
-# Usage: scripts/release.sh <version> <stage> [--dry-run] [--confirm] [--tap DIR] [--help]
+# Usage: scripts/release.sh <version> <stage> [--dry-run] [--confirm] [--tap DIR] [--uninstall-first] [--help]
 
 set -euo pipefail
 
@@ -525,6 +525,25 @@ remove_temporary_tap() {
     brew untap "$temporary_tap" >/dev/null 2>&1 || true
 }
 
+# The files the cask installs for shell completions (spec 007), under the Homebrew prefix, one per line.
+completion_files() {
+    local prefix
+    prefix="$(brew --prefix)"
+    printf '%s\n' "${prefix}/share/zsh/site-functions/_dnm" "${prefix}/share/zsh/site-functions/_desktop-name" "${prefix}/etc/bash_completion.d/dnm"
+}
+
+cask_uninstalled_for_test=false
+
+# The cask stage's exit: tidy up, and if it failed after removing the installed dnm, say how to get it back.
+cask_stage_exit() {
+    local exit_status=$?
+    remove_temporary_tap
+    if "$cask_uninstalled_for_test" && ((exit_status != 0)); then
+        print_colored "$COLOR_RED" "The cask test failed after dnm was uninstalled from this Mac. To get the published version back: brew install --cask inquinity/tap/desktop-name-manager"
+    fi
+    cleanup
+}
+
 stage_cask() {
     require_confirmation "test the cask in a temporary local tap (${temporary_tap}), then write Casks/desktop-name-manager.rb into the tap clone given with --tap"
     require_command brew
@@ -543,17 +562,10 @@ stage_cask() {
     local cask
     cask="$(render_cask)"
 
-    # Everything that could fail before the test has passed, so only now is an installation removed.
-    if "$cask_installed"; then
-        print_colored "$COLOR_BRIGHTYELLOW" "Uninstalling desktop-name-manager for the test (--uninstall-first); the reinstall stage restores it."
-        brew uninstall --cask desktop-name-manager
-        log_result "uninstalled the cask installed on this Mac for the cask test; run the reinstall stage after the tap is pushed"
-    fi
-
     # FR-011: audit and test from a local copy before anything reaches the tap.
     remove_temporary_tap
     brew tap-new --no-git "$temporary_tap" >/dev/null
-    trap 'remove_temporary_tap; cleanup' EXIT
+    trap 'cask_stage_exit' EXIT
     if brew_has_trust; then brew trust --tap "$temporary_tap" >/dev/null; fi
     local local_tap
     local_tap="$(brew --repository "$temporary_tap")"
@@ -563,12 +575,21 @@ stage_cask() {
     # cask repository's acceptance rules, such as a minimum number of GitHub stars, which a personal tap does not need.
     brew audit --cask --strict --online "${temporary_tap}/desktop-name-manager"
     log_result "brew audit --cask --strict --online passed"
+
+    # The audit and the downloads have passed, so only now is an installation removed (the test installs the cask under
+    # its real name, which collides with it).
+    if "$cask_installed"; then
+        print_colored "$COLOR_BRIGHTYELLOW" "Uninstalling desktop-name-manager for the test (--uninstall-first); the reinstall stage restores it."
+        brew uninstall --cask desktop-name-manager
+        cask_uninstalled_for_test=true
+        log_result "uninstalled the cask installed on this Mac for the cask test; run the reinstall stage after the tap is pushed"
+    fi
     brew install --cask "${temporary_tap}/desktop-name-manager"
     local prefix main_version alias_version
     prefix="$(brew --prefix)"
     # Shell completions (spec 007): installed with the cask, and gone with it.
-    local completion_paths=("${prefix}/share/zsh/site-functions/_dnm" "${prefix}/share/zsh/site-functions/_desktop-name" "${prefix}/etc/bash_completion.d/dnm")
-    local completion_path missing_completions="" leftover_completions=""
+    local completion_paths=() completion_path missing_completions="" leftover_completions=""
+    while IFS= read -r completion_path; do completion_paths+=("$completion_path"); done < <(completion_files)
     for completion_path in "${completion_paths[@]}"; do
         [[ -e "$completion_path" ]] || missing_completions+=" ${completion_path}"
     done
@@ -603,23 +624,27 @@ stage_reinstall() {
     local tap_cask="inquinity/tap/desktop-name-manager" served="" attempt
     for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
         brew update >/dev/null 2>&1 || true
-        served="$(brew info --cask "$tap_cask" 2>/dev/null | sed -n '1s/^.*: //p')"
+        served="$(brew info --cask "$tap_cask" 2>/dev/null | sed -nE '1s/^.*: ([0-9][0-9.]*).*$/\1/p')"
         [[ "$served" == "$version" ]] && break
         print_colored "$COLOR_YELLOW" "The tap serves ${served:-nothing} (waiting for ${version}; try ${attempt} of 12)..."
         sleep 10
     done
     [[ "$served" == "$version" ]] || die "the tap does not serve ${version} after two minutes: is the tap pushed?"
-    if brew list --cask desktop-name-manager >/dev/null 2>&1; then
-        brew upgrade --cask "$tap_cask" || true   # nothing to do when it is already at this version
-    else
+    local installed prefix reported alias_reported completion_file
+    installed="$(brew list --cask --versions desktop-name-manager 2>/dev/null | awk '{print $2}')"
+    if [[ -z "$installed" ]]; then
         brew install --cask "$tap_cask"
+    elif [[ "$installed" != "$version" ]]; then
+        brew upgrade --cask "$tap_cask"
     fi
-    local prefix reported
     prefix="$(brew --prefix)"
     reported="$("${prefix}/bin/dnm" --version)"
-    [[ "$reported" == "$release_display" ]] || die "after the reinstall, dnm reports ${reported}, not ${release_display}"
-    [[ -e "${prefix}/share/zsh/site-functions/_dnm" && -e "${prefix}/etc/bash_completion.d/dnm" ]] \
-        || die "after the reinstall, the completion files are not in place"
+    alias_reported="$("${prefix}/bin/desktop-name" --version)"
+    [[ "$reported" == "$release_display" && "$alias_reported" == "$release_display" ]] \
+        || die "after the reinstall, dnm reports ${reported} and desktop-name ${alias_reported}, not ${release_display}"
+    while IFS= read -r completion_file; do
+        [[ -e "$completion_file" ]] || die "after the reinstall, ${completion_file} is not in place"
+    done < <(completion_files)
     log_result "reinstall: dnm reports ${release_display} from the tap, completion files in place"
 }
 

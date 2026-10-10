@@ -44,11 +44,12 @@ struct SetCommand: ParsableCommand {
 
     func run() throws {
         try Self.guarded {
+            let options = try LabelOptions.parse(style: style, color: color, position: position, size: size)
             let context = Context()
             let request = try context.setRequest(words: (first.map { [$0] } ?? []) + (second.map { [$0] } ?? []) + extra,
                                                  option: target, labelFlags: labelFlag)
             let text = try LabelText(request.label)
-            let options = try LabelOptions.parse(style: style, color: color, position: position, size: size)
+            context.warn(request.target)
             let display = request.target.display
             var result = try context.onDesktop(place, of: display) { try context.labeler.setLabel(text, options: options, on: display) }
             result.displayName = place.describe(result.displayName)

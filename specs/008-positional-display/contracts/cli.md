@@ -54,14 +54,15 @@ never resolves again. A repeated `--label`, or `--label` together with a label w
 
 ## 3. Error messages (exit 2, nothing changed, standard error)
 
-Words that contain spaces are quoted in every suggested command: `dnm set "LG Ultra" "<label>"`.
+Every word in a suggested command is quoted the way a POSIX shell would (single quotes, with `'\''` for an embedded one; a word of only letters, digits and `_ - . / : = @ % + ,` stays bare, except one that starts with `=`): `dnm set 'LG Ultra' "<label>"`. A placeholder such as `"<label>"` is in double quotes. A word that starts with a dash is read as an option, so suggestions use the `=` forms for it (`--label=-x`, `--display=-x`).
 
 | Case | Message |
 |---|---|
 | Too many words for `set` (no `--label`) | `dnm: set takes a label, or a display and a label (got <n> words). Quote anything with spaces; an alias avoids quoting a display name: dnm alias lg "LG Ultra".` |
 | Too many words with `--label` | `dnm: with --label, set takes at most one display (got <n> words). Quote a name with spaces, or use an alias.` |
 | Too many words for `remove`, `undo`, `show` | `dnm: <command> takes at most one display (got <n> words). Quote a name with spaces, or use an alias.` |
-| First of two words is no display | the resolver's message, then `To label the main display with several words, quote the whole label: dnm set "<word 1> <word 2>".` |
+| First of two words is no display | the resolver's message, then `To label the main display with several words, quote the whole label: dnm set '<word 1> <word 2>'.` The hint is added only when the word is no display at all; an alias of a display that is away gets the resolver's message alone. |
+| A display given but empty (`dnm set "" Mail`, `--display ""`) | `dnm: The display is empty: name a display, or leave it out for the main display.` |
 | Lone word is a display reference | `dnm: "<word>" is a display. To label it: dnm set <word> "<label>". To use "<word>" as the label of the main display: dnm set --label <word>.` |
 | Display given twice | `dnm: Give the display once, as a word or with --display (not both, and not --display twice).` |
 | Label given twice | `dnm: Give the label once, as a word or with --label (not both, and not --label twice).` |

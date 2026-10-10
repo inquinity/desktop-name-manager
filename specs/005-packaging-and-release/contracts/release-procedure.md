@@ -7,20 +7,20 @@ just publish <stage> [--confirm] ...          # a stage for the version in Versi
 ```
 
 Run from the repository root on the maintainer's Mac. Stages run in the order `check`, `build`, `notarize`,
-`verify`, `push`, `draft`, `publish`, `cask`, `record`; each needs the previous
+`verify`, `push`, `draft`, `publish`, `cask`, `reinstall`, `record`; each needs the previous
 stage's output in `build.noindex/release-artifacts/<version>/`.
 
 | Stage | Does | Publishes? |
 |---|---|---|
 | `check` | Gates: clean tree; `v<version>` is a signed tag on HEAD; the version equals `MARKETING_VERSION` in `Version.xcconfig` and has no GitHub release; HEAD's subject is "Release <version> build <n>"; `docs/release-notes/<version>.md` exists; `just test` and `just periphery` pass; live-check records for macOS 26 and 27; `Acknowledgements.md` is up to date (the license check); the gate file's review line is confirmed. Names the first unmet gate. | no |
 | `build` | Release build for arm64 with the release stamp; `dnm --version` equals `<version>`; binary checks (no build folder, home folder or user name in `strings`; only allowed libraries in `otool -L`); sign (hardened runtime, timestamp, no entitlements); verify the signature; generate the shell completion files from the binary (`completions/_dnm`, `completions/_desktop-name`, `completions/dnm.bash`; fail if one is missing, empty, unregistered or carries a build or home path; syntax-checked); zip `dnm`, `LICENSE`, `Acknowledgements.md`, `completions/` and the license files of the components in the binary (`Licenses/swift-argument-parser-LICENSE.txt`) with `ditto`; SHA-256. | no |
-| `reinstall` | After the `cask` stage uninstalled the cask from this Mac (`cask --uninstall-first`) and the tap is pushed: wait until the tap serves the version, install or upgrade, and check that `dnm --version` equals the release and the completion files are in place. | **yes**, with `--confirm` (installs software on this Mac) |
 | `notarize` | Submit the zip, wait up to 30 minutes, require "Accepted"; on failure fetch Apple's log and stop. | no (sends the zip to Apple) |
 | `verify` | Unzip to a temporary folder, mark the binary as downloaded, run `dnm --version` (macOS's first-run check), `syspolicy_check distribution`, compare the SHA-256; results go to the procedure log. | no |
 | `push` | Pushes `main` and the signed tag to `origin`. | **yes** (the code and tag). Needs `--confirm` |
 | `draft` | `gh release create v<version> --draft --verify-tag` with the zip, the `.sha256` file and the rendered release notes. | a **draft**, not public. Needs `--confirm` |
 | `publish` | Turns the draft public. | **yes**. Needs `--confirm` |
 | `cask` | Renders the cask into the local tap clone given by `--tap`, runs `brew audit --cask --strict --online` and a local-tap install, run and uninstall test, then prints the `git` commands to commit and push the tap. Never pushes. | no (prints the push). Needs `--confirm` |
+| `reinstall` | After `cask --uninstall-first` removed the cask from this Mac and the tap has been pushed: wait until the tap serves the version, install or upgrade only if the installed version differs, and check that `dnm --version` and `desktop-name --version` equal the release and every completion file is in place. | **yes**, with `--confirm` (installs software on this Mac) |
 | `record` | Appends the procedure log (kept in the build folder so the tree stays clean during the release) to the gate record, for the maintainer to review and commit. | no |
 
 ## Options
@@ -28,8 +28,12 @@ stage's output in `build.noindex/release-artifacts/<version>/`.
 - `--dry-run`: runs `check` (reporting every unmet gate instead of stopping at the first) and `build`
   (signing ad hoc when `DNM_SIGNING_IDENTITY` is not set), then prints what `notarize`, `verify`, `draft`,
   `publish` and `cask` would do. Sends nothing anywhere.
-- `--confirm`: required by `draft`, `publish` and `cask`; without it they print what they would do and
-  exit 1.
+- `--confirm`: required by `push`, `draft`, `publish`, `cask` and `reinstall`; without it they print what they would do
+  and exit 1.
+- `--uninstall-first`: with `cask`, allows the stage to uninstall the cask installed on this Mac, after the audit has
+  passed and only then, because the test installs the cask under its real name. Without it the stage refuses while the
+  cask is installed. If the test then fails, the stage says how to get the published version back; after a success,
+  push the tap and run `reinstall`.
 - `--tap DIR`: the maintainer's local clone of `inquinity/homebrew-tap` (required by `cask`).
 
 ## Environment
