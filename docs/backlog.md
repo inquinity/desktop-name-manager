@@ -66,10 +66,12 @@ Ideas recorded for later. None is part of a current spec.
     by the app.
   - **Leaning, not final:** remove `prune`; one name, `cleanup`; `--days N` per run with a default of 30, and a stored
     preference left to the app's Settings.
-  - **Still open:** the non-scan cleanup (retired for N days) can also delete an image that another Desktop still
-    uses, for the same reason as above. Options: make the scan the default whenever Accessibility is granted, so
-    most deletions are proven; and have the non-scan description say plainly that a Desktop not currently on
-    screen might still show one.
+  - **Decided: say it plainly.** The non-scan `cleanup` can delete an image another Desktop still uses (one not on
+    screen, created as a copy). Accepted: it is a low-cost bug you might meet about once a month, and because you
+    just ran `cleanup` you can name the cause ("cleanup is too aggressive"). That differs from a label vanishing
+    after `set`, which has no visible cause. So the scan is not made the default; the description before the
+    question says plainly that a Desktop not currently on screen might still show one of these images, and
+    `--scan` is offered as the exact way.
 - **Batch labeling** (2026-10-06; roadmap F3, 0.2.2). Label several Desktops in one command (for example from a list of
   display, Desktop and label), so the walk to find each display's position happens once instead of once
   per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
