@@ -54,3 +54,10 @@ Ideas recorded for later. None is part of a current spec.
   position, and the amendments to spec 001 FR-023 and spec 006 FR-011 (the single resolver stays the only place
   that matches displays).
 
+  Requirement (maintainer, 2026-10-09): displays have spaces, so `dnm set "LG Ultra" "My label is great"` must
+  work: quoted arguments are single arguments, the display goes through the single resolver (a partial name is
+  fine) and the label may contain spaces. Wrong argument counts get friendly errors, never a guess: three or more
+  arguments ("set takes a label, or a display and a label; quote anything with spaces"); two arguments whose
+  first is no display (no display matches it; to label the main display, quote the whole label); and a lone
+  argument that is a display name or alias (refused, with the explicit `dnm set main "<label>"` form).
+
