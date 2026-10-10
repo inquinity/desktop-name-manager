@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Target release**: stage 1 (reuse, `cleanup`, last-seen, nudge) in 0.2.1; stage 2 (`cleanup --scan`) later, see "Stages". `ROADMAP.md` has the rows.
+**Target release**: stage 1 (reuse, `cleanup`, last-seen, nudge) in 0.2.1; stage 2 (`cleanup --scan`) in 0.3.0 (a bigger concept, so a minor version), see "Stages". `ROADMAP.md` has the rows.
 
 **Input**: User description: "The common workflow is deleting a Desktop in Mission Control, not unlabeling and reusing it. `dnm` is never told, so labels and images pile up unseen. Strategies: reuse identical images; `dnm cleanup [--days N]` (default 30); `dnm cleanup --scan` (check Accessibility first, describe, ask); keep a table of images and dates; a nudge at 50 MB. No command deletes images by itself."
 
@@ -159,7 +159,7 @@ As a user who wants to be sure, I want `dnm cleanup --scan` to look at every Des
 ## Stages
 
 1. **Stage 1 (0.2.1):** reuse, `cleanup` (age and not-seen), last-seen from the commands, the nudge, removal of `prune`, the renaming to housekeeping.
-2. **Stage 2 (to be placed on the roadmap):** `cleanup --scan`, and last-seen from the scan; the navigator learns to visit every Desktop; timings and live tests.
+2. **Stage 2 (0.3.0):** `cleanup --scan`, and last-seen from the scan; the navigator learns to visit every Desktop; timings and live tests.
 3. **Later (the app, spec 002):** last-seen from every Desktop switch; a stored `--days` preference.
 
 ## Assumptions

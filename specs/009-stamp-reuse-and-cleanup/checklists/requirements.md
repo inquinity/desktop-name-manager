@@ -21,7 +21,7 @@
 
 - [x] Each functional requirement has an acceptance scenario
 - [x] The one accepted risk (a Desktop off screen losing its wallpaper) is stated plainly in the spec and in the command's output
-- [ ] Items to confirm with the maintainer: the exact wording of the warning and the nudge; whether `--days 0` should be allowed (it is, as the "everything no Desktop shows" mode); where stage 2 lands on the roadmap
+- [ ] Items to confirm with the maintainer: the exact wording of the warning and the nudge; whether `--days 0` should be allowed (it is, as the "everything no Desktop shows" mode). Decided 2026-10-10: stage 2 (the scan) is 0.3.0; the nudge follows `set` and `remove`, not `undo`
 
 ## Notes
 

@@ -72,7 +72,7 @@ release yet.
 | Display aliases: short names for displays, tied to the display's identity ([specs/006-display-aliases](specs/006-display-aliases/)). Comes before F1 | F2 | 0.1.1 (released 2026-10-09) |
 | Shell completions for bash and zsh: every command and option, with display names and aliases (F2) offered live for `--display` (as git offers branch names) and the fixed values of `--style`, `--color`, `--position` and `--size`; installed by the cask ([specs/007-shell-completions](specs/007-shell-completions/)) | F1 | 0.1.2 (released 2026-10-09) |
 | Reuse of identical labeled images; `dnm cleanup` (replaces `prune`) for old and unseen labels, a last-seen record, and a nudge at 50 MB; nothing is deleted automatically ([specs/009-stamp-reuse-and-cleanup](specs/009-stamp-reuse-and-cleanup/), stage 1) | F4 | 0.2.1 |
-| `dnm cleanup --scan`: find labels of deleted Desktops exactly by visiting every Desktop (Accessibility, opt-in) ([specs/009-stamp-reuse-and-cleanup](specs/009-stamp-reuse-and-cleanup/), stage 2) | F9 | Not set |
+| `dnm cleanup --scan`: find labels of deleted Desktops exactly by visiting every Desktop (Accessibility, opt-in) ([specs/009-stamp-reuse-and-cleanup](specs/009-stamp-reuse-and-cleanup/), stage 2); a bigger concept, so a minor version | F9 | 0.3.0 |
 | Batch labeling: several Desktops, and several displays (`--display` repeated), in one command ([backlog](docs/backlog.md)) | F3 | 0.2.2 |
 | Multi-line labels: an app feature (M2), not a CLI one ([backlog](docs/backlog.md)) | F5 | After 1.0.0 at the earliest |
 | `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) | F6 | Not set |
