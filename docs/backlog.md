@@ -120,4 +120,10 @@ Ideas recorded for later. None is part of a current spec.
   Decision (maintainer, 2026-10-09): no leniency. A wrong argument count is always an error, never a guess; the
   way to avoid typing quotes around a display name with spaces is an alias (`dnm alias lg "LG Ultra"`, then
   `dnm set lg "My label"`), and the errors for a display that does not resolve say so.
+- **Installer package (`.pkg`)** (2026-10-10; no release yet). Expected to be needed because a notarization ticket cannot
+  be stapled to a bare binary or a zip, so the first run of the downloaded tool checks with Apple online (spec 005,
+  FR-005), while an installer package can be stapled (the maintainer's understanding, to be verified). It needs its own
+  specification. **Blocked on a spike** recorded in spec 007 ("turning completions on once an installer package ships",
+  task T015): how completions are enabled when the tool comes from a package, in particular whether `dnm` itself may
+  add completions to the user's shell configuration, which an unstapled binary would run into at Gatekeeper.
 

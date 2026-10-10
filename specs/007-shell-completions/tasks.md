@@ -30,3 +30,7 @@ description: "Task list for feature F1: shell completions"
 - [x] T012 `just test` and `just periphery` pass (SC-005)
 - [x] T013 Simulated Tab in bash and zsh against the debug build (quickstart 1 to 4); also a real interactive zsh and bash on a pseudo-terminal with the exact files from the release zip's payload, for `dnm` and `desktop-name` (2026-10-09)
 - [x] T014 After publishing: live install check on the maintainer's Mac (quickstart 6; SC-004)
+
+## Spike (blocks the installer package, not any current release)
+
+- [ ] T015 Spike, not yet started: how are completions turned on once an installer package ships? Answer the six questions of "Open question: turning completions on once an installer package ships" in `spec.md` with evidence (package install locations and the completion search paths; Gatekeeper and stapling of a binary run from a package against one run from a zip; whether `dnm` may write shell configuration and how it would be undone; uninstall; coexistence with the cask), record the result in `research.md` (R5) and amend this spec and spec 005 accordingly.

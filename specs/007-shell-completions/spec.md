@@ -118,6 +118,34 @@ As a Homebrew user, I want the completions to be installed with `dnm`, and remov
 - **SC-004**: After `brew install --cask`, a new shell completes `dnm` and `desktop-name`; after `brew uninstall --cask` it does not, and the completion files are gone.
 - **SC-005**: `just test` and `just periphery` pass.
 
+## Open question: turning completions on once an installer package ships (needs a spike)
+
+Added 2026-10-10 at the maintainer's request; **not researched yet**. Today completions arrive with the Homebrew
+cask, which installs the files (FR-010), and `dnm --generate-completion-script zsh|bash` prints them for anyone else
+(FR-008). The question is what happens when the tool is also (or instead) installed from a signed installer package
+(`.pkg`), which the maintainer expects to need later because of Gatekeeper:
+
+- The maintainer's understanding, to be verified: a notarization ticket cannot be stapled to a bare binary or a zip
+  (spec 005, FR-005), so Gatekeeper must check online on first run, while an installer package can be stapled
+  properly. If that holds, then a design in which `dnm` itself edits the user's shell configuration to enable
+  completions (as some other command-line tools do) runs into the first-run check of an unstapled binary.
+- So: **how are completions turned on after an installer package installs the tool?**
+
+The spike has to answer, with evidence, at least:
+
+1. Which locations can a package install completion files into, and are they on the default completion search path of
+   macOS's zsh and bash, and of Homebrew's? If a location works with no configuration, no command is needed.
+2. If a command is needed, what does the installed binary have to be (stapled, installed by the package) to run it
+   without a Gatekeeper prompt, and does the answer differ from a binary run from a downloaded zip?
+3. Should `dnm` ever write the user's shell configuration (a dotfile)? What consent, what exact line, how to see it
+   and how to undo it; and what the constitution allows (reversibility, no undocumented preferences, App Store goal).
+4. How completions are removed on uninstall, given that a package has no uninstall step of its own.
+5. How the package and the cask coexist (the same files from two sources) and what `dnm check` reports.
+6. What `--generate-completion-script` still serves.
+
+The answer decides whether the package build needs a post-install script, an extra `dnm` subcommand, or nothing, and
+so it must be settled before the package is specified; it blocks no current release.
+
 ## Assumptions
 
 - The parser's generated scripts and its hidden `---completion` call convention stay as in the pinned version (1.8.2); an upgrade of the parser re-checks this through the contract tests.
