@@ -10,7 +10,7 @@
 
 ## Requirement Completeness
 
-- [ ] No open decisions remain (two are listed at the top of `spec.md`: the lone-word refusal, and no short flag)
+- [x] No open decisions remain (the lone-word refusal and no short flag were decided 2026-10-09)
 - [x] Requirements are testable and unambiguous (the tables and the error list in the contract)
 - [x] Success criteria are measurable (a table-driven test, a mechanical check of the commands)
 - [x] Acceptance scenarios and edge cases are defined (quoting, lone word, digits, `--`, `main`, `--label`, repeats)

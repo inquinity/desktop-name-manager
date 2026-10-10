@@ -6,8 +6,7 @@ description: "Task list for feature F8: display as a positional argument"
 
 **Input**: `specs/008-positional-display/` (spec.md, plan.md, research.md, contracts/cli.md, quickstart.md)
 
-**Tests**: included. Two decisions are open in `spec.md` (the lone-word refusal, and no short flag); T002 and T004
-wait on the first.
+**Tests**: included. The decisions in `spec.md` are made.
 
 ## Phase 0: Spike
 
@@ -31,7 +30,7 @@ wait on the first.
 
 ## Phase 4: Documentation and verification
 
-- [ ] T008 [P] README (grammar, `--label`, aliases to avoid quotes, scripts use `--display` and `--label`); release notes with the two changes of behavior (FR-010, FR-011)
+- [ ] T008 [P] README (grammar, `--label`, aliases to avoid quotes, scripts use `--display` and `--label`; every example writes the display before the label, FR-012); release notes with the two changes of behavior (FR-010, FR-011)
 - [ ] T009 [P] Amend spec 001 FR-023 and `contracts/cli.md`, spec 006 FR-011, spec 007 `contracts/cli.md`
 - [ ] T010 `just test` and `just periphery` pass (SC-004)
 - [ ] T011 Quickstart read-only scenarios and Tab; live scenarios with the `Index.plist` backup and restore (SC-002)

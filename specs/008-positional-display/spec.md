@@ -4,16 +4,17 @@
 
 **Created**: 2026-10-09 | **Revised**: 2026-10-09 (after a critical review)
 
-**Status**: Draft, two open decisions (below)
+**Status**: Draft (decisions below are made; short options for other flags are still being discussed)
 
 **Target release**: 0.2.0 (it changes what two kinds of command line mean, so a minor version; every later feature moves back, see `ROADMAP.md`)
 
 **Input**: User description: "With several monitors the display is the main selector, and I change labels on main least often. Make the display a first-class parameter: `dnm set DP1 "label..."`, `dnm set main "label2..."`. Displays have spaces, so `dnm set "LG Ultra" "My label is great"` must work. A wrong number of arguments is an error; aliases are the way to avoid quotes. A fully named `--label` is allowed. Repeating `--display` is not accepted (several displays belong to batch labeling, F3)."
 
-## Open decisions (recommended answers are what this spec says; not yet confirmed by the maintainer)
+## Decisions (maintainer, 2026-10-09)
 
-1. **Refuse a lone word that is a display** (`dnm set DP1`): exact `main`, display name or alias only. Alternative: drop the refusal and let it label the main display.
-2. **No short flag for `--display`.** `-d` is taken (it means delete in `dnm alias`, and people read it as `--desktop`). If one is wanted later it needs another letter (for example `-m`).
+1. **A lone word that is a display is refused** (`dnm set DP1`): exact `main`, display name or alias only. Decided; no further discussion.
+2. **No short flag for `--display`.** `-d` is taken (it means delete in `dnm alias`, and people read it as `--desktop`); the positional form is the short form, which is the strongest argument for it.
+3. **Documentation shows the display before the label.** The order is encouraged, not required (any order works): examples read `dnm set DP1 "LabelX"` and `dnm set --display DP1 --label "LabelX"`, not `dnm set "LabelX" --display DP1`.
 
 ## Clarifications
 
@@ -27,6 +28,8 @@
     - `--display <name>` stays as an equivalent for the display word. `--desktop` and the other options are unchanged. Options may come before, between or after the words (the parser already allows this; checked 2026-10-09).
 - **Q: Are all of these legitimate?**
   - **A**: Yes: `dnm set DP1 labelX`; `dnm set "LG Ultra" labelX`; `dnm set "LG Ultra" "Label X"`; `dnm set "Label X" --display "LG Ultra"`; `dnm set "LG Ultra" --label "Label X"`; `dnm set --label "Label X" --display "LG Ultra"`; `dnm set "Label X"`.
+- **Q: In what order do the docs write a command?**
+  - **A**: Display first, then the label, then the other options: `dnm set DP1 "LabelX"`, `dnm set --display DP1 --label "LabelX"`, `dnm set DP1 "LabelX" --desktop 2`. The README, `--help` examples and the release notes follow it; the order is a convention, not a rule.
 - **Q: What does a display word accept?**
   - **A**: Exactly what `--display` accepts, through the one resolution algorithm (spec 006 FR-011, FR-019): `main`, an exact display name, an exact alias, or a unique partial display name, with the override warning. A name with spaces is quoted, as the shell requires.
 - **Q: What if the display is given twice, or the label is given twice?**
@@ -35,7 +38,7 @@
   - **A**: An error that tells what to type, never a guess (maintainer decision): `set` takes a label, or a display and a label; with `--label` it takes at most one display; `remove`, `undo` and `show` take at most one display. The message says to quote anything with spaces and that an alias avoids quoting a display name.
 - **Q: `dnm set Mail Inbox`, where `Mail` is no display?**
   - **A**: The first word is resolved as a display and the usual "no display matches" error is shown, plus the hint that a label of several words is one quoted argument. The suggested commands are quoted correctly when a word contains spaces.
-- **Q: `dnm set DP1`, a lone word that is also a display?** (open decision 1)
+- **Q: `dnm set DP1`, a lone word that is also a display?** (decision 1)
   - **A**: Refused, because it is probably a label forgotten after the display. The message gives both forms. The rule covers exactly `main`, a connected display's name, or any alias's name, ignoring case; partial names and numbers are not display references (labels are short words, and a substring rule would refuse legitimate ones), so `dnm set lg` with a display `LG Ultra HD` still labels the main display "lg". It does not apply when `--display` or `--label` is given. `dnm set --label DP1` and `dnm set main DP1` label the main display "DP1".
 - **Q: Does positional use depend on the machine?**
   - **A**: Partly. Whether a lone word is refused depends on the connected displays and stored aliases. Scripts should use `--display` (and `--label`), which never depend on that; the README says so.
@@ -129,10 +132,11 @@ As a user with scripts, I want `--display` to keep working.
 - **FR-005**: How the words and flags are read (how many, which is the display, which the label, every refusal) MUST be decided in one function in the core library, used by all four commands, and MUST return the resolved display, so a display is resolved once.
 - **FR-006**: Too many words MUST exit 2, change nothing, and say what the command takes, to quote anything with spaces and that an alias avoids quoting.
 - **FR-007**: With two words whose first resolves to no display, the command MUST exit 2 with the resolver's message and the quoting hint; every command suggested in a message MUST quote words that contain spaces.
-- **FR-008**: (open decision 1) `set` with one word and neither `--display` nor `--label` MUST refuse (exit 2, nothing changed) when the word equals `main`, a connected display's name or any alias's name, exactly, ignoring case, and MUST give both forms. The test for "is a display reference" MUST be in the resolver, built from the same matchers as the resolution so the two cannot drift.
+- **FR-008**: (decision 1) `set` with one word and neither `--display` nor `--label` MUST refuse (exit 2, nothing changed) when the word equals `main`, a connected display's name or any alias's name, exactly, ignoring case, and MUST give both forms. The test for "is a display reference" MUST be in the resolver, built from the same matchers as the resolution so the two cannot drift.
 - **FR-009**: Tab MUST offer displays and usable aliases for the first word of the four commands and nothing for the second word of `set` or for `--label`; the positions MUST come from the parser's positional arguments, with no counting of option values in our code.
 - **FR-010**: Help (a custom usage line showing the real grammar), the README, the release notes and the CLI contracts MUST show the new grammar; spec 001 FR-023 and its CLI contract, spec 006 FR-011 and spec 007's contract MUST be amended; the README MUST say scripts should use `--display` and `--label`.
 - **FR-011**: The release notes MUST state the two changes of behavior: a lone word that is a display reference is refused, and repeating `--display` is an error.
+- **FR-012**: Every example in the README, the help and the release notes MUST write the display before the label.
 
 ---
 
