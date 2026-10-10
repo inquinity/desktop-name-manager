@@ -11,7 +11,7 @@ The features in build order. Each milestone is reached when its feature is done;
 
 | Milestone | Feature | Specification | Status |
 |---|---|---|---|
-| **M1 (MVP)** | Labels and the `dnm` command-line tool | [specs/001-labels-and-cli](specs/001-labels-and-cli/) | **Released as 0.1.0 (build 1), 2026-10-07**: notarized, in the unlisted `desktop-name-manager` cask. Installed and checked on macOS 26 and 27; in daily use. The Intel refusal check remains. **0.1.1 (build 2)** and **0.1.2 (build 3)** released 2026-10-09 with display aliases (F2) and shell completions (F1) |
+| **M1 (MVP)** | Labels and the `dnm` command-line tool | [specs/001-labels-and-cli](specs/001-labels-and-cli/) | **Released as 0.1.0 (build 1), 2026-10-07**: notarized, in the unlisted `desktop-name-manager` cask. Installed and checked on macOS 26 and 27; in daily use. The Intel refusal check remains. **0.1.1 (build 2)** and **0.1.2 (build 3)** released 2026-10-09 with display aliases (F2) and shell completions (F1); **0.2.0 (build 4)** released 2026-10-10 with the display as a positional argument (F8) |
 | M2 | The menu-bar app and label editor | not written | Notes only |
 | M3 | Quick View: see every label, switch to one | not written | Notes only |
 | M4 | Desktop groups, display roles and sites (home and work monitors) | not written | Notes only |
@@ -76,7 +76,7 @@ release yet.
 | Batch labeling: several Desktops, and several displays (`--display` repeated), in one command ([backlog](docs/backlog.md)) | F3 | 0.2.2 |
 | Multi-line labels: an app feature (M2), not a CLI one ([backlog](docs/backlog.md)) | F5 | After 1.0.0 at the earliest |
 | `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) | F6 | Not set |
-| Display as a positional argument: `dnm set [<display>] <label>` and `dnm remove\|undo\|show [<display>]`, with `--display` still accepted ([specs/008-positional-display](specs/008-positional-display/)); a change of syntax, so it takes 0.2.0 and moves every later feature back | F8 | 0.2.0 |
+| Display as a positional argument: `dnm set [<display>] <label>` and `dnm remove\|undo\|show [<display>]`, with `--display` still accepted ([specs/008-positional-display](specs/008-positional-display/)); a change of syntax, so it takes 0.2.0 and moves every later feature back | F8 | 0.2.0 (released 2026-10-10) |
 | Quiet flag: `-q` / `--quiet` (and `DNM_QUIET=1`) suppresses warnings, such as an alias overridden by a display's name, on every command; results and errors still print ([backlog](docs/backlog.md)) | F7 | 0.3.0 |
 
 ## Minimum viable product (M1)

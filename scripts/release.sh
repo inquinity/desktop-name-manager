@@ -36,6 +36,7 @@ print_colored() {
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 release_repository="inquinity/desktop-name-manager"
 temporary_tap="dnmrelease/check"
+real_cask="inquinity/tap/desktop-name-manager"
 stages="check build notarize verify push draft publish cask reinstall record"
 
 version=""
@@ -519,10 +520,24 @@ render_cask() {
 
 brew_has_trust() { brew help trust >/dev/null 2>&1; }
 
-# The temporary tap is trusted only while it exists (Homebrew 7 loads casks only from trusted taps).
+# True when some version of the cask is installed on this Mac (the Caskroom has a folder for its name). Homebrew
+# matches an installed cask to a tap by name only, so this is the same whichever tap holds a cask of that name.
+cask_is_installed() { [[ -d "$(brew --caskroom)/desktop-name-manager" ]]; }
+
+cask_installed_at_start=false
+cask_uninstalled_for_test=false
+
+# The temporary tap is trusted only while it exists (Homebrew 7 loads casks only from trusted taps), and Homebrew
+# refuses to untap one it no longer trusts, so it is untapped first and untrusted after. Untapping with --force also
+# UNINSTALLS any installed cask of the same name (it is matched to the tap by name): that is wanted for the test's
+# own install, but never for the user's real installation, so in that case the tap is left in place and said so.
 remove_temporary_tap() {
+    if "$cask_installed_at_start" && ! "$cask_uninstalled_for_test" && cask_is_installed; then
+        print_colored "$COLOR_YELLOW" "Left the temporary tap ${temporary_tap} in place: untapping it would uninstall the installed dnm. Remove it later with: brew untap --force ${temporary_tap} (and brew untrust --tap ${temporary_tap})."
+        return 0
+    fi
+    brew untap --force "$temporary_tap" >/dev/null 2>&1 || true
     if brew_has_trust; then brew untrust --tap "$temporary_tap" >/dev/null 2>&1 || true; fi
-    brew untap "$temporary_tap" >/dev/null 2>&1 || true
 }
 
 # The files the cask installs for shell completions (spec 007), under the Homebrew prefix, one per line.
@@ -531,8 +546,6 @@ completion_files() {
     prefix="$(brew --prefix)"
     printf '%s\n' "${prefix}/share/zsh/site-functions/_dnm" "${prefix}/share/zsh/site-functions/_desktop-name" "${prefix}/etc/bash_completion.d/dnm"
 }
-
-cask_uninstalled_for_test=false
 
 # The cask stage's exit: tidy up, and if it failed after removing the installed dnm, say how to get it back.
 cask_stage_exit() {
@@ -552,7 +565,8 @@ stage_cask() {
     # of dnm from this Mac (it did, for 0.1.1). Refuse unless --uninstall-first says that is intended; the
     # reinstall stage puts it back once the tap is pushed.
     local cask_installed=false
-    brew list --cask desktop-name-manager >/dev/null 2>&1 && cask_installed=true
+    cask_is_installed && cask_installed=true
+    cask_installed_at_start=$cask_installed
     if "$cask_installed" && ! "$uninstall_first"; then
         die "desktop-name-manager is installed on this Mac, and the cask test would uninstall it. Run this stage again with --uninstall-first, push the tap, then run the reinstall stage."
     fi
@@ -580,7 +594,7 @@ stage_cask() {
     # its real name, which collides with it).
     if "$cask_installed"; then
         print_colored "$COLOR_BRIGHTYELLOW" "Uninstalling desktop-name-manager for the test (--uninstall-first); the reinstall stage restores it."
-        brew uninstall --cask desktop-name-manager
+        brew uninstall --cask "$real_cask"
         cask_uninstalled_for_test=true
         log_result "uninstalled the cask installed on this Mac for the cask test; run the reinstall stage after the tap is pushed"
     fi
@@ -631,7 +645,12 @@ stage_reinstall() {
     done
     [[ "$served" == "$version" ]] || die "the tap does not serve ${version} after two minutes: is the tap pushed?"
     local installed prefix reported alias_reported completion_file
-    installed="$(brew list --cask --versions desktop-name-manager 2>/dev/null | awk '{print $2}')"
+    # The installed version is the (last) version folder of the cask in the Caskroom; the glob skips ".metadata".
+    installed=""
+    local version_folder
+    for version_folder in "$(brew --caskroom)/desktop-name-manager"/*/; do
+        [[ -d "$version_folder" ]] && installed="$(basename "$version_folder")"
+    done
     if [[ -z "$installed" ]]; then
         brew install --cask "$tap_cask"
     elif [[ "$installed" != "$version" ]]; then

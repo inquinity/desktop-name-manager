@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-09 | **Revised**: 2026-10-09 (after a critical review)
 
-**Status**: Draft (decisions below are made; short options for other flags are still being discussed)
+**Status**: Implemented and released in 0.2.0 (build 4), 2026-10-10
 
 **Target release**: 0.2.0 (it changes what two kinds of command line mean, so a minor version; every later feature moves back, see `ROADMAP.md`)
 
