@@ -14,7 +14,7 @@
 - **C. `set <display> <label>`, display required.** Unambiguous, but every one-monitor user types `main`.
 - **E. A short flag `-d`** (`dnm set -d DP1 "label"`). Unambiguous and state-independent, but `-d` already means
   delete in `dnm alias` and is read as `--desktop`; the positional form is the short form anyway. Not added
-  (open decision 2); another letter could be chosen later.
+  (decided 2026-10-09).
 - **F. A named `--label`** (`dnm set DP1 --label "x"`). Added: it removes every doubt about which word is which,
   for scripts and for labels that equal a display or alias name.
 - **D. Join unquoted words** (`dnm set LG Ultra my label`). Rejected by the maintainer: guessing where the display
