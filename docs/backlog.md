@@ -45,3 +45,12 @@ Ideas recorded for later. None is part of a current spec.
   `2>/dev/null` would hide real errors too. It covers every command, so it needs its own spec: it amends the
   streams rule in spec 001's CLI contract and spec 006 FR-012 (which says the warning MUST be emitted). The
   `(overridden by …)` marker in `dnm alias` and the `dnm check` row stay, as information that was asked for.
+- **Display as a positional argument** (2026-10-09; roadmap F8, no release yet). With several monitors the display
+  is the main selector, and labeling `main` is the least frequent case, so `dnm set DP1 "label"` and
+  `dnm set main "label"` read better than `--display`. Sketch: `dnm set [<display>] <label>` (one argument is a
+  label for the main display; two are display and label), `dnm remove|undo|show [<display>]`, `--display` kept as
+  an equivalent (an error when both are given), `--desktop` unchanged. Open points for the spec: a lone argument
+  that is also a display name or alias (refuse, with the explicit form), the completion rules for the first
+  position, and the amendments to spec 001 FR-023 and spec 006 FR-011 (the single resolver stays the only place
+  that matches displays).
+
