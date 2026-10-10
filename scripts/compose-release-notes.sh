@@ -66,6 +66,10 @@ check_notes() {
     local body
     body="$(unreleased_body)"
     [[ -n "$body" ]] || die "docs/release-notes/UNRELEASED.md is empty: write down what changed first"
+    # The composer adds this heading itself; a second one in UNRELEASED.md would be published twice (as in 0.1.1).
+    if grep -qE '^## New in this release' <<<"$body"; then
+        die "docs/release-notes/UNRELEASED.md must not have its own \"## New in this release\" heading: write bullets only"
+    fi
     if grep -qF "$EMPTY_MARKER" <<<"$body"; then
         die "docs/release-notes/UNRELEASED.md still says ${EMPTY_MARKER}: write down what changed first"
     fi

@@ -36,18 +36,19 @@ print_colored() {
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 release_repository="inquinity/desktop-name-manager"
 temporary_tap="dnmrelease/check"
-stages="check build notarize verify push draft publish cask record"
+stages="check build notarize verify push draft publish cask reinstall record"
 
 version=""
 stage=""
 dry_run=false
 confirmed=false
+uninstall_first=false
 tap_directory=""
 temporary_directory=""
 unmet_gates=0
 
 usage() {
-    print_colored "$COLOR_YELLOW" "Usage: scripts/release.sh <version> <stage> [--dry-run] [--confirm] [--tap DIR] [--help]"
+    print_colored "$COLOR_YELLOW" "Usage: scripts/release.sh <version> <stage> [--dry-run] [--confirm] [--tap DIR] [--uninstall-first] [--help]"
     print_colored "$COLOR_YELLOW" "Stages, in order: ${stages}"
     print_colored "$COLOR_YELLOW" "  check     the gates (clean tree, signed tag on HEAD, version, tests, Periphery, live checks, reviews)"
     print_colored "$COLOR_YELLOW" "  build     release build, binary checks, signing, zip and SHA-256"
@@ -57,7 +58,9 @@ usage() {
     print_colored "$COLOR_YELLOW" "  draft     create a draft GitHub release (needs --confirm)"
     print_colored "$COLOR_YELLOW" "  publish   make the draft public (needs --confirm)"
     print_colored "$COLOR_YELLOW" "  cask      test the cask in a temporary local tap, write it into --tap DIR (needs --confirm); never pushes"
+    print_colored "$COLOR_YELLOW" "  reinstall put the cask back on this Mac from the tap, once the tap serves this version (needs --confirm)"
     print_colored "$COLOR_YELLOW" "  record    append the procedure log to the gate record"
+    print_colored "$COLOR_YELLOW" "  --uninstall-first  with cask: uninstall the cask installed on this Mac for the test (reinstall restores it)"
     print_colored "$COLOR_YELLOW" "  --dry-run  with check or build: list every unmet gate, sign ad hoc if no identity is set, send nothing"
     print_colored "$COLOR_YELLOW" "Credentials: DNM_SIGNING_IDENTITY / DNM_NOTARY_PROFILE, or SIGNING_IDENTITY / NOTARY_PROFILE in the"
     print_colored "$COLOR_YELLOW" "git-ignored Secrets.xcconfig; the keychain's only Developer ID identity is used if none is set. Never printed."
@@ -81,6 +84,7 @@ while (($# > 0)); do
         --dry-run) dry_run=true; shift ;;
         --confirm) confirmed=true; shift ;;
         --tap) tap_directory="${2:?--tap needs a folder}"; shift 2 ;;
+        --uninstall-first) uninstall_first=true; shift ;;
         -h|--help) usage; exit 0 ;;
         -*) print_colored "$COLOR_RED" "Unknown option: $1"; usage; exit 2 ;;
         *)
@@ -526,15 +530,25 @@ stage_cask() {
     require_command brew
     [[ -n "$tap_directory" && -d "${tap_directory}/Casks" ]] || die "--tap must name the local clone of the tap (a folder with Casks/)"
     # The test below installs and then uninstalls a cask with the same name, which would remove an installation
-    # of dnm from this Mac (it did, for 0.1.1). Refuse, and say how to carry on.
-    if brew list --cask desktop-name-manager >/dev/null 2>&1; then
-        die "desktop-name-manager is installed on this Mac, and the cask test would uninstall it. Run: brew uninstall --cask desktop-name-manager, then run this stage again, then reinstall it from the tap."
+    # of dnm from this Mac (it did, for 0.1.1). Refuse unless --uninstall-first says that is intended; the
+    # reinstall stage puts it back once the tap is pushed.
+    local cask_installed=false
+    brew list --cask desktop-name-manager >/dev/null 2>&1 && cask_installed=true
+    if "$cask_installed" && ! "$uninstall_first"; then
+        die "desktop-name-manager is installed on this Mac, and the cask test would uninstall it. Run this stage again with --uninstall-first, push the tap, then run the reinstall stage."
     fi
     local is_draft
     is_draft="$(gh release view "$tag" --repo "$release_repository" --json isDraft -q .isDraft 2>/dev/null || printf 'missing')"
     [[ "$is_draft" == "false" ]] || die "${tag} is not published yet: the cask must point at a public download"
     local cask
     cask="$(render_cask)"
+
+    # Everything that could fail before the test has passed, so only now is an installation removed.
+    if "$cask_installed"; then
+        print_colored "$COLOR_BRIGHTYELLOW" "Uninstalling desktop-name-manager for the test (--uninstall-first); the reinstall stage restores it."
+        brew uninstall --cask desktop-name-manager
+        log_result "uninstalled the cask installed on this Mac for the cask test; run the reinstall stage after the tap is pushed"
+    fi
 
     # FR-011: audit and test from a local copy before anything reaches the tap.
     remove_temporary_tap
@@ -579,6 +593,34 @@ stage_cask() {
     print_colored "$COLOR_GREEN" "  git -C '${tap_directory}' add Casks/desktop-name-manager.rb"
     print_colored "$COLOR_GREEN" "  git -C '${tap_directory}' commit -m 'desktop-name-manager ${version}'"
     print_colored "$COLOR_GREEN" "  git -C '${tap_directory}' push"
+}
+
+# Put the cask back on this Mac after the cask stage uninstalled it: wait until the tap serves this version (a push is
+# not visible at once; the first install after the 0.1.2 push got 0.1.1), install or upgrade, and check what a user sees.
+stage_reinstall() {
+    require_confirmation "install or upgrade desktop-name-manager ${version} from the tap on this Mac"
+    require_command brew
+    local tap_cask="inquinity/tap/desktop-name-manager" served="" attempt
+    for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+        brew update >/dev/null 2>&1 || true
+        served="$(brew info --cask "$tap_cask" 2>/dev/null | sed -n '1s/^.*: //p')"
+        [[ "$served" == "$version" ]] && break
+        print_colored "$COLOR_YELLOW" "The tap serves ${served:-nothing} (waiting for ${version}; try ${attempt} of 12)..."
+        sleep 10
+    done
+    [[ "$served" == "$version" ]] || die "the tap does not serve ${version} after two minutes: is the tap pushed?"
+    if brew list --cask desktop-name-manager >/dev/null 2>&1; then
+        brew upgrade --cask "$tap_cask" || true   # nothing to do when it is already at this version
+    else
+        brew install --cask "$tap_cask"
+    fi
+    local prefix reported
+    prefix="$(brew --prefix)"
+    reported="$("${prefix}/bin/dnm" --version)"
+    [[ "$reported" == "$release_display" ]] || die "after the reinstall, dnm reports ${reported}, not ${release_display}"
+    [[ -e "${prefix}/share/zsh/site-functions/_dnm" && -e "${prefix}/etc/bash_completion.d/dnm" ]] \
+        || die "after the reinstall, the completion files are not in place"
+    log_result "reinstall: dnm reports ${release_display} from the tap, completion files in place"
 }
 
 stage_record() {
