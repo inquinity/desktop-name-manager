@@ -14,7 +14,8 @@
 
 1. **A lone word that is a display is refused** (`dnm set DP1`): exact `main`, display name or alias only. Decided; no further discussion.
 2. **No short flag for `--display`.** `-d` is taken (it means delete in `dnm alias`, and people read it as `--desktop`); the positional form is the short form, which is the strongest argument for it.
-3. **Documentation shows the display before the label.** The order is encouraged, not required (any order works): examples read `dnm set DP1 "LabelX"` and `dnm set --display DP1 --label "LabelX"`, not `dnm set "LabelX" --display DP1`.
+3. **The short `-d` of `dnm alias` is removed** (done on `main` on 2026-10-09, shipped in 0.2.0), and the CLI keeps only `-h` and, later, `-q` as short options; the rule is in spec 001's CLI contract.
+4. **Documentation shows the display before the label.** The order is encouraged, not required (any order works): examples read `dnm set DP1 "LabelX"` and `dnm set --display DP1 --label "LabelX"`, not `dnm set "LabelX" --display DP1`.
 
 ## Clarifications
 
@@ -137,6 +138,7 @@ As a user with scripts, I want `--display` to keep working.
 - **FR-010**: Help (a custom usage line showing the real grammar), the README, the release notes and the CLI contracts MUST show the new grammar; spec 001 FR-023 and its CLI contract, spec 006 FR-011 and spec 007's contract MUST be amended; the README MUST say scripts should use `--display` and `--label`.
 - **FR-011**: The release notes MUST state the two changes of behavior: a lone word that is a display reference is refused, and repeating `--display` is an error.
 - **FR-012**: Every example in the README, the help and the release notes MUST write the display before the label.
+- **FR-013**: `dnm alias` MUST NOT accept `-d`; `--remove` is the only way. The release notes MUST say so (it is a removal of a released option).
 
 ---
 

@@ -99,7 +99,7 @@ As a Homebrew user, I want the completions to be installed with `dnm`, and remov
 - **FR-001**: The tool MUST provide completion for bash and zsh, for the command names `dnm` and `desktop-name`.
 - **FR-002**: Commands and options MUST be completed. The fixed values of `--style`, `--position` and `--size` MUST be taken from the same enumerations the tool validates against, never from a second list; `--color` MUST offer `light` and `dark`.
 - **FR-003**: `--display` (in `set`, `remove`, `undo` and `show`) MUST offer, computed when asked: `main`, the connected displays' names, and the aliases `--display` would accept (display connected, not overridden).
-- **FR-004**: `dnm alias`: the display argument MUST offer `main` and the connected displays' names only; with `--remove` (or `-d`) the name argument MUST offer every stored alias; a new alias name MUST NOT be completed.
+- **FR-004**: `dnm alias`: the display argument MUST offer `main` and the connected displays' names only; with `--remove` the name argument MUST offer every stored alias; a new alias name MUST NOT be completed.
 - **FR-005**: The rules for candidates MUST live in one place with the display resolver (`DisplayResolver.completionCandidates`); every candidate MUST resolve through the resolver (a shared name is ambiguous, as before).
 - **FR-006**: A completion MUST be read-only: no permission, no network, no switching, no wallpaper change, and it MUST NOT create or write the store. Any failure MUST offer nothing and print nothing on standard error.
 - **FR-007**: Candidates MUST NOT contain control characters.

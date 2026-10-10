@@ -43,7 +43,7 @@ import Testing
         let fresh = try CLI.run(["---completion", "alias", "--", "positional@0", "2", "0", "dnm", "alias", ""], store: store)
         #expect(fresh.status == 0 && fresh.output.isEmpty)   // a new name is typed freehand
 
-        for flag in ["--remove", "-d"] {
+        for flag in ["--remove"] {
             let removing = try CLI.run(["---completion", "alias", "--", "positional@0", "3", "0", "dnm", "alias", flag, ""], store: store)
             #expect(lines(removing) == ["desk", "other"], "\(flag)")
             let noTarget = try CLI.run(["---completion", "alias", "--", "positional@1", "4", "0", "dnm", "alias", flag, "x", ""], store: store)

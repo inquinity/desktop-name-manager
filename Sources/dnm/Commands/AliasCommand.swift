@@ -24,7 +24,7 @@ struct AliasCommand: ParsableCommand {
               completion: .custom { arguments, _, _ in Self.isRemoving(arguments) ? [] : Completions.displays(includeAliases: false) })
     var display: String?
 
-    @Flag(name: [.customLong("remove"), .customShort("d")], help: "Delete the alias <name>.")
+    @Flag(name: .customLong("remove"), help: "Delete the alias <name>.")
     var remove = false
 
     @Flag(name: .long, help: "Print the list as one JSON document instead of text.")
@@ -49,7 +49,7 @@ struct AliasCommand: ParsableCommand {
     }
 
     private static func isRemoving(_ arguments: [String]) -> Bool {
-        arguments.contains("--remove") || arguments.contains("-d")
+        arguments.contains("--remove")
     }
 
     static func confirmation(_ result: SetAliasResult) -> String {

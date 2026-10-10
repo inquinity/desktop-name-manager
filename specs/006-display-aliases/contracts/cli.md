@@ -6,7 +6,7 @@
 
 ```text
 dnm alias <name> [<display>]
-dnm alias --remove <name>     (or -d <name>)
+dnm alias --remove <name>
 dnm alias [--json]
 ```
 
@@ -15,7 +15,7 @@ dnm alias [--json]
 | Invocation | Action |
 |---|---|
 | `dnm alias <name> [<display>]` | Sets or updates alias `<name>` to point to `<display>`. If `<display>` is omitted, targets the main display. |
-| `dnm alias --remove <name>` (or `-d <name>`) | Removes the alias `<name>`. |
+| `dnm alias --remove <name>` | Removes the alias `<name>`. (A short `-d` existed in 0.1.1; removed in 0.2.0, spec 008.) |
 | `dnm alias` | Lists all configured aliases in human-readable columns. |
 | `dnm alias --json` | Lists all configured aliases as one JSON object. |
 

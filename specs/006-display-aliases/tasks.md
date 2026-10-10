@@ -49,7 +49,7 @@ description: "Task list for feature F2: display aliases"
 
 **Purpose**: View configured aliases (text and JSON) and delete aliases.
 
-- [x] T014 [US2] Implement removal in `AliasCommand.swift` (`--remove` / `-d`), printing `Removed alias <name>.` or exiting 2 if not found.
+- [x] T014 [US2] Implement removal in `AliasCommand.swift` (`--remove`), printing `Removed alias <name>.` or exiting 2 if not found.
 - [x] T015 [US2] Implement listing (bare `dnm alias`): aligned columns of alias, display (connected name, else recorded name, else identity) and status; `No aliases. …` when there are none.
 - [x] T016 [US2] Implement `dnm alias --json` as `{"aliases": [...]}` (contract §3) in `Sources/DesktopNameCore/Operations/Reports.swift` and `AliasCommand.swift`; `--json` with a name is invalid input.
 - [x] T017 [P] [US2] Contract tests for listing (connected, not connected, no name recorded), `--json`, `--json` with a name, and `--remove` (success and error paths).

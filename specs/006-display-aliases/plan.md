@@ -133,7 +133,7 @@ Tests/
 ### Phase 3: CLI Commands & Formatting
 1. Create `AliasCommand.swift`:
    - Positional arguments: `name: String?`, `display: String?`.
-   - Flags: `--remove` (`-d`), `--json`.
+   - Flags: `--remove`, `--json`. (A short `-d` existed in 0.1.1 and was removed in 0.2.0, spec 008.)
    - Branching:
      - `--remove <name>`: delete alias.
      - `name` provided: set/update alias for `display` (defaulting to `main`). Check that `name` does not match any currently connected display name.

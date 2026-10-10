@@ -14,7 +14,7 @@
 | `--color` | `light` `dark` | fixed (a `#RRGGBB` value is typed) |
 | `--display` (`set`, `remove`, `undo`, `show`) | `main`, connected display names, usable aliases | live, `DisplayResolver.completionCandidates(includeAliases: true)` |
 | `dnm alias <name>` | nothing (a new name) | |
-| `dnm alias --remove <name>` / `-d` | every stored alias | live, stored aliases |
+| `dnm alias --remove <name>` | every stored alias | live, stored aliases |
 | `dnm alias <name> <display>` | `main`, connected display names | live, `includeAliases: false` |
 | `--desktop`, labels, `--json` values | nothing | |
 

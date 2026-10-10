@@ -27,6 +27,11 @@ dnm --help | dnm <command> --help | dnm --version
   order of `specs/006-display-aliases/contracts/cli.md` §4. No match or
   more than one match exits `2`, prints the candidates, and changes nothing. Numbers and
   position keywords are not accepted.
+- **Short options** (decided 2026-10-09, spec 008): the only short options are `-h` (help, from the parser) and, when
+  quiet mode exists, `-q`. A short option is allowed only if its letter is the near-universal convention, means the
+  same thing in every command that has it, and is typed often at the keyboard rather than in scripts. Options that
+  delete or confirm (`--yes`, `--remove`), `--json`, `--display`, `--desktop`, `--label` and the look options have
+  none. A new short option needs a decision recorded in a spec. (`alias -d` of 0.1.1 was removed in 0.2.0.)
 - **Cleanup**: every command first deletes retired stamps older than the cool-down (30
   minutes) and our own unreferenced files older than that (FR-018, FR-026). It prints nothing about this
   unless it fails.

@@ -17,7 +17,7 @@
 - **Q: How should the CLI syntax for managing aliases be structured?**
   - **A**: Positional command with flags:
     - `dnm alias <name> [<display>]` to set or update an alias (defaults to `main` display if omitted).
-    - `dnm alias --remove <name>` (or `-d <name>`) to delete an alias.
+    - `dnm alias --remove <name>` to delete an alias (the short `-d` of 0.1.1 was removed in 0.2.0, spec 008).
     - Bare `dnm alias` (with no arguments) to list current aliases.
     - `--json` applies to the listing only.
 - **Q: How does `dnm` match display names when assigning an alias?**
@@ -145,7 +145,7 @@ Run `dnm displays` and verify aliases appear inline; run `dnm check` to inspect 
 - **FR-005**: Alias names MUST be 1–30 characters, consisting only of ASCII alphanumeric characters, `-`, and `_`. Names made only of digits and `main` MUST be rejected.
 - **FR-006**: Multiple aliases MAY map to the same physical display.
 - **FR-007**: Re-assigning an existing alias MUST update its target display without error. When the display changes, the confirmation MUST say it moved (`Moved alias <name> from <old display> to <new display>.`). The capitalization given last is stored.
-- **FR-008**: `dnm alias --remove <name>` (or `-d <name>`) MUST delete the alias, or exit 2 if it does not exist.
+- **FR-008**: `dnm alias --remove <name>` MUST delete the alias, or exit 2 if it does not exist.
 - **FR-009**: Bare `dnm alias` MUST list all configured aliases, their display names, and connection / override status. A disconnected alias's display MUST be shown by its recorded name, or by its identity if no name is recorded.
 - **FR-010**: `dnm alias --json` MUST output one JSON object with an `aliases` array. `--json` is accepted only when listing.
 - **FR-011**: Resolution of `--display <value>` in `set`, `remove`, `undo` and `show` MUST evaluate:
