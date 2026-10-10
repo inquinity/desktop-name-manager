@@ -60,4 +60,7 @@ Ideas recorded for later. None is part of a current spec.
   arguments ("set takes a label, or a display and a label; quote anything with spaces"); two arguments whose
   first is no display (no display matches it; to label the main display, quote the whole label); and a lone
   argument that is a display name or alias (refused, with the explicit `dnm set main "<label>"` form).
+  Decision (maintainer, 2026-10-09): no leniency. A wrong argument count is always an error, never a guess; the
+  way to avoid typing quotes around a display name with spaces is an alias (`dnm alias lg "LG Ultra"`, then
+  `dnm set lg "My label"`), and the errors for a display that does not resolve say so.
 
