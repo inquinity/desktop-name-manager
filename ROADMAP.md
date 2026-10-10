@@ -77,7 +77,7 @@ release yet.
 | Multi-line labels: an app feature (M2), not a CLI one ([backlog](docs/backlog.md)) | F5 | After 1.0.0 at the earliest |
 | `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) | F6 | Not set |
 | Display as a positional argument: `dnm set [<display>] <label>` and `dnm remove\|undo\|show [<display>]`, with `--display` still accepted ([specs/008-positional-display](specs/008-positional-display/)); a change of syntax, so it takes 0.2.0 and moves every later feature back | F8 | 0.2.0 |
-| Quiet flag: `-q` / `--quiet` (and `DNM_QUIET=1`) suppresses warnings, such as an alias overridden by a display's name, on every command; results and errors still print ([backlog](docs/backlog.md)) | F7 | Not set |
+| Quiet flag: `-q` / `--quiet` (and `DNM_QUIET=1`) suppresses warnings, such as an alias overridden by a display's name, on every command; results and errors still print ([backlog](docs/backlog.md)) | F7 | 0.3.0 |
 
 ## Minimum viable product (M1)
 

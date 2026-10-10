@@ -95,7 +95,7 @@ Ideas recorded for later. None is part of a current spec.
   reported image is the original of one of our labels, `remove` could set that original again (public
   `setDesktopImageURL`, with the recorded placement) so the screen catches up. Low priority: keeping the
   left-most Desktop unlabeled avoids the case. Confirm the cause first (KI-3).
-- **Quiet flag** (2026-10-09; roadmap F7, no release yet). A global `-q` / `--quiet`, and perhaps `DNM_QUIET=1`,
+- **Quiet flag** (2026-10-09; roadmap F7, 0.3.0). A global `-q` / `--quiet`, and perhaps `DNM_QUIET=1`,
   that suppresses warnings only, never results or errors, so a person who knows about a condition is not
   reminded on every run. The case that prompted it: alias `DP1` for one monitor while another monitor is
   named `DP1`. The display's name overrides the alias, so every `--display DP1` prints the warning, and
