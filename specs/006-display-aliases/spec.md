@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-08
 
-**Status**: Draft (reviewed 2026-10-08)
+**Status**: Implemented and released in 0.1.1 (build 2), 2026-10-09 (reviewed 2026-10-08)
 
 **Target release**: 0.1.1, before shell completions (F1)
 

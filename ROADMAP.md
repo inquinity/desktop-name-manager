@@ -11,7 +11,7 @@ The features in build order. Each milestone is reached when its feature is done;
 
 | Milestone | Feature | Specification | Status |
 |---|---|---|---|
-| **M1 (MVP)** | Labels and the `dnm` command-line tool | [specs/001-labels-and-cli](specs/001-labels-and-cli/) | **Released as 0.1.0 (build 1), 2026-10-07**: notarized, in the unlisted `desktop-name-manager` cask. Installed and checked on macOS 26 and 27; in daily use. The Intel refusal check remains |
+| **M1 (MVP)** | Labels and the `dnm` command-line tool | [specs/001-labels-and-cli](specs/001-labels-and-cli/) | **Released as 0.1.0 (build 1), 2026-10-07**: notarized, in the unlisted `desktop-name-manager` cask. Installed and checked on macOS 26 and 27; in daily use. The Intel refusal check remains. **0.1.1 (build 2) released 2026-10-09** with display aliases (F2) |
 | M2 | The menu-bar app and label editor | not written | Notes only |
 | M3 | Quick View: see every label, switch to one | not written | Notes only |
 | M4 | Desktop groups, display roles and sites (home and work monitors) | not written | Notes only |
@@ -69,7 +69,7 @@ release yet.
 
 | Description | Feature | Target release |
 |---|---|---|
-| Display aliases: short names for displays, tied to the display's identity ([specs/006-display-aliases](specs/006-display-aliases/)). Comes before F1 | F2 | 0.1.1 |
+| Display aliases: short names for displays, tied to the display's identity ([specs/006-display-aliases](specs/006-display-aliases/)). Comes before F1 | F2 | 0.1.1 (released 2026-10-09) |
 | Shell completions for bash and zsh: every command and option, with display names and aliases (F2) offered live for `--display` (as git offers branch names) and the fixed values of `--style`, `--color`, `--position` and `--size`; installed by the cask | F1 | 0.1.2 |
 | Clean up all labeled images after a manual reset, for example `dnm prune --all` ([backlog](docs/backlog.md)) | F4 | 0.1.3 |
 | Batch labeling: several Desktops in one command ([backlog](docs/backlog.md)) | F3 | 0.1.4 |
