@@ -35,8 +35,10 @@ extension DesktopLabeler {
         let originalURL = try Self.resolve(stamp.original)
 
         let now = time.now
+        let shown = try shownFileNames()
         let snapshot = try store.transaction { manifest -> Manifest in
             let before = manifest
+            Self.markSeen(shown, at: now, in: &manifest)
             // Bookkeeping only: other Desktops may still show this image, so it stays on disk.
             if let index = manifest.stamps.firstIndex(where: { $0.id == stamp.id }), manifest.stamps[index].isActive {
                 manifest.stamps[index].state = .retired(at: now, reason: .removed)

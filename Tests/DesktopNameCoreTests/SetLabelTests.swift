@@ -79,11 +79,11 @@ import Testing
         #expect(result.label.automatic.isSuperset(of: [.look, .textColor]))
     }
 
-    @Test func everySetUsesANewRandomFileName() throws {
+    @Test func everyNewImageHasANewRandomFileName() throws {
         let h = try LabelerHarness(); defer { h.cleanUp() }
         try h.showOriginal()
-        try h.labeler.setLabel(LabelText("Same"), on: h.display)
-        try h.labeler.setLabel(LabelText("Same"), on: h.display)
+        try h.labeler.setLabel(LabelText("One"), on: h.display)
+        try h.labeler.setLabel(LabelText("Two"), on: h.display)
         let names = try h.manifest().stamps.map(\.fileName)
         #expect(Set(names).count == 2)
     }

@@ -53,6 +53,16 @@ extension DesktopLabeler {
 
         // Render from the recorded original, never from a previous stamp, so labels do not stack.
         let baseURL = try Self.resolve(original)
+        let now = time.now
+        let shown = try shownFileNames()
+
+        // The same request as an existing label (a Desktop deleted and made again, a label removed and set again):
+        // use its image instead of rendering another (spec 009).
+        let key = ReuseKey.make(original: original, originalURL: baseURL, text: text, options: options, display: display)
+        if let reused = manifest.stamps.first(where: { $0.reuseKey == key && store.stampFileExists(named: $0.fileName) }) {
+            return try reuse(reused, replacing: replacing, original: original, on: display, now: now, shown: shown)
+        }
+
         let base = try Backdrop.loadImage(at: baseURL)
         let backdrop = try Backdrop.compose(base: base, placement: Backdrop.Placement(Self.placement(of: original)), geometry: display.geometry)
         let rendered = try LabelRenderer.render(backdrop: backdrop, text: text, options: options, geometry: display.geometry)
@@ -63,11 +73,11 @@ extension DesktopLabeler {
         let stampURL = store.fileURL(named: fileName)
         try store.writeStampFile(data, named: fileName)
 
-        let now = time.now
         let snapshot: Manifest
         do {
             snapshot = try store.transaction { manifest in
                 let before = manifest
+                Self.markSeen(shown, at: now, in: &manifest)
                 // Bookkeeping only (for undo and prune): other Desktops may still show the old image, which
                 // stays untouched on disk.
                 if let replacing, let index = manifest.stamps.firstIndex(where: { $0.id == replacing.id }) {
@@ -77,7 +87,7 @@ extension DesktopLabeler {
                 manifest.stamps.append(Stamp(id: id, fileName: fileName, label: rendered.label, original: original,
                                              displayUUID: display.uuid, displayName: display.name,
                                              pixelWidth: rendered.image.width,
-                                             pixelHeight: rendered.image.height, createdAt: now))
+                                             pixelHeight: rendered.image.height, createdAt: now, reuseKey: key, lastSeen: now))
                 manifest.changes.removeAll { $0.displayUUID == display.uuid }
                 manifest.changes.append(ChangeRecord(displayUUID: display.uuid, kind: replacing == nil ? .set : .replace, at: now,
                                                      produced: .stamp(id: id),
@@ -98,5 +108,38 @@ extension DesktopLabeler {
             throw error
         }
         return SetLabelResult(label: rendered.label, displayName: display.name, replaced: replacing != nil)
+    }
+
+    /// Puts an existing label's image on the Desktop instead of making a new one: the label of a deleted Desktop (still
+    /// active), or one removed earlier (retired, now revived).
+    private func reuse(_ stamp: Stamp, replacing: Stamp?, original: Original, on display: Display,
+                       now: Date, shown: Set<String>) throws -> SetLabelResult {
+        let stampURL = store.fileURL(named: stamp.fileName)
+        let snapshot = try store.transaction { manifest -> Manifest in
+            let before = manifest
+            Self.markSeen(shown, at: now, in: &manifest)
+            guard let index = manifest.stamps.firstIndex(where: { $0.id == stamp.id }) else { return before }
+            manifest.stamps[index].lastSeen = now
+            // The same label asked for again on the Desktop that shows it: nothing else changes.
+            if replacing?.id == stamp.id { return before }
+            if let replacing, let old = manifest.stamps.firstIndex(where: { $0.id == replacing.id }) {
+                if manifest.stamps[old].isActive { manifest.stamps[old].state = .retired(at: now, reason: .replaced) }
+                manifest.stamps[old].supersededBy = stamp.id
+            }
+            manifest.stamps[index].state = .active
+            manifest.stamps[index].supersededBy = nil
+            manifest.changes.removeAll { $0.displayUUID == display.uuid }
+            manifest.changes.append(ChangeRecord(displayUUID: display.uuid, kind: replacing == nil ? .set : .replace, at: now,
+                                                 produced: .stamp(id: stamp.id),
+                                                 before: replacing.map { .stamp(id: $0.id) } ?? .original(original)))
+            return before
+        }
+        do {
+            try apply(stampURL, placement: Self.stampPlacement(fill: stamp.original.fillColor), on: display)
+        } catch {
+            try? store.transaction { $0 = snapshot }
+            throw error
+        }
+        return SetLabelResult(label: stamp.label, displayName: display.name, replaced: replacing != nil)
     }
 }

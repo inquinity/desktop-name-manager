@@ -51,9 +51,16 @@ public struct Stamp: Codable, Equatable, Sendable {
     public var createdAt: Date
     public var state: StampState
     public var supersededBy: UUID?
+    /// SHA-256 (hex) of what this image was made from (spec 009 data model); nil for labels made before it existed,
+    /// which are never reused.
+    public var reuseKey: String?
+    /// The last time this label's image was the wallpaper of a display's current Desktop that something looked at
+    /// (set at creation). nil for labels made before it existed: their age counts from `createdAt`.
+    public var lastSeen: Date?
 
     public init(id: UUID, fileName: String, label: Label, original: Original, displayUUID: String, displayName: String = "",
-                pixelWidth: Int, pixelHeight: Int, createdAt: Date, state: StampState = .active, supersededBy: UUID? = nil) {
+                pixelWidth: Int, pixelHeight: Int, createdAt: Date, state: StampState = .active, supersededBy: UUID? = nil,
+                reuseKey: String? = nil, lastSeen: Date? = nil) {
         self.id = id
         self.fileName = fileName
         self.label = label
@@ -65,6 +72,8 @@ public struct Stamp: Codable, Equatable, Sendable {
         self.createdAt = createdAt
         self.state = state
         self.supersededBy = supersededBy
+        self.reuseKey = reuseKey
+        self.lastSeen = lastSeen
     }
 
     public var isActive: Bool {
@@ -96,12 +105,24 @@ public struct ChangeRecord: Codable, Equatable, Sendable {
     }
 }
 
+/// When the cleanup nudge was last shown (spec 009), so it is not shown again at once.
+public struct Maintenance: Codable, Equatable, Sendable {
+    public var nudgedAt: Date?
+    public var nudgedBytes: Int64?
+
+    public init(nudgedAt: Date? = nil, nudgedBytes: Int64? = nil) {
+        self.nudgedAt = nudgedAt
+        self.nudgedBytes = nudgedBytes
+    }
+}
+
 /// Everything the tool stores in `manifest.json`.
 ///
-/// Version 2 added `aliases` (spec 006). This build reads versions 1 and 2 and writes 2; older builds refuse
-/// version 2, an accepted risk at 0.1.
+/// Version 2 added `aliases` (spec 006); version 3 added `maintenance` and each label's `reuseKey` and `lastSeen`
+/// (spec 009). This build reads versions 1 to 3 and writes 3; older builds refuse a newer version, an accepted risk
+/// at 0.x.
 public struct Manifest: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 2
+    public static let currentSchemaVersion = 3
 
     public var schemaVersion: Int
     public var stamps: [Stamp]
@@ -109,13 +130,16 @@ public struct Manifest: Codable, Equatable, Sendable {
     public var changes: [ChangeRecord]
     /// Unique by lowercased name.
     public var aliases: [DisplayAlias]
+    /// nil until the first nudge; cleared by a cleanup.
+    public var maintenance: Maintenance?
 
     public init(schemaVersion: Int = Manifest.currentSchemaVersion, stamps: [Stamp] = [], changes: [ChangeRecord] = [],
-                aliases: [DisplayAlias] = []) {
+                aliases: [DisplayAlias] = [], maintenance: Maintenance? = nil) {
         self.schemaVersion = schemaVersion
         self.stamps = stamps
         self.changes = changes
         self.aliases = aliases
+        self.maintenance = maintenance
     }
 
     public init(from decoder: Decoder) throws {
@@ -124,5 +148,6 @@ public struct Manifest: Codable, Equatable, Sendable {
         stamps = try container.decode([Stamp].self, forKey: .stamps)
         changes = try container.decode([ChangeRecord].self, forKey: .changes)
         aliases = try container.decodeIfPresent([DisplayAlias].self, forKey: .aliases) ?? []
+        maintenance = try container.decodeIfPresent(Maintenance.self, forKey: .maintenance)
     }
 }

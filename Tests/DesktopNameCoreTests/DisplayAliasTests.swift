@@ -42,7 +42,7 @@ import Testing
 
         try store.transaction { $0.aliases.append(DisplayAlias(name: "desk", displayUUID: "U", displayName: "Studio")) }
         let saved = try store.readManifest()
-        #expect(saved.schemaVersion == 2)
+        #expect(saved.schemaVersion == Manifest.currentSchemaVersion)
         #expect(saved.aliases == [DisplayAlias(name: "desk", displayUUID: "U", displayName: "Studio")])
     }
 
@@ -50,9 +50,9 @@ import Testing
         let root = try SyntheticImages.temporaryDirectory(); defer { try? FileManager.default.removeItem(at: root) }
         let store = Store(directory: root.appendingPathComponent("store", isDirectory: true))
         try FileManager.default.createDirectory(at: store.directory, withIntermediateDirectories: true)
-        let original = Data(#"{"schemaVersion": 3, "stamps": [], "changes": [], "aliases": []}"#.utf8)
+        let original = Data(#"{"schemaVersion": 4, "stamps": [], "changes": [], "aliases": []}"#.utf8)
         try original.write(to: store.manifestURL)
-        #expect(throws: DnmError.newerManifest(found: 3, supported: 2)) { try store.readManifest() }
+        #expect(throws: DnmError.newerManifest(found: 4, supported: 3)) { try store.readManifest() }
         #expect(try Data(contentsOf: store.manifestURL) == original)
     }
 

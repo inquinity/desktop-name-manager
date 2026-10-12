@@ -45,7 +45,7 @@ import Testing
         #expect(check.output.contains("Aliases") && check.output.contains("1 alias."))
 
         let manifest = try String(contentsOfFile: store + "/manifest.json", encoding: .utf8)
-        #expect(manifest.contains("\"schemaVersion\" : 2"))
+        #expect(manifest.contains("\"schemaVersion\" : 3"))
 
         let removed = try CLI.run(["alias", "--remove", "desk"], store: store)
         #expect(removed.status == 0 && removed.output == "Removed alias Desk.\n")

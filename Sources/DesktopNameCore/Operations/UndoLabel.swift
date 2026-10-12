@@ -50,14 +50,17 @@ extension DesktopLabeler {
             target = (url, Self.placement(of: original), nil)
         }
 
+        let shown = try shownFileNames()
         let snapshot = try store.transaction { manifest -> Manifest in
             let before = manifest
+            Self.markSeen(shown, at: now, in: &manifest)
             if case .stamp(let id) = record.produced, let index = manifest.stamps.firstIndex(where: { $0.id == id }) {
                 manifest.stamps[index].state = .retired(at: now, reason: .undone)
             }
             if case .stamp(let id) = record.before, let index = manifest.stamps.firstIndex(where: { $0.id == id }) {
                 manifest.stamps[index].state = .active
                 manifest.stamps[index].supersededBy = nil
+                manifest.stamps[index].lastSeen = now   // it is showing again
             }
             manifest.changes.removeAll { $0.displayUUID == display.uuid }   // one level only
             return before

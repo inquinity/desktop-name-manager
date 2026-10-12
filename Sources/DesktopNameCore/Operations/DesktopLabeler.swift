@@ -24,6 +24,23 @@ public final class DesktopLabeler {
         try Housekeeping.run(store: store, now: time.now)
     }
 
+    /// The file names of the images showing on every display's current Desktop: what anything looking now can see.
+    func shownFileNames() throws -> Set<String> {
+        var names = Set<String>()
+        for display in try system.displays() {
+            if let name = try system.currentWallpaper(on: display).url?.lastPathComponent { names.insert(name) }
+        }
+        return names
+    }
+
+    /// Records, inside a transaction, that the labels whose images are in `names` were seen showing at `now` (spec 009).
+    /// Only commands that already write call it; the read-only ones change nothing.
+    static func markSeen(_ names: Set<String>, at now: Date, in manifest: inout Manifest) {
+        for index in manifest.stamps.indices where names.contains(manifest.stamps[index].fileName) {
+            manifest.stamps[index].lastSeen = now
+        }
+    }
+
     /// The wallpaper placement used for a stamp. The image already matches the display exactly,
     /// so scale-to-fill is lossless whatever the original placement was (research R7).
     static func stampPlacement(fill: Data?) -> WallpaperPlacement {

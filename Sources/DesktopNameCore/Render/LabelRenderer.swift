@@ -4,6 +4,10 @@ import Foundation
 /// The whole rendering pipeline behind one function: sample the backdrop, choose the look and text
 /// color, lay the label out, and draw it.
 package enum LabelRenderer {
+    /// Part of the reuse key (spec 009): change it whenever a render of the same request would look different, so
+    /// that images made by an older renderer are not reused.
+    package static let version = 1
+
     package struct Rendered {
         package var image: CGImage
         package var label: Label
