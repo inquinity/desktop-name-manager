@@ -88,12 +88,24 @@ import Testing
         expect(read(["2", "x"]), .error(contains: ["Numbered displays are not supported"]))
     }
 
-    @Test func aDisplayOrALabelGivenTwiceIsAnError() {
-        let once = "Multiple displays for a single command are not currently supported."
-        expect(read(["DP", "x"], display: ["main"]), .error(contains: [once]))
-        expect(read(["x"], display: ["main", "DP"]), .error(contains: [once]))
-        expect(read(["DP"], display: ["main"], label: ["x"]), .error(contains: [once]))
-        expect(read([], display: ["DP", "DP"], label: ["x"]), .error(contains: [once]), "even the same display twice")
+    @Test func twoDifferentDisplaysAreNotSupportedYet() {
+        let several = "Multiple displays for a single command are not currently supported."
+        expect(read(["DP", "x"], display: ["main"]), .error(contains: [several]), "a command typed and then added to")
+        expect(read(["x"], display: ["main", "DP"]), .error(contains: [several]))
+        expect(read(["DP"], display: ["main"], label: ["x"]), .error(contains: [several]))
+        expect(read([], display: ["main", "DP", "lg"], label: ["x"]), .error(contains: [several]))
+    }
+
+    @Test func theSameDisplayNamedMoreThanOnceIsOneDisplay() {
+        expect(read(["DP", "x"], display: ["DP"]), .ok(display: "DP", label: "x"))
+        expect(read(["DP", "x"], display: ["dp"]), .ok(display: "DP", label: "x"), "ignoring case")
+        expect(read(["x"], display: ["main", "Built-in Display"]), .ok(display: "Built-in Display", label: "x"), "main is the built-in display")
+        expect(read([], display: ["DP", "DP"], label: ["x"]), .ok(display: "DP", label: "x"))
+        expect(read(["DP"], display: ["DP"], label: ["x"]), .ok(display: "DP", label: "x"))
+        expect(read(["LG Ultra", "x"], display: ["lg"]), .ok(display: "LG Ultra HD", label: "x"), "a part of the name and an alias")
+    }
+
+    @Test func aLabelGivenTwiceIsAnError() {
         expect(read([], label: ["a", "b"]), .error(contains: ["Give the label once"]))
     }
 
@@ -153,6 +165,8 @@ import Testing
         expect(target([], display: ["DP"]), .ok(display: "DP", label: ""))
         expect(target(["DP"], display: ["main"]), .error(contains: ["Multiple displays for a single command are not currently supported."]))
         expect(target([], display: ["main", "DP"]), .error(contains: ["Multiple displays for a single command are not currently supported."]))
+        expect(target(["DP"], display: ["DP"]), .ok(display: "DP", label: ""), "the same display twice is one display")
+        expect(target([], display: ["DP", "dp"]), .ok(display: "DP", label: ""))
         expect(target(["DP", "lg"]), .error(contains: ["show takes at most one display (got 2 words)", "use an alias"]))
         expect(target(["nope"]), .error(contains: ["No display matches \"nope\""]))
     }

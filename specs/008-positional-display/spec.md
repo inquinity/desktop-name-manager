@@ -33,8 +33,8 @@
   - **A**: Display first, then the label, then the other options: `dnm set DP1 "LabelX"`, `dnm set --display DP1 --label "LabelX"`, `dnm set DP1 "LabelX" --desktop 2`. The README, `--help` examples and the release notes follow it; the order is a convention, not a rule.
 - **Q: What does a display word accept?**
   - **A**: Exactly what `--display` accepts, through the one resolution algorithm (spec 006 FR-011, FR-019): `main`, an exact display name, an exact alias, or a unique partial display name, with the override warning. A name with spaces is quoted, as the shell requires.
-- **Q: What if the display is given twice, or the label is given twice?**
-  - **A**: An error, even when both name the same display: "Multiple displays for a single command are not currently supported." (changed 2026-10-12: the first wording, "Give the display once", read as a mistake when someone tried two displays on purpose; several displays in one command are planned, F3). That covers a word plus `--display`, and `--display` repeated. Repeating `--display` is an error from this release; before, the last one silently won (found 2026-10-09). `--label` repeated, or `--label` together with a label word, is an error too.
+- **Q: What if more than one display is named (as a word and with `--display`, or `--display` repeated)?**
+  - **A**: The words and the `--display` values together name the displays, so a command that was typed and then added to does not have to be edited (maintainer, 2026-10-12: "unless it is ambiguous, leave it"). Naming the same display more than once is one display and works. Naming two different displays is not supported yet and is refused with "Multiple displays for a single command are not currently supported." (several displays in one command are planned, F3; then the same command line will act on each). Repeating `--display` used to keep only the last one silently (found 2026-10-09); that is gone. A label given twice (`--label` repeated) is an error.
 - **Q: What if there are too many words?**
   - **A**: An error that tells what to type, never a guess (maintainer decision): `set` takes a label, or a display and a label; with `--label` it takes at most one display; `remove`, `undo` and `show` take at most one display. The message says to quote anything with spaces and that an alias avoids quoting a display name.
 - **Q: `dnm set Mail Inbox`, where `Mail` is no display?**
@@ -93,7 +93,7 @@ As a user, I want a mistake in the words to be an error that tells me what to ty
 1. **Given** `dnm set LG Ultra "label"` (an unquoted name with a space), **Then** exit 2: `set` takes a label, or a display and a label; quote anything with spaces; an alias avoids quoting.
 2. **Given** `dnm set Mail Inbox` where `Mail` is no display, **Then** exit 2: no display matches `Mail`, with the quoting hint for a label.
 3. **Given** `dnm set DP1` where `DP1` is a connected display, **Then** exit 2 giving both forms (with a name that has spaces quoted in the suggestion); nothing is labeled.
-4. **Given** `dnm set DP1 "x" --display DP2`, `dnm show DP1 --display DP2` or `dnm show --display main --display DP`, **Then** exit 2: give the display once.
+4. **Given** `dnm set DP1 "x" --display DP2`, `dnm show DP1 --display DP2` or `dnm show --display main --display DP` (two different displays), **Then** exit 2: "Multiple displays for a single command are not currently supported." **Given** the same display named twice (`dnm show DP --display DP`), **Then** it works as for one display.
 5. **Given** `dnm set "x" --label "y"`, `dnm set a b --label "y"` or `--label` twice, **Then** exit 2 saying what is wrong.
 6. **Given** `dnm set` with no label, **Then** exit 2 as today.
 
@@ -131,7 +131,7 @@ As a user with scripts, I want `--display` to keep working.
 - **FR-001**: `dnm set` MUST accept `[<display>] <label>` (one word: the label; two: display and label) and `[<display>] --label <text>`.
 - **FR-002**: `dnm remove`, `dnm undo` and `dnm show` MUST accept an optional display word.
 - **FR-003**: A display word MUST be resolved by the single resolution algorithm in its full mode (spec 006 FR-011, FR-019), including the override warning.
-- **FR-004**: `--display` MUST remain. A display given twice in any way (word and `--display`, or `--display` repeated) MUST be an error (exit 2) even if it is the same display. A label given twice (`--label` repeated, or `--label` with a label word) MUST be an error.
+- **FR-004**: `--display` MUST remain. The display word and every `--display` value together name the displays; naming the same display more than once MUST be accepted as that one display; naming two or more different displays MUST be refused (exit 2) with "Multiple displays for a single command are not currently supported." until several displays are supported (F3). A label given twice (`--label` repeated) MUST be an error.
 - **FR-005**: How the words and flags are read (how many, which is the display, which the label, every refusal) MUST be decided in one function in the core library, used by all four commands, and MUST return the resolved display, so a display is resolved once.
 - **FR-006**: Too many words MUST exit 2, change nothing, and say what the command takes, to quote anything with spaces and that an alias avoids quoting.
 - **FR-007**: With two words whose first resolves to no display, the command MUST exit 2 with the resolver's message and the quoting hint; every command suggested in a message MUST be quoted the way a POSIX shell would quote it (spaces, `$`, quotes, an empty word), by one small tested function.

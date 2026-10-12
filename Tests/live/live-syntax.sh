@@ -4,7 +4,8 @@
 #
 # On every connected display it labels, shows, replaces, undoes and removes using the display as a word, as
 # --display, with --label, through an alias and as "main"; checks that each display gets its own label; and
-# checks that the mistakes (a display given twice, a lone word that is a display) are refused and change nothing.
+# checks that the mistakes (two different displays, a lone word that is a display) are refused and change nothing,
+# and that naming the same display twice works as for one display.
 # It never switches Desktops: it acts on the Desktop showing on each display.
 #
 # This changes the wallpaper of the Desktop you are on, on every display. Run it only while you are idle, on
@@ -95,6 +96,11 @@ shows_no_label() {
 # shows_the_same_both_ways <display word>: the word and --display give the same `dnm show`.
 shows_the_same_both_ways() {
     [[ "$("$dnm_binary" show "$1" 2>&1)" == "$("$dnm_binary" show --display "$1" 2>&1)" ]]
+}
+
+# succeeds <dnm arguments...>: dnm exits 0 (whatever it prints).
+succeeds() {
+    "$dnm_binary" "$@" >/dev/null 2>&1
 }
 
 # exits_with <status> <dnm arguments...>: dnm exits with that status and prints nothing on standard output.
@@ -197,8 +203,12 @@ for name in "${display_names[@]}"; do
     check "a lone word that is a display is refused (exit 2, no output)" exits_with 2 set "$name"
     check "a lone alias is refused too" exits_with 2 set "$alias_name"
     check "the refusals changed nothing" shows_label "$name" "Explicit form"
-    check "a display given as a word and with --display is refused" exits_with 2 set "$name" "Twice" --display "$name"
-    check "--display given twice is refused (the same display)" exits_with 2 set "Twice" --display "$name" --display "$name"
+    check "a display as a word and again with --display (the same one) is accepted" succeeds show "$name" --display "$name"
+    check "--display given twice for the same display is accepted" succeeds show --display "$name" --display "$name"
+    for other in "${display_names[@]}"; do
+        [[ "$other" == "$name" ]] && continue
+        check "naming ${other} as well is refused (several displays are not supported yet)" exits_with 2 set "$name" "Twice" --display "$other"
+    done
     check "--label given twice is refused" exits_with 2 set "$name" --label "One" --label "Two"
     check "three words are refused" exits_with 2 set "$name" "Too" "many"
     check "these refusals changed nothing either" shows_label "$name" "Explicit form"

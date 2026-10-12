@@ -23,21 +23,19 @@ The reference test and the resolution share their matchers.
 ## 2. How a command line is read (one function in the core)
 
 *Words* are the arguments that are not options. *Display flag* is `--display`; *label flag* is `--label`.
-Giving `--display` or `--label` more than once is always an error ("Multiple displays for a single command are not currently supported." / "Give the label once").
+The display word, if any, and every `--display` value together name the displays. Naming the same display more than once (also by different names for it, such as `main` and its name) is one display. Naming two or more *different* displays is an error ("Multiple displays for a single command are not currently supported."; F3 will make it act on each). `--label` more than once is an error ("Give the label once").
 
 ### `set`
 
 | Label flag | Words | Display flag | Reading |
 |---|---|---|---|
-| given | 0 | any | display = the flag, or main; label = the flag |
-| given | 1 | none | display = the word; label = the flag |
-| given | 1 | given | error: display given twice |
+| given | 0 | any | display = the flag(s), or main; label = the flag |
+| given | 1 | any | display = the word (and the display flags, if any, must name the same display); label = the flag |
 | given | 2 or more | any | error: with `--label`, `set` takes at most one display |
 | none | 0 | any | error: a label is required |
-| none | 1 | given | label = the word; display = the flag |
+| none | 1 | given | label = the word; display = the flag(s) |
 | none | 1 | none | if the word is a display reference: refuse (lone word is a display); else label = the word, display = main |
-| none | 2 | given | error: display given twice |
-| none | 2 | none | display = word 1; label = word 2 (if word 1 resolves to no display: error with the quoting hint) |
+| none | 2 | any | display = word 1 (and the flags, if any, must name the same display); label = word 2 (if word 1 resolves to no display: error with the quoting hint) |
 | none | 3 or more | any | error: too many words |
 
 ### `remove`, `undo`, `show`
@@ -45,8 +43,7 @@ Giving `--display` or `--label` more than once is always an error ("Multiple dis
 | Words | Display flag | Reading |
 |---|---|---|
 | 0 | any | display = the flag, or main |
-| 1 | none | display = the word |
-| 1 | given | error: display given twice |
+| 1 | any | display = the word (and the flags, if any, must name the same display) |
 | 2 or more | any | error: too many words |
 
 The function returns the resolved display (and the override warning, if any) with the label, so the command

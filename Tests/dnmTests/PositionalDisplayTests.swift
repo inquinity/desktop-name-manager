@@ -26,15 +26,11 @@ import Testing
         Mistake(["set", "x", "--label", "y"], "With --label, a plain word is read as the display"),
         Mistake(["set", "a", "b", "--label", "y"], "with --label, set takes at most one display"),
         Mistake(["set", "--label", "a", "--label", "b"], "Give the label once"),
-        Mistake(["set", "main", "x", "--display", "main"], "Multiple displays for a single command are not currently supported."),
-        Mistake(["set", "x", "--display", "main", "--display", "main"], "Multiple displays for a single command are not currently supported."),
         Mistake(["set"], "set needs a label"),
         Mistake(["set", "zz-no-such-display", "Mail", "--color", "bogus"], "Unknown color"),
         Mistake(["set", "", "Mail"], "The display is empty"),
         Mistake(["show", "--display", ""], "The display is empty"),
         Mistake(["show", "main", "main"], "show takes at most one display (got 2 words)"),
-        Mistake(["show", "main", "--display", "main"], "Multiple displays for a single command are not currently supported."),
-        Mistake(["show", "--display", "main", "--display", "main"], "Multiple displays for a single command are not currently supported."),
         Mistake(["remove", "a", "b"], "remove takes at most one display"),
         Mistake(["undo", "a", "b", "c"], "undo takes at most one display (got 3 words)"),
     ]
@@ -82,6 +78,32 @@ import Testing
         #expect(set.output.contains("dnm set [<display>] <label>") && set.output.contains("dnm set [<display>] --label <text>"))
         for command in ["show", "remove", "undo"] {
             #expect(try CLI.run([command, "--help"]).output.contains("dnm \(command) [<display>]"), "\(command)")
+        }
+    }
+
+    @Test(.enabled(if: CLI.connectedDisplayCount() > 0))
+    func theSameDisplayNamedTwiceIsAcceptedAndMeansOneDisplay() throws {
+        let store = CLI.scratchStore()
+        defer { try? FileManager.default.removeItem(atPath: store) }
+        let plain = try CLI.run(["show", "main", "--json"], store: store)
+        for arguments in [["show", "main", "--display", "main", "--json"], ["show", "--display", "main", "--display", "main", "--json"],
+                          ["show", "--display", "MAIN", "--display", "main", "--json"]] {
+            let result = try CLI.run(arguments, store: store)
+            #expect(result.status == 0 && result.output == plain.output && result.errors.isEmpty, "\(arguments)")
+        }
+    }
+
+    @Test(.enabled(if: CLI.connectedDisplayCount() > 1))
+    func twoDifferentDisplaysAreRefusedWithThePlainMessage() throws {
+        let store = CLI.scratchStore()
+        defer { try? FileManager.default.removeItem(atPath: store) }
+        let other = try #require(try displayNames().first { name in
+            (try? CLI.run(["show", "main", "--json"]).output.contains("\"name\" : \"\(name)\"")) == false
+        })
+        for arguments in [["show", "main", "--display", other], ["show", "--display", "main", "--display", other], ["set", "main", "x", "--display", other]] {
+            let result = try CLI.run(arguments, store: store)
+            #expect(result.status == 2 && result.output.isEmpty, "\(arguments)")
+            #expect(result.errors == "dnm: Multiple displays for a single command are not currently supported.\n", "\(arguments): \(result.errors)")
         }
     }
 }
