@@ -9,3 +9,6 @@
   when `cleanup` could free 50 MB or more. Nothing is deleted by itself.
 - **Changed:** the stored data is now format 3 (labels record when they were last seen); older releases refuse it. Labels
   made before this release are never reused.
+- **Clearer message for two displays.** `dnm set --display main --display DP "label"` (or a display word together with
+  `--display`) now says "Multiple displays for a single command are not currently supported." instead of asking you
+  to give the display once; several displays in one command are planned.

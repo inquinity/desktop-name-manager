@@ -34,7 +34,7 @@
 - **Q: What does a display word accept?**
   - **A**: Exactly what `--display` accepts, through the one resolution algorithm (spec 006 FR-011, FR-019): `main`, an exact display name, an exact alias, or a unique partial display name, with the override warning. A name with spaces is quoted, as the shell requires.
 - **Q: What if the display is given twice, or the label is given twice?**
-  - **A**: An error, even when both name the same display: "Give the display once". That covers a word plus `--display`, and `--display` repeated. Repeating `--display` is an error from this release; before, the last one silently won (found 2026-10-09). `--label` repeated, or `--label` together with a label word, is an error too.
+  - **A**: An error, even when both name the same display: "Multiple displays for a single command are not currently supported." (changed 2026-10-12: the first wording, "Give the display once", read as a mistake when someone tried two displays on purpose; several displays in one command are planned, F3). That covers a word plus `--display`, and `--display` repeated. Repeating `--display` is an error from this release; before, the last one silently won (found 2026-10-09). `--label` repeated, or `--label` together with a label word, is an error too.
 - **Q: What if there are too many words?**
   - **A**: An error that tells what to type, never a guess (maintainer decision): `set` takes a label, or a display and a label; with `--label` it takes at most one display; `remove`, `undo` and `show` take at most one display. The message says to quote anything with spaces and that an alias avoids quoting a display name.
 - **Q: `dnm set Mail Inbox`, where `Mail` is no display?**

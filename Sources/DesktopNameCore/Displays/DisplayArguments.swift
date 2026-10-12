@@ -77,7 +77,7 @@ public enum DisplayArguments {
     }
 
     private static var displayGivenTwice: DnmError {
-        .invalidInput("Give the display once, as a word or with --display (not both, and not --display twice).")
+        .invalidInput("Multiple displays for a single command are not currently supported.")
     }
 
     /// Resolves through `DisplayResolver`. A hint is added to its message only when the word is no display at all: an

@@ -89,7 +89,7 @@ import Testing
     }
 
     @Test func aDisplayOrALabelGivenTwiceIsAnError() {
-        let once = "Give the display once"
+        let once = "Multiple displays for a single command are not currently supported."
         expect(read(["DP", "x"], display: ["main"]), .error(contains: [once]))
         expect(read(["x"], display: ["main", "DP"]), .error(contains: [once]))
         expect(read(["DP"], display: ["main"], label: ["x"]), .error(contains: [once]))
@@ -151,8 +151,8 @@ import Testing
         expect(target(["LG Ultra"]), .ok(display: "LG Ultra HD", label: ""))
         expect(target(["lg"]), .ok(display: "LG Ultra HD", label: ""))
         expect(target([], display: ["DP"]), .ok(display: "DP", label: ""))
-        expect(target(["DP"], display: ["main"]), .error(contains: ["Give the display once"]))
-        expect(target([], display: ["main", "DP"]), .error(contains: ["Give the display once"]))
+        expect(target(["DP"], display: ["main"]), .error(contains: ["Multiple displays for a single command are not currently supported."]))
+        expect(target([], display: ["main", "DP"]), .error(contains: ["Multiple displays for a single command are not currently supported."]))
         expect(target(["DP", "lg"]), .error(contains: ["show takes at most one display (got 2 words)", "use an alias"]))
         expect(target(["nope"]), .error(contains: ["No display matches \"nope\""]))
     }

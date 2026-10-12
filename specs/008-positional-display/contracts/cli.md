@@ -23,7 +23,7 @@ The reference test and the resolution share their matchers.
 ## 2. How a command line is read (one function in the core)
 
 *Words* are the arguments that are not options. *Display flag* is `--display`; *label flag* is `--label`.
-Giving `--display` or `--label` more than once is always an error ("Give the display once" / "Give the label once").
+Giving `--display` or `--label` more than once is always an error ("Multiple displays for a single command are not currently supported." / "Give the label once").
 
 ### `set`
 
@@ -64,7 +64,7 @@ Every word in a suggested command is quoted the way a POSIX shell would (single 
 | First of two words is no display | the resolver's message, then `To label the main display with several words, quote the whole label: dnm set '<word 1> <word 2>'.` The hint is added only when the word is no display at all; an alias of a display that is away gets the resolver's message alone. |
 | A display given but empty (`dnm set "" Mail`, `--display ""`) | `dnm: The display is empty: name a display, or leave it out for the main display.` |
 | Lone word is a display reference | `dnm: "<word>" is a display. To label it: dnm set <word> "<label>". To use "<word>" as the label of the main display: dnm set --label <word>.` |
-| Display given twice | `dnm: Give the display once, as a word or with --display (not both, and not --display twice).` |
+| Display given twice, or two displays named | `dnm: Multiple displays for a single command are not currently supported.` (the first wording, "Give the display once", was changed on 2026-10-12: it read as a mistake when two displays were tried on purpose) |
 | Label given twice | `dnm: Give the label once, as a word or with --label (not both, and not --label twice).` |
 
 ## 4. Completion (spec 007)

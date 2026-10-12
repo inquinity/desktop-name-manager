@@ -87,7 +87,7 @@ dnm set lg "Mail"                        # an alias avoids the quotes
   label that starts with a dash is written `--label=-x`.
 - **`--display` still works** (`dnm set "Mail" --display DP`) and is the explicit form for scripts, together with
   `--label`: whether a lone word is refused depends on the displays connected and the aliases you have, which the
-  flags do not. Give the display once: a word and `--display`, or `--display` twice, is an error.
+  flags do not. One display per command: a word and `--display`, or `--display` twice, is an error (several displays in one command are planned).
 - **Order.** Options may come before, between or after the words; the examples put the display first because it
   reads best.
 
