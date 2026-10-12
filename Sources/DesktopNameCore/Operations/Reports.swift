@@ -77,15 +77,18 @@ public enum Reports {
         public var displays: [ListedDisplay]
     }
 
-    public struct PruneEntry: Codable, Equatable, Sendable {
+    public struct CleanupEntry: Codable, Equatable, Sendable {
         public var label: String
-        public var reason: String
-        public var retiredAt: Date
+        public var display: String
+        /// `removed`, `replaced`, `undone` or `not seen`.
+        public var why: String
+        public var since: Date
         public var bytes: Int64
     }
 
-    public struct Prune: Codable, Equatable, Sendable {
-        public var candidates: [PruneEntry]
+    public struct Cleanup: Codable, Equatable, Sendable {
+        public var days: Int
+        public var candidates: [CleanupEntry]
         public var totalBytes: Int64
         public var deleted: Bool
     }
@@ -119,9 +122,10 @@ public enum Reports {
 
     public static func aliases(_ entries: [AliasEntry]) -> Aliases { Aliases(aliases: entries) }
 
-    public static func prune(_ result: PruneResult) -> Prune {
-        Prune(candidates: result.candidates.map { PruneEntry(label: $0.label, reason: $0.reason.rawValue, retiredAt: $0.retiredAt, bytes: $0.bytes) },
-              totalBytes: result.totalBytes, deleted: result.deleted)
+    public static func cleanup(_ plan: CleanupPlan, deleted: Bool) -> Cleanup {
+        Cleanup(days: plan.days,
+                candidates: plan.candidates.map { CleanupEntry(label: $0.label, display: $0.displayName, why: $0.reason.rawValue, since: $0.since, bytes: $0.bytes) },
+                totalBytes: plan.totalBytes, deleted: deleted)
     }
 
     /// One JSON document, sorted keys, ISO 8601 dates.

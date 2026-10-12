@@ -22,6 +22,6 @@ let package = Package(
         .target(name: "DNMTestSupport", dependencies: ["DesktopNameCore"], path: "Tests/DNMTestSupport"),
         .testTarget(name: "DesktopNameCoreTests", dependencies: ["DesktopNameCore", "DNMTestSupport"]),
         .testTarget(name: "SnapshotTests", dependencies: ["DesktopNameCore", "DNMTestSupport"]),
-        .testTarget(name: "dnmTests", dependencies: ["dnm"]),
+        .testTarget(name: "dnmTests", dependencies: ["dnm", "DesktopNameCore"]),
     ]
 )

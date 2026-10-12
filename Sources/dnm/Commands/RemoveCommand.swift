@@ -21,6 +21,7 @@ struct RemoveCommand: ParsableCommand {
             case .noLabel: Output.out("No label on \(result.displayName).")
             case .removed(let label): Output.out("Removed the label \"\(label.text.value)\" from \(result.displayName) and restored the original wallpaper.")
             }
+            Nudge.showIfDue(context)
         }
     }
 }

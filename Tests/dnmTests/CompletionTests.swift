@@ -81,7 +81,7 @@ import Testing
                       "small", "medium", "large", "light", "dark"] {
             #expect(script.contains(value), "\(shell): \(value)")
         }
-        for command in ["set", "remove", "undo", "show", "alias", "displays", "prune", "check"] {
+        for command in ["set", "remove", "undo", "show", "alias", "displays", "cleanup", "check"] {
             #expect(script.contains(command), "\(shell): \(command)")
         }
         #expect(script.contains("---completion set -- --display"), "\(shell)")

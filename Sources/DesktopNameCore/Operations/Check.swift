@@ -132,10 +132,10 @@ extension DesktopLabeler {
             let manifest = try store.readManifest()
             let active = manifest.stamps.filter(\.isActive).count
             let bytes = manifest.stamps.reduce(Int64(0)) { $0 + fileSize($1.fileName) }
-            let freeable = try pruneCandidates(in: manifest).reduce(Int64(0)) { $0 + $1.bytes }
+            let freeable = try reclaimableBytes(in: manifest)
             let size = ByteCountFormatter()
             var detail = "\(active) active label\(active == 1 ? "" : "s"), \(manifest.stamps.count) labeled image\(manifest.stamps.count == 1 ? "" : "s") using \(size.string(fromByteCount: bytes))."
-            detail += freeable > 0 ? " `dnm prune` could free \(size.string(fromByteCount: freeable))." : " Nothing to prune."
+            detail += freeable > 0 ? " `dnm cleanup` could free \(size.string(fromByteCount: freeable))." : " Nothing to clean up."
             return CheckItem(name: "Stored labels", state: .info, detail: detail)
         } catch {
             return CheckItem(name: "Stored labels", state: .attention, detail: error.localizedDescription)

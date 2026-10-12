@@ -48,14 +48,17 @@ import Testing
         #expect(access.detail.contains("every program run in that app"))
     }
 
-    @Test func storedLabelsCountWhatPruneCouldFree() throws {
+    @Test func storedLabelsCountWhatCleanupCouldFree() throws {
         let h = try LabelerHarness(); defer { h.cleanUp() }
         try h.showOriginal()
         try h.labeler.setLabel(LabelText("One"), on: h.display)
         try h.labeler.setLabel(LabelText("Two"), on: h.display)
-        let detail = try item("Stored labels", in: h.labeler.check(Self.ready)).detail
-        #expect(detail.hasPrefix("1 active label, 2 labeled images"))
-        #expect(detail.contains("`dnm prune` could free"))
+        let fresh = try item("Stored labels", in: h.labeler.check(Self.ready)).detail
+        #expect(fresh.hasPrefix("1 active label, 2 labeled images") && fresh.hasSuffix("Nothing to clean up."), "the older one can still be undone")
+        h.clock.advance(minutes: 31 * 24 * 60)
+        let later = try item("Stored labels", in: h.labeler.check(Self.ready)).detail
+        #expect(later.hasPrefix("1 active label, 2 labeled images"))
+        #expect(later.contains("`dnm cleanup` could free"))
     }
 
     @Test func checkChangesNothing() throws {

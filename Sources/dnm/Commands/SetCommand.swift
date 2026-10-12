@@ -54,6 +54,7 @@ struct SetCommand: ParsableCommand {
             var result = try context.onDesktop(place, of: display) { try context.labeler.setLabel(text, options: options, on: display) }
             result.displayName = place.describe(result.displayName)
             Output.out(result.confirmation)
+            Nudge.showIfDue(context)
         }
     }
 }
