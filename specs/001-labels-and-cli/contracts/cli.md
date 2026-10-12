@@ -8,7 +8,7 @@ dnm set [<display>] <label> [--label <text>] [--display <name>] [--desktop <n>] 
 dnm remove [<display>] [--display <name>] [--desktop <n>]
 dnm undo   [<display>] [--display <name>] [--desktop <n>]
 dnm show   [<display>] [--display <name>] [--desktop <n>] [--json]
-dnm prune  [--yes] [--json]
+dnm cleanup [--days <n>] [--yes] [--json]   (replaced `dnm prune` in 0.2.1; spec 009)
 dnm about
 dnm check  [--json]
 dnm list   [--json]
@@ -32,7 +32,7 @@ dnm --help | dnm <command> --help | dnm --version
   same thing in every command that has it, and is typed often at the keyboard rather than in scripts. Options that
   delete or confirm (`--yes`, `--remove`), `--json`, `--display`, `--desktop`, `--label` and the look options have
   none. A new short option needs a decision recorded in a spec. (`alias -d` of 0.1.1 was removed in 0.2.0.)
-- **Cleanup**: every command first deletes retired stamps older than the cool-down (30
+- **Housekeeping**: every command first deletes retired stamps older than the cool-down (30
   minutes) and our own unreferenced files older than that (FR-018, FR-026). It prints nothing about this
   unless it fails.
 - **Streams**: results on standard output; messages, warnings and errors on standard
@@ -60,11 +60,13 @@ The `set` confirmation names the Desktop when `--desktop` was given, for example
 `Labeled "LABEL1" on DP, Desktop 2 (plain, light text, bottom-left, medium).` Labeling Desktop 1 adds no
 note: new Desktops copying the left-most Desktop's wallpaper is documented in the README (FR-028).
 
-## `dnm prune`
+## `dnm cleanup` (formerly `dnm prune`)
 
-Lists labeled images that are no longer an active label (removed, replaced or undone through `dnm`), with
-the space they use, and warns that a Desktop still showing one would lose its wallpaper. Deletes them only
-with `--yes`; never deletes an image shown on any display's current Desktop. Exit `0`.
+Replaced `dnm prune` in 0.2.1; the contract is `specs/009-stamp-reuse-and-cleanup/contracts/cli.md`. In short: it lists
+labeled images that no Desktop is known to show and that were retired, or last seen, at least `--days` days ago
+(default 30), with why, how old and the space they use; says plainly that a Desktop not on screen might still show one;
+asks on a terminal (or needs `--yes`) before deleting; and never deletes an image shown on a current Desktop or needed
+by an undo. `dnm prune` exits 2 and names `cleanup`.
 
 ## `dnm set [<display>] <label>`
 
@@ -203,7 +205,7 @@ Full license texts are in Licenses/.
 
 Prints one line per item, in this order: macOS (version and chip), Separate Spaces, Displays (main
 marked), Accessibility (for the app running `dnm`), Space shortcuts (always "cannot be read", with where to
-look), Stored labels (active labels, images, space, what `prune` could
+look), Stored labels (active labels, images, space, what `cleanup` could
 free). Each line starts with `ok`, `fix`, `?` or nothing (information); a `fix` or `?` line is followed by
 how to fix or where to look. Changes nothing, takes no lock and never prompts for a permission (FR-031).
 Exit `0`. `--json`: `{ "items": [ { "name", "state": "ok" | "attention" | "unknown" | "info", "detail",

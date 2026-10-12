@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-10
 
-**Status**: Draft
+**Status**: Stage 1 implemented (0.2.1, awaiting its live check and release); stage 2 (`--scan`) not started
 
 **Target release**: stage 1 (reuse, `cleanup`, last-seen, nudge) in 0.2.1; stage 2 (`cleanup --scan`) in 0.3.0 (a bigger concept, so a minor version), see "Stages". `ROADMAP.md` has the rows.
 
@@ -134,7 +134,7 @@ As a user who wants to be sure, I want `dnm cleanup --scan` to look at every Des
 - **FR-002**: `--days` MUST default to 30, accept 0 or more, and apply to retired labels (age since retired) and to labels not seen (age since last seen, or since creation if never seen). A label inside the undo window, or showing on any display's current Desktop, MUST NOT be a candidate.
 - **FR-003**: Before deleting, the command MUST describe each candidate (display, text, why, size), the total, and plainly say that a Desktop not currently on screen might still show one of these images; it MUST then ask on a terminal, or require `--yes`, and otherwise delete nothing and exit 0.
 - **FR-004**: Deleting MUST remove the image file and the label's record, and the nudge state, and MUST be one locked change.
-- **FR-005**: Each label MUST record when it was last seen; `set`, `remove`, `undo` and `cleanup` MUST record the images showing on all displays' current Desktops; read-only commands MUST NOT write.
+- **FR-005**: Each label MUST record when it was last seen; `set`, `remove` and `undo` (and `cleanup` when it deletes) MUST record the images showing on all displays' current Desktops; read-only commands, and a `cleanup` that only describes, MUST NOT write.
 - **FR-006**: `set` MUST reuse an existing image of the same key (FR-007) when its file exists, reactivating a retired label, instead of rendering; otherwise it MUST render as today. The key MUST be recorded on each new label.
 - **FR-007**: The key MUST cover: the original file (path, size, modification time) and its placement, the label text, the requested options (automatic stays automatic), the display's identity and pixel size, scale and insets, and a version number of the renderer that MUST change whenever rendering output changes.
 - **FR-008**: After `set` or `remove` (never after `undo`), when stderr is a terminal and cleanup (default days) could free at least 50 MB, `dnm` MUST print the nudge, subject to the throttle (at most weekly unless the amount doubled; reset by `cleanup`); it MUST NOT print for any other command or for `--json`.

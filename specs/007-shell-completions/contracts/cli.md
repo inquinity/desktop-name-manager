@@ -17,6 +17,7 @@
 | `dnm alias <name>` | nothing (a new name) | |
 | `dnm alias --remove <name>` | every stored alias | live, stored aliases |
 | `dnm alias <name> <display>` | `main`, connected display names | live, `includeAliases: false` |
+| `dnm cleanup` options (`--days`, `--yes`, `--json`) | generated; the `--days` value is a number and is not completed | spec 009 |
 | `--desktop`, labels, `--json` values | nothing | |
 
 Candidates are one per line, in this order: `main`, displays in the order macOS lists them, then aliases sorted

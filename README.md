@@ -57,11 +57,11 @@ Desktop for you (see below).
 | `dnm list` | List labeled Desktops and the current Desktop of each display. Only those are shown. |
 | `dnm displays` | List the connected displays, as `--display` accepts them, with their aliases. |
 | `dnm alias` | Give a display a short name for `--display`: `dnm alias <name> [<display>]`. Without arguments it lists the aliases; `--remove <name>` deletes one. |
-| `dnm prune` | List labeled images no longer in use as a label, and with `--yes` delete them. |
+| `dnm cleanup` | Find old labeled images no Desktop is known to show, describe them, and delete them when you agree (`--days N`, `--yes`). |
 | `dnm about` | Version, where data is kept, and what permissions the tool uses and why. |
 | `dnm check` | How this Mac is set up for labels and `--desktop`, and how to fix what is missing. |
 
-`show`, `list`, `displays`, `alias`, `prune`, `about` and `check` accept `--json`.
+`show`, `list`, `displays`, `alias`, `cleanup`, `about` and `check` accept `--json`.
 
 ## Choosing a display
 
@@ -135,6 +135,25 @@ dnm --generate-completion-script zsh > ~/.zfunc/_dnm     # a folder on your fpat
 dnm --generate-completion-script bash > ~/.dnm-completion.bash && echo 'source ~/.dnm-completion.bash' >> ~/.bashrc
 ```
 
+## Cleaning up
+
+Deleting a Desktop in Mission Control is something `dnm` is never told about, so its label stays in the store
+(and in `dnm list`), with its image, about 2 to 6 MB each. Two things keep that in check:
+
+- **Reuse.** Label a new Desktop the way an old one was labeled (same wallpaper, text, options and display) and `dnm`
+  uses the existing image instead of making another, so deleting and recreating Desktops adds nothing.
+- **`dnm cleanup`** finds the labeled images that no Desktop is known to show and that were removed, replaced or last
+  seen at least 30 days ago (`--days N` for another age; `--days 0` for everything no Desktop shows now). It lists them
+  with why and how old, says plainly that **a Desktop that is not on screen now might still show one of them** (it would
+  fall back to the Mac's default wallpaper until you choose another or label it again), and asks before deleting. With
+  no terminal it only describes, unless you pass `--yes`. `--json` prints the list. Nothing is ever deleted unless you
+  agree: no command cleans up by itself. After a label is set or removed, on a terminal, `dnm` may add one line
+  (at most weekly) when 50 MB or more could be freed.
+
+"Seen" means a label's image was showing on a Desktop when a command that changes labels (`set`, `remove`, `undo`,
+`cleanup`) looked; commands that only read, like `list` and `show`, change nothing. `dnm check` says how much
+`cleanup` could free.
+
 ## Label sets of Desktops
 
 `set`, `remove`, `undo` and `show` accept `--desktop <n>`: the Nth Desktop of the display, numbered as
@@ -192,7 +211,7 @@ Good to know:
   `dnm remove` on it. Tip: leave the left-most Desktop unlabeled, so new Desktops always start clean.
   See `docs/research/desktop-association.md`.
 - For the same reason one labeled image can be on several Desktops, so removing or replacing a label
-  never deletes its image: `dnm prune` lists the ones no longer in use and deletes them with `--yes`.
+  never deletes its image; `dnm cleanup` does that later, when you ask (see "Cleaning up" below).
 
 ## Uninstall
 
@@ -207,7 +226,7 @@ so do `dnm`'s stored labels, in case you reinstall.
 leave such Desktops without their picture. To remove everything:
 
 1. Before uninstalling, run `dnm remove` (with `--display` or `--desktop` as needed) on each Desktop whose
-   label you want gone, then `dnm prune --yes` to delete labeled images no longer in use. Any Desktop you
+   label you want gone, then `dnm cleanup --days 0 --yes` to delete labeled images no Desktop shows. Any Desktop you
    skip keeps its labeled picture until you choose another wallpaper.
 2. Uninstall as above.
 3. Delete the storage folder: `~/Library/Application Support/com.altmansoftwaredesign.desktop-name-manager`.

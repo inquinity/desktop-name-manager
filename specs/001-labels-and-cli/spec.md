@@ -45,7 +45,7 @@
   image file), and an app cannot see which Desktops share an image. How does a label relate to a
   Desktop? → A: A labeled image may be shown on any number of Desktops. Every command acts on the
   specified Desktop only and never retires or deletes a labeled image because of what it did there;
-  labeled images are deleted only when the user asks (`dnm prune`).
+  labeled images are deleted only when the user asks (`dnm prune`, replaced by `dnm cleanup` in 0.2.1, spec 009).
 - Q: Can a user label a Desktop other than the current one? → A: Yes, with `--desktop N` (the Desktop's
   number on that display, as Mission Control shows it), so sets of Desktops can be scripted across
   displays. It uses only public interfaces: the standard "Move left/right a space" shortcuts, which need
@@ -286,7 +286,7 @@ the expected labels; the other Desktops are unchanged.
   display, and follows reordering. The tool documents it (the user picks the left-most Desktop) and lets
   the user change a new Desktop with `remove` or `set` there.
 - Labeled images accumulate, because the tool cannot tell whether other Desktops still show one;
-  `dnm prune` lists them and deletes them only when the user confirms.
+  `dnm prune` (since 0.2.1 `dnm cleanup`, spec 009) lists them and deletes them only when the user confirms.
 - A full-screen app occupies a Space among the Desktops: the shortcuts that `--desktop` uses step through
   it too, so the count can be off by one and the label land on the full-screen Space, where the wallpaper
   is rarely seen. Documented edge case, not handled: exit full screen first if it matters.
@@ -339,7 +339,7 @@ the expected labels; the other Desktops are unchanged.
   that only dnm's labels and the current Desktops are shown, and the JSON output MUST carry the same
   note as a field, so a reader never mistakes the list for every Desktop.
 - **FR-012**: The system MUST provide a command to show one label's full details.
-- **FR-013**: The command-line tool (set, remove, undo, list, show, displays, prune, about, check) MUST be invocable as both `dnm` and `desktop-name` with
+- **FR-013**: The command-line tool (set, remove, undo, list, show, displays, alias, cleanup, about, check; `prune` became `cleanup` in 0.2.1) MUST be invocable as both `dnm` and `desktop-name` with
   identical behavior, and MUST return distinct, documented exit codes for success, invalid
   input, unsupported wallpaper, and failure.
 - **FR-014**: The system MUST decline, without changing anything, to label a Desktop that uses
@@ -354,8 +354,8 @@ the expected labels; the other Desktops are unchanged.
 - **FR-017**: The system MUST NOT require disabling System Integrity Protection or any other
   system security setting.
 - **FR-018**: The system MUST keep its storage tidy without risking a wallpaper:
-  - it MUST NOT delete a labeled image that was ever applied to a Desktop, except through `prune`
-    (FR-029), because other Desktops may still show it;
+  - it MUST NOT delete a labeled image that was ever applied to a Desktop, except through `cleanup`
+    (FR-029, spec 009) when the user agrees, because other Desktops may still show it;
   - it MUST delete, only while a command is running and after a fixed cool-down of 30 minutes, files
     it wrote but never applied (for example after a crash);
   - it MUST delete only files the tool itself created (recognizable by name, FR-026) and MUST NOT delete
@@ -415,7 +415,7 @@ the expected labels; the other Desktops are unchanged.
   wallpaper of the left-most Desktop on its display (label included), that the user chooses which
   Desktop that is by reordering, and that `remove` or `set` changes a new Desktop. The tool MUST NOT
   warn about it in `set` or `check` (amended 2026-10-07).
-- **FR-029**: The system MUST provide `dnm prune`, which lists the labeled images that are no longer an
+- **FR-029** (replaced in 0.2.1 by `dnm cleanup`, spec 009, which keeps its rules: it describes, warns plainly, deletes only on agreement and never an image shown on a current Desktop): The system MUST provide `dnm prune`, which lists the labeled images that are no longer an
   active label (removed, replaced or undone through the tool), with the space they use, and deletes them
   only when the user confirms (`--yes`). It MUST warn that a Desktop still showing one of them would lose
   its wallpaper, and MUST never delete an image currently shown on any display's current Desktop.
@@ -433,7 +433,7 @@ the expected labels; the other Desktops are unchanged.
   running `dnm` has Accessibility; the "Move left/right a space" shortcuts (their state cannot be read
   publicly: the report says so, says where to check them, and that `--desktop` reports it if they are
   off); a one-line reminder of the first-Desktop rule (FR-028); and the stored labels, their space and
-  what `prune` could free. It MUST change nothing and MUST NOT trigger a permission prompt. `--json`
+  what `cleanup` could free (formerly `prune`). It MUST change nothing and MUST NOT trigger a permission prompt. `--json`
   prints the same as one document.
 
 ### Key Entities
@@ -467,7 +467,7 @@ the expected labels; the other Desktops are unchanged.
   connections are made, and the original wallpaper files are byte-for-byte unchanged.
 - **SC-005**: A first-time user can label a Desktop by following the README's one example,
   in under one minute, without consulting other documentation.
-- **SC-006**: No applied labeled image is ever deleted except through a confirmed `prune`, and files
+- **SC-006**: No applied labeled image is ever deleted except through a confirmed `cleanup` (formerly `prune`), and files
   written but never applied are gone 30 minutes later, at the next command.
 - **SC-007**: In 100% of test runs, undoing a removal or replacement within the undo window
   returns the Desktop to a state identical to the one before the change.
@@ -510,7 +510,7 @@ the expected labels; the other Desktops are unchanged.
   are revisited at packaging (spec 005). A universal test build passed the main live checks on that
   Mac on macOS 26.7 (2026-10-06, see review-notes.md); Intel support is still not claimed until spec 005
   decides on a universal release build.
-- Cleanup is opportunistic: it runs at the start or end of ordinary commands. If the tool is
+- Housekeeping (formerly called cleanup, now distinct from `dnm cleanup`) is opportunistic: it runs at the start or end of ordinary commands. If the tool is
   not run for days, old copies simply wait until the next run.
 - The minimum supported macOS version follows the constitution's minimum-macOS rule (oldest
   release with no compatibility code). The plan picks the concrete version and records why.

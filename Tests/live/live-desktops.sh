@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Live checks for spec 001's --desktop and prune (quickstart scenarios 21, 22 and 23) against the REAL
+# Live checks for spec 001's --desktop and spec 009's cleanup (quickstart scenarios 21, 22 and 23) against the REAL
 # wallpaper.
 #
 # This switches Desktops and changes their wallpapers. Run it only while you are idle, with at least three
@@ -341,8 +341,8 @@ run_step "$dnm_binary" remove --display main --desktop "$new_desktop_number"
 check "the new Desktop shows the original wallpaper" ask_to_look "Open Mission Control: is Desktop ${new_desktop_number} back to the normal wallpaper, with Desktop 1 still labeled '${first_label}'?"
 check "show --desktop 1 still recognizes the label" shows_label "$first_label" main 1
 
-# --- Scenario 23: prune ----------------------------------------------------------------------------
-print_colored "$COLOR_BRIGHTYELLOW" "Scenario 23: prune lists, and deletes only images no current Desktop shows"
+# --- Scenario 23: cleanup --------------------------------------------------------------------------
+print_colored "$COLOR_BRIGHTYELLOW" "Scenario 23: cleanup lists, and deletes only images no current Desktop shows (--days 0: everything it may)"
 # Make an image that is retired yet still on screen: put Desktop 1's label back on the new Desktop, then remove it
 # from Desktop 1, and show the new Desktop.
 run_step "$dnm_binary" undo --display main --desktop "$new_desktop_number"
@@ -351,17 +351,18 @@ run_step "$dnm_binary" remove --display main --desktop 1
 first_desktop_labeled=false
 wait_for_person "Switch the main display to Desktop ${new_desktop_number} (the new one, showing '${first_label}')."
 if "$dry_run"; then
-    run_step "$dnm_binary" prune
+    run_step "$dnm_binary" cleanup --days 0
 else
     files_before="$(store_file_count)"
-    prune_listing="$("$dnm_binary" prune 2>&1)"
+    # Standard input is closed so that cleanup only describes (it would ask on a terminal).
+    prune_listing="$("$dnm_binary" cleanup --days 0 </dev/null 2>&1)"
     printf "%s\n" "$prune_listing"
     check "the listing deletes nothing" test "$(store_file_count)" -eq "$files_before"
     check "the listing names the scenario 21 labels" grep -qF "\"$(label_for 1 2)\"" <<<"$prune_listing"
     check "the listing leaves out '${first_label}', which is on screen" lacks_label "$first_label" "$prune_listing"
 fi
-run_step "$dnm_binary" prune --yes
-check "the image on screen survived prune --yes" shows_no_missing_image
+run_step "$dnm_binary" cleanup --days 0 --yes
+check "the image on screen survived cleanup --yes" shows_no_missing_image
 check "the label on screen is intact" ask_to_look "Is '${first_label}' still showing on this Desktop?"
 run_step "$dnm_binary" remove --display main
 wait_for_person "Delete the Desktop you created (Desktop ${new_desktop_number}) in Mission Control, and go back to the Desktop you were on."

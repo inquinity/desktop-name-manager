@@ -10,21 +10,21 @@ description: "Task list for feature F4: reuse of labeled images and dnm cleanup"
 
 ## Stage 1
 
-- [ ] T001 `Stamp.reuseKey`, `Stamp.lastSeen`, `Manifest.maintenance`; schema 3 (read 1 to 3, write 3); decode tests including a 0.2.0 manifest
-- [ ] T002 `LabelRenderer.rendererVersion`; `ReuseKey` (data-model §2) and tests: each part changes the key, automatic stays automatic, the same request gives the same key
-- [ ] T003 `set` reuses an existing label of the same key (active or retired, file present), reactivating it, without rendering; new labels record the key and `lastSeen = createdAt`; tests: reuse, revival, undo after a reused set, missing file, relabel identical on the same Desktop, different text/option/original/display/size/version
-- [ ] T004 Last seen: commands that write record the images on all displays' current Desktops; test that `list`, `show`, `displays`, `check`, `about` leave the manifest byte-identical
-- [ ] T005 Rename the automatic tidying to housekeeping (code: `Cleanup` enum, `cleanUp()`; documents: specs 001 and 005, README, contracts)
-- [ ] T006 `Cleanup.swift`: candidates (data-model §4), describe, delete as one locked change (image and record, nudge state); tests: retired vs not seen, `--days`, current-Desktop exclusion, undo-window exclusion, missing file, unreadable store
-- [ ] T007 `CleanupCommand`: `--days`, `--yes`, `--json`; the description with the plain warning; the question on a terminal; no terminal without `--yes` describes and exits 0; exit codes (contract §2)
-- [ ] T008 Remove `Prune.swift`, `PruneCommand`, the prune report; `dnm prune` reports the rename and exits 2; update completion (spec 007) and its tests
-- [ ] T009 [P] Contract tests for `cleanup` against the binary (scratch store; no wallpaper changed): description, `--json`, no-terminal behavior, invalid `--days`, `prune` message
-- [ ] T010 Housekeeping estimate (sum of candidate sizes at the default days) and the nudge decision; the throttle (shown, within 7 days, doubled, reset by cleanup); performance test: 1,000 labels under 50 ms
-- [ ] T011 `Nudge.swift` in `dnm`: after `set` and `remove` only (not `undo`), standard error a terminal, never for other commands or `--json`; table-driven test (terminal or not, size, last shown, doubling, command)
-- [ ] T012 `check` stored-labels row says what cleanup could free (contract §6); update its tests
-- [ ] T013 [P] README (cleanup, the plain warning, reuse, the nudge, what the scan adds), release notes (bullets only: `prune` removed, `cleanup`, reuse, nudge)
-- [ ] T014 [P] Amend spec 001 (FR-013, FR-018, FR-029, SC-006: `cleanup` replaces `prune`; housekeeping), spec 005 wording, spec 007 contract
-- [ ] T015 `just test` and `just periphery` pass
+- [x] T001 `Stamp.reuseKey`, `Stamp.lastSeen`, `Manifest.maintenance`; schema 3 (read 1 to 3, write 3); decode tests including a 0.2.0 manifest
+- [x] T002 `LabelRenderer.rendererVersion`; `ReuseKey` (data-model §2) and tests: each part changes the key, automatic stays automatic, the same request gives the same key
+- [x] T003 `set` reuses an existing label of the same key (active or retired, file present), reactivating it, without rendering; new labels record the key and `lastSeen = createdAt`; tests: reuse, revival, undo after a reused set, missing file, relabel identical on the same Desktop, different text/option/original/display/size/version
+- [x] T004 Last seen: commands that write record the images on all displays' current Desktops; test that `list`, `show`, `displays`, `check`, `about` leave the manifest byte-identical
+- [x] T005 Rename the automatic tidying to housekeeping (code: `Cleanup` enum, `cleanUp()`; documents: specs 001 and 005, README, contracts)
+- [x] T006 `Cleanup.swift`: candidates (data-model §4), describe, delete as one locked change (image and record, nudge state); tests: retired vs not seen, `--days`, current-Desktop exclusion, undo-window exclusion, missing file, unreadable store
+- [x] T007 `CleanupCommand`: `--days`, `--yes`, `--json`; the description with the plain warning; the question on a terminal; no terminal without `--yes` describes and exits 0; exit codes (contract §2)
+- [x] T008 Remove `Prune.swift`, `PruneCommand`, the prune report; `dnm prune` reports the rename and exits 2; update completion (spec 007) and its tests
+- [x] T009 [P] Contract tests for `cleanup` against the binary (scratch store; no wallpaper changed): description, `--json`, no-terminal behavior, invalid `--days`, `prune` message
+- [x] T010 Housekeeping estimate (sum of candidate sizes at the default days) and the nudge decision; the throttle (shown, within 7 days, doubled, reset by cleanup); performance test: 1,000 labels under 50 ms
+- [x] T011 `Nudge.swift` in `dnm`: after `set` and `remove` only (not `undo`), standard error a terminal, never for other commands or `--json`; table-driven test (terminal or not, size, last shown, doubling, command)
+- [x] T012 `check` stored-labels row says what cleanup could free (contract §6); update its tests
+- [x] T013 [P] README (cleanup, the plain warning, reuse, the nudge, what the scan adds), release notes (bullets only: `prune` removed, `cleanup`, reuse, nudge)
+- [x] T014 [P] Amend spec 001 (FR-013, FR-018, FR-029, SC-006: `cleanup` replaces `prune`; housekeeping), spec 005 wording, spec 007 contract
+- [x] T015 `just test` and `just periphery` pass
 - [ ] T016 Quickstart 1 to 7; live check of reuse on a real Desktop (`Index.plist` backup and restore)
 
 ## Stage 2

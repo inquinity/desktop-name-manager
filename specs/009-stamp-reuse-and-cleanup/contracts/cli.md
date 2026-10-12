@@ -23,7 +23,12 @@ Old labeled images that no Desktop is known to show (30 days):
   "Projects" Built-in Retina Display  not seen for 52 days     1.9 MB
 2 images, 5.0 MB in all.
 A Desktop that is not on screen now might still show one of these; it would fall back to the Mac's default
-wallpaper until you choose another or label it again. "dnm cleanup --scan" checks every Desktop first.
+wallpaper until you choose another or label it again.
+```
+
+(From stage 2, 0.3.0, a further sentence offers `dnm cleanup --scan` to check every Desktop first.)
+
+```text
 Delete these 2 labeled images (5.0 MB)? [y/N]
 ```
 
