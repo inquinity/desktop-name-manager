@@ -33,6 +33,6 @@ final class LabelerHarness {
     func manifest() throws -> Manifest { try store.readManifest() }
 
     var storeFiles: [String] {
-        ((try? FileManager.default.contentsOfDirectory(atPath: store.directory.path)) ?? []).filter(Cleanup.isOurFileName)
+        ((try? FileManager.default.contentsOfDirectory(atPath: store.directory.path)) ?? []).filter(Housekeeping.isOurFileName)
     }
 }

@@ -20,8 +20,8 @@ public final class DesktopLabeler {
     }
 
     /// Every command starts here: delete stamps nobody needs (FR-018).
-    public func cleanUp() throws {
-        try Cleanup.run(store: store, now: time.now)
+    public func housekeeping() throws {
+        try Housekeeping.run(store: store, now: time.now)
     }
 
     /// The wallpaper placement used for a stamp. The image already matches the display exactly,

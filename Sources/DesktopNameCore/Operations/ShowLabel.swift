@@ -15,7 +15,7 @@ public struct ShowLabelResult: Equatable, Sendable {
 extension DesktopLabeler {
     /// The details of the label on the current Desktop of `display` (FR-012).
     public func showLabel(on display: Display) throws -> ShowLabelResult {
-        try cleanUp()
+        try housekeeping()
         let current = try system.currentWallpaper(on: display)
         let manifest = try store.readManifest()
         guard let stamp = stamp(for: current.url, in: manifest) else {

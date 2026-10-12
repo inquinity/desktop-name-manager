@@ -23,7 +23,7 @@ extension DesktopLabeler {
     }
 
     private func performRemoveLabel(on display: Display) throws -> RemoveLabelResult {
-        try cleanUp()
+        try housekeeping()
         let current = try system.currentWallpaper(on: display)
         let manifest = try store.readManifest()
 

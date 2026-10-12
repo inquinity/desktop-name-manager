@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import DesktopNameCore
 
-@Suite struct CleanupTests {
+@Suite struct HousekeepingTests {
     struct Harness {
         let root: URL
         let store: Store
@@ -31,11 +31,11 @@ import Testing
         }
 
         func exists(_ name: String) -> Bool { FileManager.default.fileExists(atPath: store.fileURL(named: name).path) }
-        func run() throws { try Cleanup.run(store: store, now: clock.now) }
+        func run() throws { try Housekeeping.run(store: store, now: clock.now) }
     }
 
     @Test func coolDownIsThirtyMinutes() {
-        #expect(Cleanup.coolDown == 1800)
+        #expect(Housekeeping.coolDown == 1800)
     }
 
     @Test func nothingIsDeletedBeforeTheCoolDown() throws {
@@ -49,7 +49,7 @@ import Testing
 
     @Test func retiredStampsAreKeptBecauseOtherDesktopsMayShowThem() throws {
         // macOS gives new Desktops a copy of the first Desktop's image, so a removed or replaced label may still
-        // be on screen elsewhere. Cleanup never deletes a stamp that has a manifest entry; only prune does.
+        // be on screen elsewhere. Housekeeping never deletes a stamp that has a manifest entry; only prune does.
         let h = try Harness(); defer { h.cleanUp() }
         let stamp = try h.add(Fixtures.stamp(state: .retired(at: h.clock.now, reason: .replaced)))
         h.clock.advance(minutes: 60 * 24)
@@ -97,7 +97,7 @@ import Testing
         let name = "\(UUID().uuidString).dnm.jpg"
         try Data([1]).write(to: root.appendingPathComponent(name))
         try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 0)], ofItemAtPath: root.appendingPathComponent(name).path)
-        try Cleanup.run(store: Store(directory: root), now: Date())
+        try Housekeeping.run(store: Store(directory: root), now: Date())
         #expect(FileManager.default.fileExists(atPath: root.appendingPathComponent(name).path))
         #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(Store.manifestFileName).path))
     }
@@ -131,11 +131,11 @@ import Testing
         try h.run()
         // Every applied stamp stays (SC-006): they are deleted only through a confirmed prune.
         #expect(try h.store.readManifest().stamps.count == 100)
-        let files = try FileManager.default.contentsOfDirectory(atPath: h.store.directory.path).filter(Cleanup.isOurFileName)
+        let files = try FileManager.default.contentsOfDirectory(atPath: h.store.directory.path).filter(Housekeeping.isOurFileName)
         #expect(files.count == 100)
     }
 
-    @Test func whenNothingIsDueCleanupNeitherLocksNorWrites() throws {
+    @Test func whenNothingIsDueHousekeepingNeitherLocksNorWrites() throws {
         let h = try Harness(); defer {
             try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: h.store.directory.path)
             h.cleanUp()
@@ -149,10 +149,10 @@ import Testing
     }
 
     @Test func fileNamePatternIsExact() {
-        #expect(Cleanup.isOurFileName("\(UUID().uuidString).dnm.jpg"))
-        #expect(Cleanup.isOurFileName("\(UUID().uuidString.lowercased()).dnm.heic"))
-        #expect(!Cleanup.isOurFileName("manifest.json"))
-        #expect(!Cleanup.isOurFileName("manifest.lock"))
-        #expect(!Cleanup.isOurFileName("\(UUID().uuidString).jpg"))
+        #expect(Housekeeping.isOurFileName("\(UUID().uuidString).dnm.jpg"))
+        #expect(Housekeeping.isOurFileName("\(UUID().uuidString.lowercased()).dnm.heic"))
+        #expect(!Housekeeping.isOurFileName("manifest.json"))
+        #expect(!Housekeeping.isOurFileName("manifest.lock"))
+        #expect(!Housekeeping.isOurFileName("\(UUID().uuidString).jpg"))
     }
 }

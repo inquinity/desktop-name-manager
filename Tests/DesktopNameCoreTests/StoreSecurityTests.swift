@@ -29,7 +29,7 @@ import Testing
         let manifestBefore = try Data(contentsOf: store.manifestURL)
 
         #expect(throws: DnmError.self) { try store.readManifest() }
-        try? Cleanup.run(store: store, now: Date())   // would have deleted the victim before the fix
+        try? Housekeeping.run(store: store, now: Date())   // would have deleted the victim before the fix
         #expect(try Data(contentsOf: victim) == Data("precious".utf8))
         #expect(try Data(contentsOf: store.manifestURL) == manifestBefore)   // left alone
     }

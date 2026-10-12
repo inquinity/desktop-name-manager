@@ -16,20 +16,20 @@ extension DesktopLabeler {
     @discardableResult
     public func undoLastChange(on display: Display) throws -> UndoResult {
         guard store.hasManifest else {
-            throw DnmError.cannotUndo("there is nothing to undo on \(display.name); changes can be undone for \(Int(Cleanup.coolDown / 60)) minutes")
+            throw DnmError.cannotUndo("there is nothing to undo on \(display.name); changes can be undone for \(Int(Housekeeping.coolDown / 60)) minutes")
         }
         return try store.exclusive { try performUndo(on: display) }
     }
 
     private func performUndo(on display: Display) throws -> UndoResult {
-        try cleanUp()
+        try housekeeping()
         let current = try system.currentWallpaper(on: display)
         let manifest = try store.readManifest()
         let now = time.now
 
         guard let record = manifest.changes.first(where: { $0.displayUUID == display.uuid }),
-              now.timeIntervalSince(record.at) <= Cleanup.coolDown else {
-            throw DnmError.cannotUndo("there is nothing to undo on \(display.name); changes can be undone for \(Int(Cleanup.coolDown / 60)) minutes")
+              now.timeIntervalSince(record.at) <= Housekeeping.coolDown else {
+            throw DnmError.cannotUndo("there is nothing to undo on \(display.name); changes can be undone for \(Int(Housekeeping.coolDown / 60)) minutes")
         }
         guard produces(record.produced, currentURL: current.url, manifest: manifest) else {
             throw DnmError.cannotUndo("the wallpaper on \(display.name) has changed since that change")

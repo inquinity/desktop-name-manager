@@ -33,7 +33,7 @@ struct AliasCommand: ParsableCommand {
     func run() throws {
         try Self.guarded {
             let context = Context()
-            try context.labeler.cleanUp()
+            try context.labeler.housekeeping()
             if remove {
                 guard let name, display == nil, !json else {
                     throw DnmError.invalidInput("--remove takes one alias name and nothing else.")

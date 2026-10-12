@@ -12,7 +12,7 @@ struct DisplaysCommand: ParsableCommand {
     func run() throws {
         try Self.guarded {
             let context = Context()
-            try context.labeler.cleanUp()
+            try context.labeler.housekeeping()
             let displays = try context.system.displays()
             let aliases = try context.labeler.aliases()
             let report = Reports.displays(displays, aliases: aliases)

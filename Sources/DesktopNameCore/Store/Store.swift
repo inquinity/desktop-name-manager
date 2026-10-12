@@ -76,7 +76,7 @@ public final class Store: Sendable {
         }
         // Every stamp file name must be one of ours. A name with a path in it (such as "../x") would let
         // cleanup delete, or the tool set as wallpaper, a file outside the store.
-        guard manifest.stamps.allSatisfy({ Cleanup.isOurFileName($0.fileName) }) else {
+        guard manifest.stamps.allSatisfy({ Housekeeping.isOurFileName($0.fileName) }) else {
             throw DnmError.failure("The stored data refers to a file outside the store and was left alone.")
         }
         return manifest
@@ -101,7 +101,7 @@ public final class Store: Sendable {
 
     /// Holds the store lock for the whole of `body`, so an operation can read the manifest, decide, change
     /// the wallpaper and save as one step that no other run can interleave with. Re-entrant on the same
-    /// thread, so `transaction` and `Cleanup` can be used inside it.
+    /// thread, so `transaction` and `Housekeeping` can be used inside it.
     public func exclusive<T>(_ body: () throws -> T) throws -> T {
         let held = Thread.current.threadDictionary
         let key = "dnm.store.lock.held." + directory.path
@@ -144,7 +144,7 @@ public final class Store: Sendable {
     // MARK: - Stamp files
 
     public func writeStampFile(_ data: Data, named fileName: String) throws {
-        guard Cleanup.isOurFileName(fileName) else {
+        guard Housekeeping.isOurFileName(fileName) else {
             throw DnmError.failure("Refusing to write \"\(fileName)\": it is not a name this tool uses.")
         }
         try ensureDirectory()
@@ -172,14 +172,14 @@ public final class Store: Sendable {
     }
 
     public func stampFileExists(named fileName: String) -> Bool {
-        Cleanup.isOurFileName(fileName) && FileManager.default.fileExists(atPath: fileURL(named: fileName).path)
+        Housekeeping.isOurFileName(fileName) && FileManager.default.fileExists(atPath: fileURL(named: fileName).path)
     }
 
     /// Deletes one of our stamp files. Anything that is not exactly `<uuid>.dnm.<ext>` is ignored, so a
     /// name carrying a path can never reach outside the store, and only a regular file is deleted (never a
     /// folder, which would go recursively, nor what a symlink points to).
     public func removeFile(named fileName: String) {
-        guard Cleanup.isOurFileName(fileName) else { return }
+        guard Housekeeping.isOurFileName(fileName) else { return }
         let url = fileURL(named: fileName)
         var info = stat()
         guard lstat(url.path, &info) == 0, info.st_mode & S_IFMT == S_IFREG else { return }

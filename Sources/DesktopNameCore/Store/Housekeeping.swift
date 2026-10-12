@@ -10,7 +10,7 @@ import Foundation
 /// - undo records older than the cool-down are dropped;
 /// - the manifest, the lock file, subfolders and every other file are never touched;
 /// - nothing happens in a folder that has no manifest of ours.
-public enum Cleanup {
+public enum Housekeeping {
     /// Fixed 30 minutes.
     public static let coolDown: TimeInterval = 30 * 60
 

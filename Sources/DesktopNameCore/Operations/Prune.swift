@@ -26,7 +26,7 @@ extension DesktopLabeler {
     public func prune(confirm: Bool) throws -> PruneResult {
         guard store.hasManifest else { return PruneResult(candidates: [], deleted: confirm) }
         return try store.exclusive {
-            try cleanUp()
+            try housekeeping()
             let candidates = try pruneCandidates(in: try store.readManifest())
 
             if confirm && !candidates.isEmpty {

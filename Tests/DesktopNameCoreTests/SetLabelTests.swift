@@ -25,7 +25,7 @@ import Testing
         let result = try h.labeler.setLabel(LabelText("Email"), on: h.display)
 
         let stamp = try #require(try h.manifest().stamps.first)
-        #expect(Cleanup.isOurFileName(stamp.fileName))
+        #expect(Housekeeping.isOurFileName(stamp.fileName))
         #expect(stamp.fileName.hasSuffix(".dnm.jpg"))
         #expect(stamp.isActive)
         #expect(stamp.pixelWidth == 800 && stamp.pixelHeight == 500)

@@ -22,7 +22,7 @@ extension DesktopLabeler {
     /// Labeled Desktops plus the current Desktop of each connected display (FR-011).
     /// Desktops that are neither labeled nor current cannot be seen with public interfaces.
     public func listDesktops() throws -> DesktopListing {
-        try cleanUp()
+        try housekeeping()
         let displays = try system.displays()
         let manifest = try store.readManifest()
         var entries: [DesktopEntry] = []
