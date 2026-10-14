@@ -104,6 +104,7 @@ while IFS= read -r license_file; do
 done < <("${repository_root}/scripts/make-acknowledgements.sh" --binary-license-files)
 cp "${repository_root}/Tests/live/run-timing.command" "${output_directory}/run-timing.command"
 cp "${repository_root}/Tests/live/live-label.sh" "${repository_root}/Tests/live/live-safety.sh" \
+    "${repository_root}/Tests/live/live-syntax.sh" "${repository_root}/Tests/live/live-reuse.sh" \
     "${repository_root}/Tests/live/live-desktops.sh" "${repository_root}/Tests/live/live-timing.sh" "${output_directory}/Tests/live/"
 cp "${repository_root}/specs/001-labels-and-cli/quickstart.md" "${output_directory}/quickstart.md"
 chmod +x "${output_directory}/dnm" "${output_directory}/switch-timing" "${output_directory}/run-timing.command" \
@@ -134,7 +135,7 @@ notarized, and not for installing.
 - macOS 26 or later. Any Mac, Intel or Apple silicon.
 - Be at the Mac, idle, and on the Desktop you want to label.
 - In System Settings > Wallpaper, turn OFF "Show on all Spaces".
-- Labels go to the MAIN display (the one with the menu bar). Watch that screen.
+- Steps 4 and 5 label the MAIN display (the one with the menu bar); watch that screen. Step 6 labels every display.
 
 ## Steps
 
@@ -177,7 +178,18 @@ notarized, and not for installing.
    Tests/live/live-safety.sh 2>&1 | tee results/live-safety.txt
    ```
 
-6. Run the Desktop-switching check (scenarios 21 to 23). First give Terminal the Accessibility permission
+6. Run the display checks. They need no prompts after the first question and switch no Desktops: on the
+   Desktop showing on every display, one tries every way of naming a display, the other checks that a label
+   asked for again reuses its image and that cleanup never deletes the one on screen. Each prints PASS or
+   FAIL per check and removes its labels at the end. If you label your own Desktops with `dnm`, remove
+   those labels first.
+
+   ```sh
+   Tests/live/live-syntax.sh 2>&1 | tee results/live-syntax.txt
+   Tests/live/live-reuse.sh 2>&1 | tee results/live-reuse.txt
+   ```
+
+7. Run the Desktop-switching check (scenarios 21 to 23). First give Terminal the Accessibility permission
    (System Settings > Privacy & Security > Accessibility on macOS 26, or Device Control and Data Access on
    macOS 27; on 27 there is no Accessibility item in that list). Turn on the Desktop-switching shortcuts:
    System Settings > Keyboard (near the bottom of the sidebar) > Keyboard Shortcuts… > Mission Control, then
@@ -191,7 +203,7 @@ notarized, and not for installing.
    Tests/live/live-desktops.sh 2>&1 | tee results/live-desktops.txt
    ```
 
-7. Run the timing check. It needs the same setup as step 6 (Accessibility, the two shortcuts, at least three
+8. Run the timing check. It needs the same setup as step 7 (Accessibility, the two shortcuts, at least three
    Desktops on every display) and checks it first. It switches Desktops for about 10 to 15 minutes but
    changes no wallpaper; don't type meanwhile. Leave
    System Settings as they are (don't change Reduce Motion or other settings for it). Run it once with two
@@ -204,7 +216,7 @@ notarized, and not for installing.
    Tests/live/live-timing.sh 2>&1 | tee -a results/live-timing.txt
    ```
 
-8. Optional, from `quickstart.md`: scenario 4 (reorder Desktops, use Show Desktop, then log out and in and
+9. Optional, from `quickstart.md`: scenario 4 (reorder Desktops, use Show Desktop, then log out and in and
    confirm a label is still on the same Desktop), scenario 17 (a solid-color wallpaper) and scenario 18
    (look closely for any loss of picture quality away from the label) and scenario 20 (the first-Desktop
    rule, by hand). Write your results in
@@ -212,7 +224,7 @@ notarized, and not for installing.
 
    To label by hand: `./dnm set "Test"`, wait a few seconds, then `./dnm remove`.
 
-9. Copy the whole folder back (the `results` folder matters most).
+10. Copy the whole folder back (the `results` folder matters most).
 
 ## If something looks wrong
 
