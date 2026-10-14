@@ -8,9 +8,10 @@
 # Desktops: it acts on the Desktop showing on each display.
 #
 # This changes the wallpaper of the Desktop you are on, on every display. Run it only while you are idle, on
-# Desktops whose wallpapers are normal image files, with "Show on all Spaces" turned off. It backs up the wallpaper
+# Desktops whose wallpapers are normal image files (not ones labeled by your own dnm: remove those labels first;
+# a display that cannot be labeled is skipped), with "Show on all Spaces" turned off. It backs up the wallpaper
 # store, uses a private store directory, and finishes by removing its labels, which restores the original
-# wallpapers (it restores Index.plist only if you ask: see the message at the end).
+# wallpapers (it never restores Index.plist itself: the message at the end says how, if a wallpaper looks wrong).
 #
 # Usage: Tests/live/live-reuse.sh [--dnm PATH] [--yes] [--dry-run] [--help]
 
@@ -68,23 +69,44 @@ check() {
     fi
 }
 
-# Run dnm quietly; in dry-run mode only print it.
+# Run dnm quietly; in dry-run mode only print it. A step that fails prints what dnm said and counts as a failure,
+# so a check after it cannot pass unnoticed.
 dnm() {
     if "$dry_run"; then
-        print_colored "$COLOR_CYAN" "[dry run] dnm $*"
-    else
-        "$dnm_binary" "$@" >/dev/null 2>&1 || true
+        print_colored "$COLOR_CYAN" "[dry run] dnm$(printf ' %q' "$@")"
+        return
     fi
+    local output
+    if ! output="$("$dnm_binary" "$@" 2>&1)"; then
+        print_colored "$COLOR_RED" "FAIL  dnm$(printf ' %q' "$@"): ${output}"
+        failures=$((failures + 1))
+    fi
+}
+
+# The labeled images in the private store, one file name per line.
+image_names() {
+    [[ -d "$DNM_STORE_DIR" ]] || return 0
+    find "$DNM_STORE_DIR" -maxdepth 1 -name '*.dnm.*' | sed 's|.*/||' | sort
 }
 
 # The number of labeled images in the private store.
 image_count() {
-    [[ -d "$DNM_STORE_DIR" ]] || { echo 0; return; }
-    find "$DNM_STORE_DIR" -maxdepth 1 -name '*.dnm.*' | wc -l | tr -d ' '
+    image_names | wc -l | tr -d ' '
 }
 
 # has_images <count>
 has_images() { [[ "$(image_count)" -eq "$1" ]]; }
+
+# has_same_images <names from image_names>: exactly those files, so an image was reused, not made again.
+has_same_images() { [[ "$(image_names)" == "$1" ]]; }
+
+# The private store's undo records, as JSON ("unreadable" if the manifest cannot be read).
+undo_records() {
+    plutil -extract changes json -o - "${DNM_STORE_DIR}/manifest.json" 2>/dev/null || printf 'unreadable'
+}
+
+# has_undo_records <JSON from undo_records>
+has_undo_records() { [[ "$1" != unreadable && "$(undo_records)" == "$1" ]]; }
 
 # shows_label <display word> <label>: `dnm show` for that display names the label (captured first: `grep -q` closing
 # a pipe would kill dnm with SIGPIPE under pipefail).
@@ -100,7 +122,8 @@ shows_no_label() {
     grep -qF "No label" <<<"$output"
 }
 
-# cleanup_says <needle> <dnm cleanup arguments...>: with standard input closed, cleanup only describes; its output has the text.
+# cleanup_says <needle> <dnm cleanup arguments...>: with standard input from /dev/null (not a terminal), cleanup only
+# describes; its output has the text.
 cleanup_says() {
     local needle=$1 output
     shift
@@ -113,16 +136,26 @@ cleanup() {
     if "$dry_run"; then
         return
     fi
+    local labels_left=false
     if "$labels_applied"; then
-        print_colored "$COLOR_YELLOW" "Cleaning up: removing any label this run left..."
+        # Also after a normal finish: a remove that failed in the run is tried once more, and never claimed as done.
         local name
         for name in "${display_names[@]}"; do
+            shows_no_label "$name" && continue
+            print_colored "$COLOR_YELLOW" "Cleaning up: removing the label this run left on ${name}..."
             "$dnm_binary" remove --display "$name" >/dev/null 2>&1 || true
+            if ! shows_no_label "$name"; then
+                print_colored "$COLOR_RED" "The label on ${name} is still there. Remove it with: DNM_STORE_DIR='${DNM_STORE_DIR}' '${dnm_binary}' remove --display '${name}'"
+                labels_left=true
+            fi
         done
     fi
     if [[ -n "$work_directory" && -f "${work_directory}/Index.plist.backup" ]]; then
         if cmp -s "${work_directory}/Index.plist.backup" "$wallpaper_store_plist"; then
             print_colored "$COLOR_GREEN" "The wallpaper store is identical to the backup."
+        elif "$labels_left"; then
+            print_colored "$COLOR_YELLOW" "The wallpaper store differs from the backup (macOS rewrites it as Desktops change)."
+            print_colored "$COLOR_YELLOW" "Remove the label left above first; then, only if a wallpaper looks wrong: cp '${work_directory}/Index.plist.backup' '${wallpaper_store_plist}', then log out and in."
         else
             print_colored "$COLOR_YELLOW" "The wallpaper store differs from the backup (macOS rewrites it as Desktops change); the labels were removed, which restores the original wallpapers."
             print_colored "$COLOR_YELLOW" "Only if a wallpaper looks wrong: cp '${work_directory}/Index.plist.backup' '${wallpaper_store_plist}', then log out and in."
@@ -147,7 +180,6 @@ done
 
 if "$dry_run"; then
     display_names=("Display A" "Display B")
-    DNM_STORE_DIR="/dry-run"
 else
     [[ -x "$dnm_binary" ]] || { print_colored "$COLOR_RED" "No executable at ${dnm_binary}. Run: just build-release"; exit 1; }
     [[ -f "$wallpaper_store_plist" ]] || { print_colored "$COLOR_RED" "Cannot find the wallpaper store: ${wallpaper_store_plist}"; exit 1; }
@@ -155,9 +187,12 @@ else
     work_directory="$(mktemp -d "${TMPDIR:-/tmp}/dnm-live.XXXXXX")"
     cp "$wallpaper_store_plist" "${work_directory}/Index.plist.backup"
     export DNM_STORE_DIR="${work_directory}/store"
-    while IFS= read -r line; do
-        display_names+=("$line")
-    done < <("$dnm_binary" displays --json | sed -n 's/^ *"name" : "\(.*\)",\{0,1\}$/\1/p')
+    # plutil decodes the JSON, so a name with a quote or a backslash comes through as macOS shows it.
+    displays_json="$("$dnm_binary" displays --json)" || { print_colored "$COLOR_RED" "dnm displays failed."; exit 1; }
+    display_count="$(plutil -extract displays raw -o - - <<<"$displays_json")" || display_count=0
+    for ((display_index = 0; display_index < display_count; display_index++)); do
+        display_names+=("$(plutil -extract "displays.${display_index}.name" raw -o - - <<<"$displays_json")")
+    done
     ((${#display_names[@]} > 0)) || { print_colored "$COLOR_RED" "dnm reports no displays."; exit 1; }
     print_colored "$COLOR_BRIGHTYELLOW" "Backed up the wallpaper store to ${work_directory}"
     print_colored "$COLOR_BRIGHTYELLOW" "Using a private store: ${DNM_STORE_DIR}"
@@ -174,33 +209,45 @@ for name in "${display_names[@]}"; do
     print_colored "$COLOR_BRIGHTYELLOW" "Display: ${name}"
     labels_applied=true
     base=0   # images in the store when this display starts
+    # The store's files after A, then after B, and the undo records after A, to tell a reuse from a new render.
+    images_with_a="" images_with_b="" records_with_a=""
     "$dry_run" || base="$(image_count)"
 
     dnm set "$name" "Reuse A"
+    # A display that cannot be labeled (a dynamic wallpaper, or one labeled by your own dnm) would fail every check.
+    if ! "$dry_run" && ! shows_label "$name" "Reuse A"; then
+        print_colored "$COLOR_RED" "FAIL  ${name} could not be labeled (see above); skipping it."
+        failures=$((failures + 1))
+        continue
+    fi
     check "the first label makes one image" has_images $((base + 1))
+    "$dry_run" || images_with_a="$(image_names)"
 
     dnm remove "$name"
-    check "removing it keeps the image (it is only retired)" has_images $((base + 1))
+    check "removing it keeps the image (it is only retired)" has_same_images "$images_with_a"
     check "the original wallpaper is back" shows_no_label "$name"
 
     dnm set "$name" "Reuse A"
-    check "the same label again reuses the image: no new file" has_images $((base + 1))
+    check "the same label again reuses the image: no new file" has_same_images "$images_with_a"
     check "and it is showing" shows_label "$name" "Reuse A"
 
+    "$dry_run" || records_with_a="$(undo_records)"
     dnm set "$name" "Reuse A"
-    check "asking for it again on the Desktop that shows it changes nothing" has_images $((base + 1))
+    check "asking for it again on the Desktop that shows it makes no new image" has_same_images "$images_with_a"
+    check "and keeps the undo record (undo would still restore the original)" has_undo_records "$records_with_a"
 
     dnm set "$name" "Reuse B"
     check "a different label makes a new image" has_images $((base + 2))
+    "$dry_run" || images_with_b="$(image_names)"
 
     dnm set "$name" "Reuse A"
-    check "going back to the first label reuses its image" has_images $((base + 2))
+    check "going back to the first label reuses its image" has_same_images "$images_with_b"
     check "and shows it" shows_label "$name" "Reuse A"
 
     # Now A is on screen and the last change can still be undone, which needs B: cleanup must keep both.
     check "cleanup has nothing to offer: A is on screen and B is needed by undo" cleanup_says "Nothing to clean up" --days 0
     dnm cleanup --days 0 --yes
-    check "cleanup --yes deleted nothing" has_images $((base + 2))
+    check "cleanup --yes deleted nothing" has_same_images "$images_with_b"
     check "A is still showing" shows_label "$name" "Reuse A"
 
     dnm undo "$name"
@@ -209,7 +256,7 @@ for name in "${display_names[@]}"; do
     # B is on screen and A is retired, with nothing to undo: A is now offered, never B.
     check "cleanup describes the retired image and says another Desktop might show it" cleanup_says "might still show one of these" --days 0
     check "cleanup only describes without a terminal" cleanup_says "Nothing was deleted: add --yes" --days 0
-    check "describing deleted nothing" has_images $((base + 2))
+    check "describing deleted nothing" has_same_images "$images_with_b"
 
     dnm cleanup --days 0 --yes
     check "cleanup --yes deleted the retired image" has_images $((base + 1))
@@ -218,7 +265,6 @@ for name in "${display_names[@]}"; do
     dnm remove "$name"
     check "remove restores the original" shows_no_label "$name"
 done
-labels_applied=false
 
 if "$dry_run"; then
     print_colored "$COLOR_CYAN" "[dry run] done; nothing was changed."
