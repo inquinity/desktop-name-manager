@@ -47,10 +47,11 @@ public struct Maintenance: Codable {
 ```text
 for each stamp S:
     skip if S's image is the wallpaper of any display's current Desktop
-    skip if S is referenced by a change record (the undo window)
     if S is retired and retiredAt <= now - days          -> candidate (why: removed|replaced|undone, since retiredAt)
     if S is active  and (lastSeen ?? createdAt) <= now - days -> candidate (why: not seen, since lastSeen)
 ```
+
+An undo record does not keep an image (amended 2026-10-13): running `cleanup` means undo is not wanted.
 
 The estimate for the nudge is the sum of the candidates' file sizes with the default days; a missing file counts 0.
 

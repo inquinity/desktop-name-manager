@@ -32,9 +32,9 @@ dnm --help | dnm <command> --help | dnm --version
   same thing in every command that has it, and is typed often at the keyboard rather than in scripts. Options that
   delete or confirm (`--yes`, `--remove`), `--json`, `--display`, `--desktop`, `--label` and the look options have
   none. A new short option needs a decision recorded in a spec. (`alias -d` of 0.1.1 was removed in 0.2.0.)
-- **Housekeeping**: every command first deletes retired stamps older than the cool-down (30
-  minutes) and our own unreferenced files older than that (FR-018, FR-026). It prints nothing about this
-  unless it fails.
+- **Housekeeping**: every command first drops undo records older than the undo window (60 seconds) and deletes
+  our own unreferenced files older than 30 minutes; it never deletes an applied labeled image (FR-018, FR-026;
+  amended 2026-10-13). It prints nothing about this unless it fails.
 - **Streams**: results on standard output; messages, warnings and errors on standard
   error. With `--json`, standard output holds exactly one JSON document and nothing else.
 - **No change on failure**: any command that exits non-zero leaves the wallpaper as it
@@ -65,8 +65,8 @@ note: new Desktops copying the left-most Desktop's wallpaper is documented in th
 Replaced `dnm prune` in 0.2.1; the contract is `specs/009-stamp-reuse-and-cleanup/contracts/cli.md`. In short: it lists
 labeled images that no Desktop is known to show and that were retired, or last seen, at least `--days` days ago
 (default 30), with why, how old and the space they use; says plainly that a Desktop not on screen might still show one;
-asks on a terminal (or needs `--yes`) before deleting; and never deletes an image shown on a current Desktop or needed
-by an undo. `dnm prune` exits 2 and names `cleanup`.
+asks on a terminal (or needs `--yes`) before deleting; and never deletes an image shown on a current Desktop (an image
+an undo would bring back is not kept: amended 2026-10-13). `dnm prune` exits 2 and names `cleanup`.
 
 ## `dnm set [<display>] <label>`
 
@@ -100,12 +100,12 @@ Restores the target Desktop's original image, placement and fill color exactly (
 ## `dnm undo`
 
 Reverses the most recent `set`, `replace` or `remove` made on the display, if it is within
-the cool-down and the display's current wallpaper still equals what that change produced
+the undo window (60 seconds) and the display's current wallpaper still equals what that change produced
 (FR-022). One level only.
 
-- Output states what was restored, for example `Restored label "Email" on Built-in Display
-  (removed 4 minutes ago).`
-- Exits `1` with a reason and no change when there is nothing to undo, the cool-down has
+- Output states what was restored, for example `Restored label "Email" on Built-in Display.` or
+  `Restored the original wallpaper on Built-in Display.` (amended 2026-10-13: no longer says how long ago).
+- Exits `1` with a reason and no change when there is nothing to undo, the undo window has
   expired, the current wallpaper no longer matches, or the needed file is gone.
 
 ## `dnm show`

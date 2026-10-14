@@ -14,7 +14,8 @@
 
 - Q: Should this version include an `undo` command for the last label change within the
   cool-down? → A: Yes. One level only: it reverses the most recent set, replace or remove on
-  the current Desktop of a display while the cool-down has not expired.
+  the current Desktop of a display while the cool-down has not expired. (Amended 2026-10-13: the undo
+  window is 60 seconds, FR-022; the 30-minute cool-down now applies only to stray files, FR-018.)
 - Q: Which display do the commands act on when the user does not say? → A: The main display.
   Users pick another display with `--display`, given as the display's name as macOS shows it
   (for example "Built-in Display") or the beginning of a name that matches only one display
@@ -123,7 +124,7 @@ compare the settings and image with the recording. They are identical.
    current wallpaper untouched, and explains what the user can do.
 
 4. **Given** a Desktop whose label was just removed or replaced, **When** the user runs undo
-   within the 30-minute undo window, **Then** the Desktop returns to exactly what it showed before that
+   within the undo window (60 seconds; amended 2026-10-13, was 30 minutes), **Then** the Desktop returns to exactly what it showed before that
    change (the previous label, or the original wallpaper if it had none).
 5. **Given** the undo window has passed, or there is nothing to undo, **When** the user runs
    undo, **Then** nothing changes and the tool says why.
@@ -356,7 +357,7 @@ the expected labels; the other Desktops are unchanged.
 - **FR-018**: The system MUST keep its storage tidy without risking a wallpaper:
   - it MUST NOT delete a labeled image that was ever applied to a Desktop, except through `cleanup`
     (FR-029, spec 009) when the user agrees, because other Desktops may still show it;
-  - it MUST delete, only while a command is running and after a fixed cool-down of 30 minutes, files
+  - it MUST delete, only while a command is running and after a fixed stray-file age of 30 minutes, files
     it wrote but never applied (for example after a crash);
   - it MUST delete only files the tool itself created (recognizable by name, FR-026) and MUST NOT delete
     any other file, whatever folder the store is placed in; no background process, scheduled job or
@@ -369,7 +370,9 @@ the expected labels; the other Desktops are unchanged.
   Desktop identifiers, or personal images in tests, fixtures, docs or examples.
 - **FR-022**: The system MUST provide an `undo` command that reverses the most recent label
   change (set, replace or remove) on a chosen display, acting on the specified Desktop (FR-027), restoring its
-  exact previous state, within 30 minutes of that change (the undo window).
+  exact previous state, within 60 seconds of that change (the undo window; amended 2026-10-13, was 30 minutes:
+  undo is for putting back a label just changed on the wrong display, which happens within seconds).
+  `undo` says what it restored, without how long ago the change was made.
   Undo is one level only: after an undo there is nothing further to undo for that Desktop.
   Undo acts on the most recent change made on the display, and only while the display's
   current wallpaper is still the one that change produced.
@@ -495,7 +498,7 @@ the expected labels; the other Desktops are unchanged.
 - Defaults from the hand-off: bottom-left corner, single-line labels (30 characters) and emoji allowed, SF Pro
   Semibold font, accent color and Mission Control "large" preset deferred.
 - Removing or replacing a label does not delete its stamp, which is what makes the one-level undo in
-  FR-022 possible ("I didn't mean to clear that label"); the undo window itself is 30 minutes.
+  FR-022 possible ("I didn't mean to clear that label"); the undo window itself is 60 seconds (amended 2026-10-13).
 - How macOS ties Desktops to wallpapers is documented in `docs/research/desktop-association.md`
   (observed on macOS 27.0.1, and reported the same on 26.7): each Desktop has its own entry; each
   display's default for new Desktops mirrors its first Desktop; new Desktops copy that image at creation;

@@ -65,7 +65,7 @@ import Testing
         #expect(new.isActive)
         if case .retired(_, let reason) = old.state { #expect(reason == .replaced) } else { Issue.record("old stamp should be retired") }
         #expect(old.supersededBy == new.id)
-        #expect(h.storeFiles.count == 2)   // the old stamp stays for the cool-down
+        #expect(h.storeFiles.count == 2)   // the old stamp stays until `cleanup`
     }
 
     @Test func replacementDoesNotInheritOptionsFromTheOldLabel() throws {

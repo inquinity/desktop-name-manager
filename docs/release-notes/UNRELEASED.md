@@ -13,3 +13,6 @@
   one display, while `dnm set --display main --display DP "label"` (or a word and a different `--display`) says
   "Multiple displays for a single command are not currently supported." instead of asking you to give the display
   once. Several displays in one command are planned.
+- **Changed: `undo` works for 60 seconds, not 30 minutes,** and says what it restored without how long ago. Undo is for
+  putting back a label you just changed on the wrong display. `cleanup` no longer keeps an image that an undo could
+  bring back: running it means you no longer want that undo, and `undo` then says the image is gone.

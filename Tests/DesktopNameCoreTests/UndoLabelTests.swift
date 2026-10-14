@@ -13,13 +13,12 @@ import Testing
         try h.labeler.setLabel(LabelText("Email"), on: h.display)
         let stamp = try #require(try h.manifest().stamps.first)
         try h.labeler.removeLabel(on: h.display)
-        h.clock.advance(minutes: 4)
+        h.clock.advance(seconds: 15)
 
         let result = try h.labeler.undoLastChange(on: h.display)
 
         #expect(result.undone == .remove)
         #expect(result.restoredLabel?.text.value == "Email")
-        #expect(result.minutesAgo == 4)
         #expect(try currentName(h) == stamp.fileName)
         #expect(try h.manifest().stamps.first?.isActive == true)
     }
@@ -72,16 +71,16 @@ import Testing
         }
     }
 
-    @Test func undoWorksUpToTheCoolDownAndNotAfter() throws {
+    @Test func undoWorksForAMinuteAndNotAfter() throws {
         let h = try LabelerHarness(); defer { h.cleanUp() }
         try h.showOriginal()
         try h.labeler.setLabel(LabelText("Email"), on: h.display)
         try h.labeler.removeLabel(on: h.display)
-        h.clock.advance(minutes: 29)
+        h.clock.advance(seconds: 60)
         try h.labeler.undoLastChange(on: h.display)
 
         try h.labeler.removeLabel(on: h.display)
-        h.clock.advance(minutes: 31)
+        h.clock.advance(seconds: 61)
         let callsBefore = h.system.setCalls.count
         #expect(throws: DnmError.self) { try h.labeler.undoLastChange(on: h.display) }
         #expect(h.system.setCalls.count == callsBefore)

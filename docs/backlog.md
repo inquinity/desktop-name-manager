@@ -46,7 +46,7 @@ Ideas recorded for later. None is part of a current spec.
   - **What `--days` means with `--scan`** (probably nothing: whatever no Desktop shows is eligible).
   - **Names:** two spellings (`clean`, `cleanup`) both appear in Tab and sit next to `check`; and the automatic
     per-command housekeeping is called "Cleanup" in specs 001 and 005, which clashes; rename it in the docs.
-  - **Never delete a stamp inside the 30-minute undo window.**
+  - **The undo window does not protect an image** (decided 2026-10-13): running cleanup means undo is not wanted.
   - **Staging:** the age-based part is small (the rename of `prune`); the scan is the larger piece
     (navigator support to enumerate Desktops, timings, live tests) and could ship after it.
 

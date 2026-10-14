@@ -6,18 +6,14 @@ public struct UndoResult: Equatable, Sendable {
     /// The label that is showing again, or nil when the original wallpaper is back.
     public var restoredLabel: Label?
     public var displayName: String
-    /// How long ago the undone change was made.
-    public var minutesAgo: Int
 }
 
 extension DesktopLabeler {
-    /// Reverses the most recent change made on `display`, if it is within the cool-down and the display's
+    /// Reverses the most recent change made on `display`, if it is within the undo window and the display's
     /// wallpaper is still the one that change produced (FR-022). One level only.
     @discardableResult
     public func undoLastChange(on display: Display) throws -> UndoResult {
-        guard store.hasManifest else {
-            throw DnmError.cannotUndo("there is nothing to undo on \(display.name); changes can be undone for \(Int(Housekeeping.coolDown / 60)) minutes")
-        }
+        guard store.hasManifest else { throw Self.nothingToUndo(on: display) }
         return try store.exclusive { try performUndo(on: display) }
     }
 
@@ -28,8 +24,8 @@ extension DesktopLabeler {
         let now = time.now
 
         guard let record = manifest.changes.first(where: { $0.displayUUID == display.uuid }),
-              now.timeIntervalSince(record.at) <= Housekeeping.coolDown else {
-            throw DnmError.cannotUndo("there is nothing to undo on \(display.name); changes can be undone for \(Int(Housekeeping.coolDown / 60)) minutes")
+              now.timeIntervalSince(record.at) <= Housekeeping.undoWindow else {
+            throw Self.nothingToUndo(on: display)
         }
         guard produces(record.produced, currentURL: current.url, manifest: manifest) else {
             throw DnmError.cannotUndo("the wallpaper on \(display.name) has changed since that change")
@@ -72,8 +68,11 @@ extension DesktopLabeler {
             try? store.transaction { $0 = snapshot }
             throw error
         }
-        return UndoResult(undone: record.kind, restoredLabel: target.label, displayName: display.name,
-                          minutesAgo: Int(now.timeIntervalSince(record.at) / 60))
+        return UndoResult(undone: record.kind, restoredLabel: target.label, displayName: display.name)
+    }
+
+    private static func nothingToUndo(on display: Display) -> DnmError {
+        .cannotUndo("there is nothing to undo on \(display.name); a change can be undone for \(Int(Housekeeping.undoWindow)) seconds")
     }
 
     /// True when the display still shows what the change produced.

@@ -35,7 +35,7 @@ import Testing
         h.clock.advance(minutes: 5)
         try h.labeler.removeLabel(on: other)
         #expect(try h.manifest().stamps.first { $0.id == first.id }?.lastSeen == h.clock.now)
-        h.clock.advance(minutes: 5)
+        h.clock.advance(seconds: 20)
         try h.labeler.undoLastChange(on: other)
         #expect(try h.manifest().stamps.first { $0.id == first.id }?.lastSeen == h.clock.now)
         #expect(try h.manifest().stamps.first { $0.id == second.id }?.lastSeen == h.clock.now)
@@ -46,7 +46,7 @@ import Testing
         let before = try Data(contentsOf: h.store.manifestURL)
         // Inside the undo window, so housekeeping (which every command runs, and which drops expired undo records) has
         // nothing to do; what is checked is that no read-only command records a sighting.
-        h.clock.advance(minutes: 1)
+        h.clock.advance(seconds: 10)
         _ = try h.labeler.listDesktops()
         _ = try h.labeler.showLabel(on: h.display)
         _ = try h.labeler.showLabel(on: other)

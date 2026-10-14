@@ -78,7 +78,7 @@ extension DesktopLabeler {
             snapshot = try store.transaction { manifest in
                 let before = manifest
                 Self.markSeen(shown, at: now, in: &manifest)
-                // Bookkeeping only (for undo and prune): other Desktops may still show the old image, which
+                // Bookkeeping only (for undo and cleanup): other Desktops may still show the old image, which
                 // stays untouched on disk.
                 if let replacing, let index = manifest.stamps.firstIndex(where: { $0.id == replacing.id }) {
                     if manifest.stamps[index].isActive { manifest.stamps[index].state = .retired(at: now, reason: .replaced) }

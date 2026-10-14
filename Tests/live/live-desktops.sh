@@ -222,6 +222,13 @@ lacks_label() {
     ! grep -qF "\"$1\"" <<<"$2"
 }
 
+shows_no_label_on() {
+    # shows_no_label_on <display> <desktop>: dnm show reports no label on that Desktop.
+    local details
+    details="$("$dnm_binary" show --display "$1" --desktop "$2")"
+    grep -qF "No label" <<<"$details"
+}
+
 store_file_count() {
     find "$DNM_STORE_DIR" -maxdepth 1 -name '*.dnm.*' | wc -l | tr -d ' '
 }
@@ -338,15 +345,17 @@ else
 fi
 check "the new Desktop shares the label (macOS copied Desktop 1)" shows_label "$first_label" main "$new_desktop_number"
 run_step "$dnm_binary" remove --display main --desktop "$new_desktop_number"
-check "the new Desktop shows the original wallpaper" ask_to_look "Open Mission Control: is Desktop ${new_desktop_number} back to the normal wallpaper, with Desktop 1 still labeled '${first_label}'?"
+check "the new Desktop has no label after remove" shows_no_label_on main "$new_desktop_number"
+# Undo straight away, with no question in between: the undo window is 60 seconds (amended 2026-10-13).
+run_step "$dnm_binary" undo --display main --desktop "$new_desktop_number"
+check "undo --desktop brought '${first_label}' back on the new Desktop" shows_label "$first_label" main "$new_desktop_number"
 check "show --desktop 1 still recognizes the label" shows_label "$first_label" main 1
+check "remove and undo on the new Desktop left Desktop 1 alone" ask_to_look "Open Mission Control: do Desktop 1 and Desktop ${new_desktop_number} both show '${first_label}' again?"
 
 # --- Scenario 23: cleanup --------------------------------------------------------------------------
 print_colored "$COLOR_BRIGHTYELLOW" "Scenario 23: cleanup lists, and deletes only images no current Desktop shows (--days 0: everything it may)"
-# Make an image that is retired yet still on screen: put Desktop 1's label back on the new Desktop, then remove it
-# from Desktop 1, and show the new Desktop.
-run_step "$dnm_binary" undo --display main --desktop "$new_desktop_number"
-check "undo --desktop brought '${first_label}' back on the new Desktop" shows_label "$first_label" main "$new_desktop_number"
+# Make an image that is retired yet still on screen: the new Desktop shows Desktop 1's label again (the undo above);
+# remove it from Desktop 1, and show the new Desktop.
 run_step "$dnm_binary" remove --display main --desktop 1
 first_desktop_labeled=false
 wait_for_person "Switch the main display to Desktop ${new_desktop_number} (the new one, showing '${first_label}')."

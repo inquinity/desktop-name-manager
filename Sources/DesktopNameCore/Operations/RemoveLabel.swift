@@ -14,7 +14,7 @@ public struct RemoveLabelResult: Equatable, Sendable {
 
 extension DesktopLabeler {
     /// Restores the Desktop's original image, placement and fill color exactly (FR-008).
-    /// The stamp is retired, not deleted, so `undo` can bring it back during the cool-down.
+    /// The stamp is retired, not deleted, so `undo` can bring it back within the undo window.
     @discardableResult
     public func removeLabel(on display: Display) throws -> RemoveLabelResult {
         // Nothing stored yet means nothing to remove; do not create the store just to say so.

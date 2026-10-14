@@ -92,18 +92,20 @@ After an undo the record is cleared (one level only).
 unlabeled ──set──▶ active stamp S1
 S1 active ──set──▶ S1 retired(replaced), new active stamp S2 (same Original)
 S1 active ──remove──▶ S1 retired(removed); Desktop shows the Original
-retired (within cool-down) ──undo──▶ stamp active again, or Desktop shows the state before
-retired (older than cool-down) ──any command──▶ file and entry deleted
+retired (within the undo window) ──undo──▶ stamp active again, or Desktop shows the state before
+retired ──dnm cleanup, when the person agrees──▶ file and entry deleted
 ```
 
-- A Stamp file is deleted only when its entry is retired and older than the cool-down (30
-  minutes), or when it has no manifest entry, is older than the cool-down, and its name
-  matches `<uuid>.dnm.<ext>` exactly. Cleanup never deletes the manifest, the lock file,
-  subfolders, or any file that does not match that pattern, and does nothing in a folder
-  that has no manifest of ours.
-- An active Stamp is never deleted.
-- Undo is allowed only while the Change record is within the cool-down and the display's
-  current wallpaper matches `produced`.
+Amended 2026-10-13 (the 2026-10-05 housekeeping change and the 60-second undo window):
+
+- Housekeeping, which every command runs, never deletes a Stamp that has a manifest entry. It deletes a
+  file only when it has no manifest entry, is older than 30 minutes (the stray-file age), and its name
+  matches `<uuid>.dnm.<ext>` exactly. It never deletes the manifest, the lock file, subfolders, or any
+  file that does not match that pattern, and does nothing in a folder that has no manifest of ours.
+- A Stamp with an entry is deleted only by `dnm cleanup` (spec 009), and never while it shows on a
+  display's current Desktop.
+- Undo is allowed only while the Change record is within the undo window (60 seconds) and the display's
+  current wallpaper matches `produced`. Housekeeping drops Change records older than the window.
 
 ## Validation rules (from the spec)
 

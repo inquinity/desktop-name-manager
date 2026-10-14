@@ -28,7 +28,7 @@
 - **Q: What happens today when a Desktop is deleted?**
   - **A**: Nothing tells `dnm`. The label stays active forever, shows in `dnm list` as a labeled Desktop that does not exist, is counted by `dnm check`, and its image (about 2 to 6 MB, a JPEG at the display's size) stays on disk. `prune` only handled labels removed, replaced or undone through `dnm`.
 - **Q: What may `dnm cleanup` delete (without `--scan`)?**
-  - **A**: A labeled image and its record, when it is not showing on any display's current Desktop, it is not needed by an undo (the 30-minute window), and either (a) the label was retired (removed, replaced or undone) at least N days ago, or (b) the label has not been seen on a Desktop for at least N days. Case (b) is how labels of deleted Desktops are found without the scan; it can also catch a Desktop that is alive but rarely visited, which is why the command lists every label with its last-seen age and says so before asking.
+  - **A**: A labeled image and its record, when it is not showing on any display's current Desktop, and either (a) the label was retired (removed, replaced or undone) at least N days ago, or (b) the label has not been seen on a Desktop for at least N days. Case (b) is how labels of deleted Desktops are found without the scan; it can also catch a Desktop that is alive but rarely visited, which is why the command lists every label with its last-seen age and says so before asking. (Amended 2026-10-13: an image that an undo could bring back is not kept; running `cleanup` means undo is not wanted, and `undo` then says the image is gone.)
 - **Q: What does "seen" mean, and who records it?**
   - **A**: A label is seen when its image is the wallpaper of some display's current Desktop at the moment something looks. Commands that already write (`set`, `remove`, `undo`, `cleanup`) record the images showing on all displays' current Desktops; a new label is seen at creation; the scan records every Desktop it visits; the menu-bar app will record every Desktop switch (spec 002). Read-only commands (`list`, `show`, `displays`, `check`, `about`) change nothing, so they record nothing. A label never seen counts from its creation date.
 - **Q: When is an image reused?**
@@ -64,7 +64,7 @@ As a user who deletes Desktops, I want one command that finds the labeled images
 1. **Given** labels as above, **When** the user runs `dnm cleanup` on a terminal, **Then** it lists the two old labels with display, text, why ("removed 40 days ago", "not seen for 40 days"), size and the total, says that a Desktop not currently on screen might still show one of these images, and asks `Delete these 2 labeled images (3.8 MB)? [y/N]`.
 2. **Given** the user answers `y` (or passes `--yes`), **Then** the images and records are deleted, standard output says what was freed, and `dnm check` no longer counts them.
 3. **Given** `--days 7`, **Then** a label retired 10 days ago and one not seen for 10 days are also listed; `--days 0` lists every label no current Desktop shows.
-4. **Given** a label changed or removed within the last 30 minutes (inside the undo window), **Then** it is never listed, whatever `--days` says.
+4. **Given** a label removed or replaced moments ago, which `undo` could still bring back, **Then** it is listed like any other retired label (amended 2026-10-13: running `cleanup` means undo is not wanted); a later `undo` says the image is gone and changes nothing.
 5. **Given** the label's image is the wallpaper of a display's current Desktop, **Then** it is never listed.
 6. **Given** no terminal and no `--yes`, **Then** the same description is printed, nothing is deleted, and the exit code is 0.
 7. **Given** nothing qualifies, **Then** `Nothing to clean up (no labeled image is older than 30 days).`
@@ -131,7 +131,7 @@ As a user who wants to be sure, I want `dnm cleanup --scan` to look at every Des
 ### Functional Requirements
 
 - **FR-001**: `dnm cleanup [--days N] [--yes] [--json]` MUST list, describe and (on agreement) delete the candidates of the clarification above, replacing `dnm prune`, which MUST be removed; typing `prune` MUST give an error that names `cleanup`.
-- **FR-002**: `--days` MUST default to 30, accept 0 or more, and apply to retired labels (age since retired) and to labels not seen (age since last seen, or since creation if never seen). A label inside the undo window, or showing on any display's current Desktop, MUST NOT be a candidate.
+- **FR-002**: `--days` MUST default to 30, accept 0 or more, and apply to retired labels (age since retired) and to labels not seen (age since last seen, or since creation if never seen). A label showing on any display's current Desktop MUST NOT be a candidate; the undo window gives no protection (amended 2026-10-13).
 - **FR-003**: Before deleting, the command MUST describe each candidate (display, text, why, size), the total, and plainly say that a Desktop not currently on screen might still show one of these images; it MUST then ask on a terminal, or require `--yes`, and otherwise delete nothing and exit 0.
 - **FR-004**: Deleting MUST remove the image file and the label's record, and the nudge state, and MUST be one locked change.
 - **FR-005**: Each label MUST record when it was last seen; `set`, `remove` and `undo` (and `cleanup` when it deletes) MUST record the images showing on all displays' current Desktops; read-only commands, and a `cleanup` that only describes, MUST NOT write.
@@ -149,7 +149,7 @@ As a user who wants to be sure, I want `dnm cleanup --scan` to look at every Des
 ## Success Criteria
 
 - **SC-001**: Relabeling a replacement Desktop the way its predecessor was labeled adds no file to the store, and the second `set` makes no render.
-- **SC-002**: `cleanup` never lists or deletes a label that shows on a current Desktop or is inside the undo window, in every test.
+- **SC-002**: `cleanup` never lists or deletes a label that shows on a current Desktop, in every test (amended 2026-10-13: the undo window no longer counts).
 - **SC-003**: A store with 1,000 labels is estimated in under 50 ms by the housekeeping pass.
 - **SC-004**: The nudge appears exactly in the situations of User Story 3 and never otherwise (table-driven test over terminal or not, size, last shown, doubling, command).
 - **SC-005**: Every deletion is preceded by a description and an answer (terminal) or `--yes`.

@@ -52,7 +52,7 @@ Desktop for you (see below).
 |---|---|
 | `dnm set [<display>] <label>` | Label the current Desktop (of the main display, or of the display you name first). Options: `--style plain\|halo\|frosted`, `--color light\|dark\|#RRGGBB`, `--position bottom-left\|bottom-right\|top-left\|top-right\|bottom\|top`, `--size small\|medium\|large`. Anything left out is chosen from the wallpaper or uses its default. |
 | `dnm remove [<display>]` | Remove the label and restore the original wallpaper exactly. |
-| `dnm undo [<display>]` | Undo the last change on a display, for 30 minutes (one level). |
+| `dnm undo [<display>]` | Undo the last change on a display, for 60 seconds (one level). |
 | `dnm show [<display>]` | Show the label on the current Desktop. |
 | `dnm list` | List labeled Desktops and the current Desktop of each display. Only those are shown. |
 | `dnm displays` | List the connected displays, as `--display` accepts them, with their aliases. |
@@ -146,7 +146,8 @@ Deleting a Desktop in Mission Control is something `dnm` is never told about, so
   seen at least 30 days ago (`--days N` for another age; `--days 0` for everything no Desktop shows now). It lists them
   with why and how old, says plainly that **a Desktop that is not on screen now might still show one of them** (it would
   fall back to the Mac's default wallpaper until you choose another or label it again), and asks before deleting. With
-  no terminal it only describes, unless you pass `--yes`. `--json` prints the list. Nothing is ever deleted unless you
+  no terminal it only describes, unless you pass `--yes`. `--json` prints the list. A change made moments ago can no
+  longer be undone once cleanup has deleted the image it would bring back. Nothing is ever deleted unless you
   agree: no command cleans up by itself. After a label is set or removed, on a terminal, `dnm` may add one line
   (at most weekly) when 50 MB or more could be freed.
 

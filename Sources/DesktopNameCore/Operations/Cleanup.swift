@@ -42,8 +42,9 @@ extension DesktopLabeler {
     /// A nudge is not repeated within this long, unless the amount has doubled.
     public static let nudgeInterval: TimeInterval = 7 * 86_400
 
-    /// What `cleanup` would delete now: images that no display's current Desktop shows, that no undo needs, and that
-    /// were retired, or last seen, at least `days` days ago. Reads only (apart from housekeeping).
+    /// What `cleanup` would delete now: images that no display's current Desktop shows, and that were retired, or last
+    /// seen, at least `days` days ago. Reads only (apart from housekeeping). An image an undo would bring back is not
+    /// kept: running cleanup means that undo is no longer wanted, and `undo` then says the image is gone.
     public func cleanupPlan(days: Int) throws -> CleanupPlan {
         guard store.hasManifest else { return CleanupPlan(days: days, candidates: []) }
         try housekeeping()
@@ -100,14 +101,8 @@ extension DesktopLabeler {
     /// The selection rule (spec 009 data model §4), shared by `cleanup`, the nudge and `check`.
     func cleanupCandidates(in manifest: Manifest, days: Int, now: Date, shown: Set<String>) -> [CleanupCandidate] {
         let cutoff = now.addingTimeInterval(-Double(days) * 86_400)
-        // Undo needs both images a change names, but only inside the undo window; read-only commands (`check`, the nudge)
-        // do not run housekeeping, so an expired record can still be in the manifest and must not count.
-        var needed = Set<UUID>()
-        for record in manifest.changes where now.timeIntervalSince(record.at) <= Housekeeping.coolDown {
-            for state in [record.produced, record.before] { if case .stamp(let id) = state { needed.insert(id) } }
-        }
         return manifest.stamps.compactMap { stamp -> CleanupCandidate? in
-            guard !shown.contains(stamp.fileName), !needed.contains(stamp.id) else { return nil }
+            guard !shown.contains(stamp.fileName) else { return nil }
             let reason: CleanupReason
             let since: Date
             switch stamp.state {

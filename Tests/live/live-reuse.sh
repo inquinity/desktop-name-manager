@@ -3,9 +3,11 @@
 # Live checks of label reuse and `dnm cleanup` (spec 009, task T016) against the REAL wallpaper.
 #
 # On every connected display it labels, removes and relabels the same thing and checks that no second image is made;
-# that a different label does make one; that relabeling an earlier label reuses it; and that `cleanup` describes
-# without deleting, and with --yes never deletes the image on screen or one an undo needs. It never switches
-# Desktops: it acts on the Desktop showing on each display.
+# that a different label does make one; that relabeling an earlier label reuses it; that `cleanup` describes
+# without deleting, and with --yes never deletes the image on screen; and that it does delete the image an undo would
+# bring back, after which `undo` refuses and changes nothing (amended 2026-10-13). Each undo runs within seconds of
+# its change (the undo window is 60 seconds). It never switches Desktops: it acts on the Desktop showing on each
+# display, and leaves the private store empty for the next one.
 #
 # This changes the wallpaper of the Desktop you are on, on every display. Run it only while you are idle, on
 # Desktops whose wallpapers are normal image files (not ones labeled by your own dnm: remove those labels first;
@@ -120,6 +122,13 @@ shows_no_label() {
     local output
     output="$("$dnm_binary" show "$1" 2>/dev/null)" || return 1
     grep -qF "No label" <<<"$output"
+}
+
+# undo_refuses <display word> <text>: `dnm undo` fails and says the text.
+undo_refuses() {
+    local output
+    output="$("$dnm_binary" undo "$1" 2>&1)" && return 1
+    grep -qF "$2" <<<"$output"
 }
 
 # cleanup_says <needle> <dnm cleanup arguments...>: with standard input from /dev/null (not a terminal), cleanup only
@@ -244,16 +253,10 @@ for name in "${display_names[@]}"; do
     check "going back to the first label reuses its image" has_same_images "$images_with_b"
     check "and shows it" shows_label "$name" "Reuse A"
 
-    # Now A is on screen and the last change can still be undone, which needs B: cleanup must keep both.
-    check "cleanup has nothing to offer: A is on screen and B is needed by undo" cleanup_says "Nothing to clean up" --days 0
-    dnm cleanup --days 0 --yes
-    check "cleanup --yes deleted nothing" has_same_images "$images_with_b"
-    check "A is still showing" shows_label "$name" "Reuse A"
-
     dnm undo "$name"
-    check "undo, after a reused set and a cleanup, brings B back" shows_label "$name" "Reuse B"
+    check "undo, after a reused set, brings B back" shows_label "$name" "Reuse B"
 
-    # B is on screen and A is retired, with nothing to undo: A is now offered, never B.
+    # B is on screen and A is retired: A is offered, never B.
     check "cleanup describes the retired image and says another Desktop might show it" cleanup_says "might still show one of these" --days 0
     check "cleanup only describes without a terminal" cleanup_says "Nothing was deleted: add --yes" --days 0
     check "describing deleted nothing" has_same_images "$images_with_b"
@@ -262,8 +265,19 @@ for name in "${display_names[@]}"; do
     check "cleanup --yes deleted the retired image" has_images $((base + 1))
     check "and not the one on screen" shows_label "$name" "Reuse B"
 
+    # A change that can still be undone does not keep its image: cleanup means undo is not wanted.
+    dnm set "$name" "Reuse A"
+    check "A, whose image was deleted, is made again" has_images $((base + 2))
+    dnm cleanup --days 0 --yes
+    check "cleanup --yes deletes B, although undo would bring it back" has_images $((base + 1))
+    check "undo then refuses: the image is gone" undo_refuses "$name" "no longer available"
+    check "and A is still showing" shows_label "$name" "Reuse A"
+    check "the refused undo changed no file" has_images $((base + 1))
+
     dnm remove "$name"
     check "remove restores the original" shows_no_label "$name"
+    dnm cleanup --days 0 --yes
+    check "cleanup after the remove leaves the store as this display found it" has_images "$base"
 done
 
 if "$dry_run"; then

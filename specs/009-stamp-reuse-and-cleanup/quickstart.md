@@ -14,10 +14,11 @@ live-test rules (back up `~/Library/Application Support/com.apple.wallpaper/Stor
    lists labels no current Desktop shows, with the plain warning and a question; `n` deletes nothing; `--yes` deletes;
    `--json` prints the document and asks nothing; with stdin not a terminal (`< /dev/null`) it describes and says to
    add `--yes`.
-4. **Never the current or the undoable.** A label showing on a current Desktop, or changed less than 30 minutes ago,
-   is never listed, even with `--days 0`.
+4. **Never the current.** A label showing on a current Desktop is never listed, even with `--days 0`. One removed
+   seconds ago is listed (amended 2026-10-13); after `--yes` deletes it, `dnm undo` says the image is gone.
 5. **Last seen.** After `dnm set` on one display, `dnm cleanup --days 0 --json` shows a label showing on another
-   display's current Desktop as not a candidate; `dnm list`, `show` and `check` leave the manifest byte-identical.
+   display's current Desktop as not a candidate. Wait more than a minute and run `dnm list` once (housekeeping then drops
+   the expired undo record), copy the manifest, and `dnm list`, `show` and `check` leave it byte-identical.
 6. **Nudge.** With a store holding more than 50 MB of candidates (copy images), `dnm set` in a terminal prints the note
    once; again immediately: nothing; `dnm cleanup --yes` then another large set: the note can appear again.
 7. **`prune` is gone.** `dnm prune` exits 2 and names `cleanup`.

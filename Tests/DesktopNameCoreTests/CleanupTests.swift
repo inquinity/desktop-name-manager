@@ -4,7 +4,7 @@ import Testing
 
 /// Spec 009: `cleanup` finds labeled images that no Desktop is known to show, and deletes exactly what was shown.
 @Suite struct CleanupTests {
-    /// Labels, relabels and removes, leaving two retired images and nothing active, then lets the undo window pass.
+    /// Labels, relabels and removes, leaving two retired images and nothing active.
     func history() throws -> LabelerHarness {
         let h = try LabelerHarness()
         try h.showOriginal()
@@ -35,12 +35,23 @@ import Testing
         #expect(try h.labeler.cleanupPlan(days: 7).candidates.count == 2)
     }
 
-    @Test func nothingInTheUndoWindowIsEverACandidate() throws {
+    @Test func anImageAnUndoWouldBringBackIsNotKept() throws {
         let h = try history(); defer { h.cleanUp() }
-        // The removal can still be undone, so the label it would bring back is needed; the older one is not.
-        #expect(try h.labeler.cleanupPlan(days: 0).candidates.map(\.label) == ["One"])
-        h.clock.advance(minutes: 31)
-        #expect(try h.labeler.cleanupPlan(days: 0).candidates.map(\.label) == ["One", "Two"])
+        // The removal can still be undone, but running cleanup means undo is not wanted: both images go.
+        let plan = try h.labeler.cleanupPlan(days: 0)
+        #expect(plan.candidates.map(\.label) == ["One", "Two"])
+        try h.labeler.carryOut(plan)
+        #expect(h.storeFiles.isEmpty)
+        let callsBefore = h.system.setCalls.count
+        let manifestBefore = try Data(contentsOf: h.store.manifestURL)
+        do {
+            try h.labeler.undoLastChange(on: h.display)
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").contains("no longer available"))
+        }
+        #expect(h.system.setCalls.count == callsBefore, "a refused undo changes nothing")
+        #expect(try Data(contentsOf: h.store.manifestURL) == manifestBefore)
     }
 
     // MARK: Labels not seen

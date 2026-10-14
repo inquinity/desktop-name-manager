@@ -4,7 +4,7 @@ import DesktopNameCore
 struct UndoCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "undo",
-        abstract: "Undo the last label change on a display (one level, within 30 minutes).",
+        abstract: "Undo the last label change on a display (one level, within 60 seconds).",
         usage: "dnm undo [<display>] [options]")
 
     @OptionGroup var words: DisplayWords
@@ -17,12 +17,10 @@ struct UndoCommand: ParsableCommand {
             let display = try context.target(command: "undo", words: words, option: target)
             var result = try context.onDesktop(place, of: display) { try context.labeler.undoLastChange(on: display) }
             result.displayName = place.describe(result.displayName)
-            let change = switch result.undone { case .set: "set"; case .replace: "replaced"; case .remove: "removed" }
-            let when = "\(change) \(result.minutesAgo) minute\(result.minutesAgo == 1 ? "" : "s") ago"
             if let label = result.restoredLabel {
-                Output.out("Restored label \"\(label.text.value)\" on \(result.displayName) (\(when)).")
+                Output.out("Restored label \"\(label.text.value)\" on \(result.displayName).")
             } else {
-                Output.out("Restored the original wallpaper on \(result.displayName) (label \(when)).")
+                Output.out("Restored the original wallpaper on \(result.displayName).")
             }
         }
     }

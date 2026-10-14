@@ -34,8 +34,9 @@ import Testing
         func run() throws { try Housekeeping.run(store: store, now: clock.now) }
     }
 
-    @Test func coolDownIsThirtyMinutes() {
-        #expect(Housekeeping.coolDown == 1800)
+    @Test func undoLastsAMinuteAndStrayFilesWaitHalfAnHour() {
+        #expect(Housekeeping.undoWindow == 60)
+        #expect(Housekeeping.strayFileAge == 1800)
     }
 
     @Test func nothingIsDeletedBeforeTheCoolDown() throws {
@@ -105,10 +106,10 @@ import Testing
     @Test func expiredUndoRecordsAreDropped() throws {
         let h = try Harness(); defer { h.cleanUp() }
         try h.store.transaction { $0.changes = [Fixtures.change(at: h.clock.now)] }
-        h.clock.advance(minutes: 10)
+        h.clock.advance(seconds: 30)
         try h.run()
         #expect(try h.store.readManifest().changes.count == 1)
-        h.clock.advance(minutes: 25)
+        h.clock.advance(seconds: 40)
         try h.run()
         #expect(try h.store.readManifest().changes.isEmpty)
     }
