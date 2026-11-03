@@ -228,8 +228,9 @@ so do `dnm`'s stored labels, in case you reinstall.
 leave such Desktops without their picture. To remove everything:
 
 1. Before uninstalling, run `dnm remove` (with `--display` or `--desktop` as needed) on each Desktop whose
-   label you want gone, then `dnm cleanup --days 0 --yes` to delete labeled images no Desktop shows. Any Desktop you
-   skip keeps its labeled picture until you choose another wallpaper.
+   label you want gone, then `dnm cleanup --days 0 --yes` to delete every labeled image that no Desktop on screen
+   shows. That includes the images of labeled Desktops you skipped that are not on screen: they fall back to the
+   Mac's default wallpaper until you choose another.
 2. Uninstall as above.
 3. Delete the storage folder: `~/Library/Application Support/com.altmansoftwaredesign.desktop-name-manager`.
 

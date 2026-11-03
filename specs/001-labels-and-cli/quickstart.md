@@ -26,7 +26,7 @@ just test      # swift test --scratch-path build.noindex
 ```
 
 Covers validation, display resolution, set/remove/undo/list/show logic against a fake
-wallpaper system and a temporary store, cool-down cleanup with an advanced clock, the
+wallpaper system and a temporary store, housekeeping and `dnm cleanup` with an advanced clock, the
 unsupported-wallpaper rules, the JSON shapes, and the source scan for networking and
 private-framework use. Snapshot tests run over `wallpaper-samples/` when it is present and
 report skipped when it is not.
@@ -62,14 +62,14 @@ Then, on Desktop 2, run the scenarios below and look at the screen each time.
 | 13 | Unreadable | Put a wallpaper inside a protected folder, deny access, `dnm set "Test"` | The system's error shown, exit 1, no change (clarify 6). |
 | 14 | No network | Turn Wi-Fi off, repeat 1, 5, 11 | All succeed (Story 5). |
 | 15 | Originals untouched | `shasum` the original image before and after 1 to 6 | Identical. |
-| 16 | Cool-down cleanup | After scenario 6, wait 31 minutes, run `dnm list` | Retired stamp files are gone from `$DNM_STORE_DIR`; active ones remain; no other file in the folder was touched (SC-006, FR-026). |
+| 16 | Housekeeping | After scenario 6, wait more than a minute, run `dnm list` | The expired undo record is dropped (`undo` says there is nothing to undo); every labeled image stays in `$DNM_STORE_DIR` (retired ones too: only `dnm cleanup` deletes them); no other file in the folder was touched (SC-006, FR-026; amended for spec 009: the undo window is 60 seconds). |
 | 17 | Solid color | Set the Desktop to a solid color in System Settings, `dnm set "Test"` | Either labeled as an image or declined with exit 3; record which (research R6). |
 | 18 | Image quality | Label a wallpaper with fine detail and flat color areas, compare to the original | No visible loss away from the label; record the difference measurement (research R7). |
 | 19 | Missing stamp | Delete the stamp file for a labeled Desktop, run `dnm show`, then `dnm set "Email"` | `show` says the stamp is missing; `set` rebuilds it from the original; `remove` also works (spec edge case). |
 | 20 | The first-Desktop rule and reordering (KI-1, by hand) | `dnm set "Two" --display <d> --desktop 2`. In Mission Control, hover over + for that display; drag Desktop 2 to the first position and hover again; drag it back and hover again. Finish with `dnm remove --display <d> --desktop 2` | The + preview shows the normal wallpaper, then "Two" while that Desktop is first (macOS mirrors the first Desktop), then the normal wallpaper again. `dnm` printed no warning. Matches the README and `docs/research/desktop-association.md`. |
 | 21 | Sets across displays (User Story 6) | On every connected display, label Desktops 2 and 3 with `--desktop`, each label naming its place ("Display 2 - Desktop 3"; Display 1 is main). Run in each display configuration available: one, two and three displays | Every label is on the Desktop it names and nowhere else; each display ends where it started; each command under 8 s (SC-008). |
 | 22 | Shared label (KI-1) | Label Desktop 1 of a display, create a new Desktop there, `remove --desktop <new>` | The new Desktop returns to the original; Desktop 1 keeps its label; `show --desktop 1` still recognizes it. |
-| 23 | Prune | `dnm prune`, then `dnm prune --yes` | The first lists and changes nothing; the second deletes only images no current Desktop shows. |
+| 23 | Cleanup | `dnm cleanup --days 0`, then `dnm cleanup --days 0 --yes` | The first lists and changes nothing; the second deletes only images no current Desktop shows (spec 009 replaced `prune`). |
 
 Scripts: `Tests/live/live-label.sh` runs 1 to 3, 5 to 11, 16 and 19; `Tests/live/live-safety.sh` runs 12
 to 15; `Tests/live/live-desktops.sh` runs 21 to 23 (it needs Accessibility for the terminal and at least
