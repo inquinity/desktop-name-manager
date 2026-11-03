@@ -95,13 +95,18 @@ public struct ChangeRecord: Codable, Equatable, Sendable {
     public var produced: StateRef
     /// What it was before.
     public var before: StateRef
+    /// When `produced` is an existing label that was reused, its state before the reuse, so undo puts that back
+    /// instead of retiring a label another Desktop may still show. nil for a new label (and for older records).
+    public var reusedFrom: StampState?
 
-    public init(displayUUID: String, kind: ChangeKind, at: Date, produced: StateRef, before: StateRef) {
+    public init(displayUUID: String, kind: ChangeKind, at: Date, produced: StateRef, before: StateRef,
+                reusedFrom: StampState? = nil) {
         self.displayUUID = displayUUID
         self.kind = kind
         self.at = at
         self.produced = produced
         self.before = before
+        self.reusedFrom = reusedFrom
     }
 }
 

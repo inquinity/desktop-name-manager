@@ -107,7 +107,8 @@ extension DesktopLabeler {
             let since: Date
             switch stamp.state {
             case .retired(let at, let why):
-                guard at <= cutoff else { return nil }
+                // Seen showing since it was retired (on another Desktop that shares it): it counts from then.
+                guard at <= cutoff, (stamp.lastSeen ?? at) <= cutoff else { return nil }
                 reason = switch why { case .removed: .removed; case .replaced: .replaced; case .undone: .undone }
                 since = at
             case .active:

@@ -51,6 +51,11 @@ cover it: every command acts on the current Desktop only, `stamp(for:)` finds a 
 state, and `cleanup` never deletes an image on a current Desktop. The residual case (a retired label whose image
 another Desktop off screen shows) is the one the plain warning and the scan address.
 
+Amended 2026-11-03 (0.2.1 code review): reuse made that residual case reachable through ordinary commands. Asking
+again for a retired label on a Desktop that shows it left it retired, undo after a reused `set` retired a label
+another Desktop still showed, and a retired image seen since still aged from its retirement. Each is fixed
+(data model §4 and §4a), so an image is offered only when nothing has shown it for the whole period.
+
 ## R6. Last seen
 
 Written by commands that already write, which have the lock and the display list: for every display, the image its

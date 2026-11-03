@@ -51,7 +51,8 @@ extension DesktopLabeler {
             let before = manifest
             Self.markSeen(shown, at: now, in: &manifest)
             if case .stamp(let id) = record.produced, let index = manifest.stamps.firstIndex(where: { $0.id == id }) {
-                manifest.stamps[index].state = .retired(at: now, reason: .undone)
+                // A reused label goes back to how it was: it may still show on another Desktop.
+                manifest.stamps[index].state = record.reusedFrom ?? .retired(at: now, reason: .undone)
             }
             if case .stamp(let id) = record.before, let index = manifest.stamps.firstIndex(where: { $0.id == id }) {
                 manifest.stamps[index].state = .active

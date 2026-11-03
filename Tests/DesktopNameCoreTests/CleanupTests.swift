@@ -86,6 +86,17 @@ import Testing
         #expect(plan.candidates.map(\.label).first == "Seen long ago", "oldest sighting first")
     }
 
+    @Test func aRetiredImageSeenSinceCountsFromTheSighting() throws {
+        // Retired on one Desktop, still showing on another that shares it and was seen there lately.
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        try h.showOriginal()
+        try h.addStamp("Shared", state: .retired(at: h.days(40), reason: .removed), lastSeen: h.days(5), createdAt: h.days(60))
+        try h.addStamp("Gone", state: .retired(at: h.days(40), reason: .removed), lastSeen: h.days(40), createdAt: h.days(60))
+        let plan = try h.labeler.cleanupPlan(days: 30)
+        #expect(plan.candidates.map(\.label) == ["Gone"])
+        #expect(try h.labeler.cleanupPlan(days: 5).candidates.count == 2)
+    }
+
     @Test func aLabelFromBeforeLastSeenExistedCountsFromWhenItWasMade() throws {
         let h = try LabelerHarness(); defer { h.cleanUp() }
         try h.showOriginal()

@@ -120,8 +120,14 @@ extension DesktopLabeler {
             Self.markSeen(shown, at: now, in: &manifest)
             guard let index = manifest.stamps.firstIndex(where: { $0.id == stamp.id }) else { return before }
             manifest.stamps[index].lastSeen = now
-            // The same label asked for again on the Desktop that shows it: nothing else changes.
-            if replacing?.id == stamp.id { return before }
+            let reusedFrom = manifest.stamps[index].state
+            // The same label asked for again on the Desktop that shows it: it is active again (another Desktop may
+            // have retired it), and the undo record stays.
+            if replacing?.id == stamp.id {
+                manifest.stamps[index].state = .active
+                manifest.stamps[index].supersededBy = nil
+                return before
+            }
             if let replacing, let old = manifest.stamps.firstIndex(where: { $0.id == replacing.id }) {
                 if manifest.stamps[old].isActive { manifest.stamps[old].state = .retired(at: now, reason: .replaced) }
                 manifest.stamps[old].supersededBy = stamp.id
@@ -131,7 +137,8 @@ extension DesktopLabeler {
             manifest.changes.removeAll { $0.displayUUID == display.uuid }
             manifest.changes.append(ChangeRecord(displayUUID: display.uuid, kind: replacing == nil ? .set : .replace, at: now,
                                                  produced: .stamp(id: stamp.id),
-                                                 before: replacing.map { .stamp(id: $0.id) } ?? .original(original)))
+                                                 before: replacing.map { .stamp(id: $0.id) } ?? .original(original),
+                                                 reusedFrom: reusedFrom))
             return before
         }
         do {

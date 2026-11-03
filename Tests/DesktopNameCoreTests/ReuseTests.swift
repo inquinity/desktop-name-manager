@@ -115,6 +115,43 @@ import Testing
         #expect(manifest.stamps.first { $0.id == a.id }?.isActive == false)
     }
 
+    @Test func aRetiredLabelStillShowingIsActiveAgainWhenAskedFor() throws {
+        // Two Desktops of one display share the image; the label is removed on one, then asked for on the other.
+        let (h, original) = try labeled(); defer { h.cleanUp() }
+        let shared = try h.system.currentWallpaper(on: h.display)
+        try h.labeler.removeLabel(on: h.display)
+        #expect(try h.manifest().stamps[0].isActive == false)
+        h.system.show(shared.url, placement: shared.placement, on: h.display)   // switch to the other Desktop
+        try h.labeler.setLabel(LabelText("Mail"), on: h.display)
+        let manifest = try h.manifest()
+        #expect(manifest.stamps.count == 1 && manifest.stamps[0].isActive && manifest.stamps[0].supersededBy == nil)
+        h.system.show(original, on: h.display)   // back to a Desktop without the label
+        h.clock.advance(minutes: 40 * 24 * 60)
+        #expect(try h.labeler.cleanupPlan(days: 30).candidates.map(\.reason) == [.notSeen], "aged as active, not as removed")
+    }
+
+    @Test func undoAfterReusingAnActiveLabelLeavesItActive() throws {
+        // A labeled Desktop is kept; a new Desktop on the original wallpaper gets the same label, then undo.
+        let (h, original) = try labeled(); defer { h.cleanUp() }
+        let id = try #require(try h.manifest().stamps.first).id
+        h.system.show(original, on: h.display)
+        try h.labeler.setLabel(LabelText("Mail"), on: h.display)
+        try h.labeler.undoLastChange(on: h.display)
+        #expect(h.system.current[h.display.uuid]?.url?.lastPathComponent == original.lastPathComponent)
+        #expect(try h.manifest().stamps.first { $0.id == id }?.isActive == true, "the kept Desktop still shows it")
+    }
+
+    @Test func undoAfterReusingARetiredLabelPutsItsStateBack() throws {
+        let (h, _) = try labeled(); defer { h.cleanUp() }
+        try h.labeler.removeLabel(on: h.display)
+        let retired = try #require(try h.manifest().stamps.first).state
+        h.clock.advance(minutes: 5)
+        try h.labeler.setLabel(LabelText("Mail"), on: h.display)
+        #expect(try h.manifest().stamps[0].isActive)
+        try h.labeler.undoLastChange(on: h.display)
+        #expect(try h.manifest().stamps[0].state == retired)
+    }
+
     @Test func aFailedReuseLeavesTheManifestAsItWas() throws {
         let (h, original) = try labeled(); defer { h.cleanUp() }
         try h.labeler.removeLabel(on: h.display)

@@ -131,7 +131,7 @@ As a user who wants to be sure, I want `dnm cleanup --scan` to look at every Des
 ### Functional Requirements
 
 - **FR-001**: `dnm cleanup [--days N] [--yes] [--json]` MUST list, describe and (on agreement) delete the candidates of the clarification above, replacing `dnm prune`, which MUST be removed; typing `prune` MUST give an error that names `cleanup`.
-- **FR-002**: `--days` MUST default to 30, accept 0 or more, and apply to retired labels (age since retired) and to labels not seen (age since last seen, or since creation if never seen). A label showing on any display's current Desktop MUST NOT be a candidate; the undo window gives no protection (amended 2026-10-13).
+- **FR-002**: `--days` MUST default to 30, accept 0 or more, and apply to retired labels (age since retired, or since last seen if that is later: amended 2026-11-03) and to labels not seen (age since last seen, or since creation if never seen). A label showing on any display's current Desktop MUST NOT be a candidate; the undo window gives no protection (amended 2026-10-13).
 - **FR-003**: Before deleting, the command MUST describe each candidate (display, text, why, size), the total, and plainly say that a Desktop not currently on screen might still show one of these images; it MUST then ask on a terminal, or require `--yes`, and otherwise delete nothing and exit 0.
 - **FR-004**: Deleting MUST remove the image file and the label's record, and the nudge state, and MUST be one locked change.
 - **FR-005**: Each label MUST record when it was last seen; `set`, `remove` and `undo` (and `cleanup` when it deletes) MUST record the images showing on all displays' current Desktops; read-only commands, and a `cleanup` that only describes, MUST NOT write.

@@ -47,11 +47,23 @@ public struct Maintenance: Codable {
 ```text
 for each stamp S:
     skip if S's image is the wallpaper of any display's current Desktop
-    if S is retired and retiredAt <= now - days          -> candidate (why: removed|replaced|undone, since retiredAt)
+    if S is retired and retiredAt <= now - days
+                    and (lastSeen ?? retiredAt) <= now - days -> candidate (why: removed|replaced|undone, since retiredAt)
     if S is active  and (lastSeen ?? createdAt) <= now - days -> candidate (why: not seen, since lastSeen)
 ```
 
 An undo record does not keep an image (amended 2026-10-13): running `cleanup` means undo is not wanted.
+
+A retired image seen showing since it was retired (on another Desktop that shares it) counts from that sighting
+(amended 2026-11-03, after the 0.2.1 code review).
+
+## 4a. Reuse and undo (amended 2026-11-03)
+
+- Asking again for the label whose image the Desktop shows makes that label active, whatever its state: another
+  Desktop sharing the image may have retired it. The undo record is left as it was.
+- A change record that reused a label keeps that label's state before the reuse (`reusedFrom`, optional). `undo`
+  puts that state back instead of retiring the label, so a label another Desktop still shows stays active. A record
+  without it (a new label, or one written before this field) retires the label as before. The schema stays 3.
 
 The estimate for the nudge is the sum of the candidates' file sizes with the default days; a missing file counts 0.
 
