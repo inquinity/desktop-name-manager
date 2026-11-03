@@ -22,8 +22,8 @@ Old labeled images that no Desktop is known to show (30 days):
   "Mail"     DP                       removed 45 days ago       3.1 MB
   "Projects" Built-in Retina Display  not seen for 52 days     1.9 MB
 2 images, 5.0 MB in all.
-A Desktop that is not on screen now might still show one of these; it would fall back to the Mac's default
-wallpaper until you choose another or label it again.
+A Desktop that is not on screen now (including one on a display that is not connected) might still show one of
+these; it would fall back to the Mac's default wallpaper until you choose another or label it again.
 ```
 
 (From stage 2, 0.3.0, a further sentence offers `dnm cleanup --scan` to check every Desktop first.)
@@ -33,8 +33,8 @@ Delete these 2 labeled images (5.0 MB)? [y/N]
 ```
 
 - `y` or `yes` (any case) deletes; anything else (including Enter) deletes nothing and exits 0.
-- Afterwards: `Deleted 2 labeled images, freeing 5.0 MB.`
-- Not a terminal, without `--yes`: the same description, then `Nothing was deleted: add --yes to delete these.`, exit 0. With `--yes`: no question.
+- Afterwards: `Deleted 2 labeled images, freeing 5.0 MB.` If every listed image changed before the delete (it began showing, or was deleted by another `dnm`): `Nothing was deleted: the labeled images changed since they were listed.`
+- Not a terminal (standard input or standard output; amended 2026-11-03, so the question is never asked where it cannot be seen), without `--yes`: the same description, then `Nothing was deleted: add --yes to delete these.`, exit 0. With `--yes`: no question.
 - Nothing qualifies: `Nothing to clean up (no labeled image is older than 30 days).` (the number follows `--days`).
 - `--json` (nothing is asked; add `--yes` to delete):
 
@@ -50,7 +50,7 @@ Delete these 2 labeled images (5.0 MB)? [y/N]
 }
 ```
 
-`why` is one of `removed`, `replaced`, `undone`, `not seen`. Exit codes: `0` success or nothing deleted by choice; `1` store failure (not writable, damaged, newer); `2` invalid input.
+`why` is one of `removed`, `replaced`, `undone`, `not seen`. `deleted` is true only when `--yes` deleted at least one image (amended 2026-11-03). Exit codes: `0` success or nothing deleted by choice; `1` store failure (not writable, damaged, newer); `2` invalid input.
 
 ## 3. `dnm cleanup --scan` (stage 2)
 

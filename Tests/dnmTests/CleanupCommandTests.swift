@@ -88,6 +88,8 @@ import Testing
         let deleted = try json(try CLI.run(["cleanup", "--json", "--yes"], store: c.path))
         #expect(deleted["deleted"] as? Bool == true)
         #expect(c.files.count == 1)
+        let again = try json(try CLI.run(["cleanup", "--json", "--yes"], store: c.path))
+        #expect(again["deleted"] as? Bool == false, "nothing left to delete is not a deletion")
     }
 
     @Test(.enabled(if: CLI.binary != nil))
