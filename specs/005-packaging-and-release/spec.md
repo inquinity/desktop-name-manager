@@ -42,6 +42,16 @@ Asked in this session:
   install, uninstall, verify) for 0.1.0. User Stories 3 and 6 (upgrade, withdraw) are documented for 0.1.0
   and tested at the next release (0.1.1), the first with a predecessor.
 
+### Session 2026-11-03
+
+- Q: May the cask run `dnm` while it installs or upgrades (for example to generate shell completions)? → A: No
+  (maintainer decision). On a Mac where Gatekeeper's online first-run check cannot complete, such as a managed work
+  Mac, any program run during the install is refused, so the install itself fails before the user can clear the
+  quarantine flag (seen with another tool whose cask generates its completions after installing). dnm's cask only
+  unpacks the zip and makes links, so the install always succeeds; the user may then clear the flag
+  (`xattr -dr com.apple.quarantine "$(brew --prefix)/Caskroom/desktop-name-manager"`) before the first run. FR-009
+  is worded accordingly.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The maintainer cuts a release that has passed its gates (Priority: P1)
@@ -171,7 +181,7 @@ If a published release turns out to be bad, the maintainer can withdraw it quick
 - **FR-006**: Before a release can be published, the procedure MUST verify, and show the result of, each of: the signature is valid and from the expected identity; notarization is present; macOS's download check accepts the artifact; the published checksum matches the file. Any failure MUST stop the procedure.
 - **FR-007**: Each release MUST be hosted on this repository's public releases, containing the installable download and its checksum, and release notes stating: what changed, known gaps (for example untested configurations), the gate outcomes and their record, the supported macOS versions, the source commit, the toolchain versions, and how to verify the download.
 - **FR-008**: Maintainer-held credentials (the signing identity, the notarization profile and any tokens) MUST be read from the maintainer's own keychain or environment at run time and MUST NEVER be written to the repository, to logs, to release files or to the tap. A scan of tracked files MUST fail if such a credential name or value appears.
-- **FR-009**: The cask MUST live in the maintainer's existing tap. It MUST specify the download location, the version, the checksum, a minimum of macOS 26, and Apple-silicon only, and it MUST make both `dnm` and `desktop-name` available on the user's PATH. It MUST declare a way for Homebrew to detect new versions.
+- **FR-009**: The cask MUST live in the maintainer's existing tap. It MUST specify the download location, the version, the checksum, a minimum of macOS 26, and Apple-silicon only, and it MUST make both `dnm` and `desktop-name` available on the user's PATH. It MUST declare a way for Homebrew to detect new versions. The cask MUST NOT run `dnm` or any other program while installing, upgrading or uninstalling: no `preflight`, `postflight`, `uninstall_preflight` or `uninstall_postflight` stanza and no `generate_completions_from_executable`; everything it installs (the binary and, from 0.1.2, the completion files) comes ready-made in the zip (Clarifications, 2026-11-03).
 - **FR-010**: The cask MUST NOT be listed in the tap's public README or contents table. The release procedure MUST NOT add it there.
 - **FR-011**: Before the cask is pushed to the tap, the procedure MUST check it against Homebrew's own cask audit and test an install, upgrade and uninstall from a local copy of the tap, reporting the results.
 - **FR-012**: On an unsupported macOS version or an Intel Mac, installation MUST refuse with a clear message and change nothing.
