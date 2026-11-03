@@ -25,7 +25,7 @@ description: "Task list for feature F4: reuse of labeled images and dnm cleanup"
 - [x] T013 [P] README (cleanup, the plain warning, reuse, the nudge, what the scan adds), release notes (bullets only: `prune` removed, `cleanup`, reuse, nudge)
 - [x] T014 [P] Amend spec 001 (FR-013, FR-018, FR-029, SC-006: `cleanup` replaces `prune`; housekeeping), spec 005 wording, spec 007 contract
 - [x] T015 `just test` and `just periphery` pass
-- [ ] T016 Quickstart 1 to 7; live check of reuse on a real Desktop (`Index.plist` backup and restore)
+- [x] T016 Quickstart 1 to 7; live check of reuse on a real Desktop (`Index.plist` backup and restore). Done 2026-11-03 with `dnm 0.2.0 (4) c9c7bd3` on macOS 27.2 (26B123), arm64, two displays, each run with a private store and an `Index.plist` backup, ending with the labels removed: `Tests/live/live-reuse.sh` live on both displays (all 46 checks pass; scenarios 1, 3 and 4); scenario 2 by hand in Mission Control (no new image, one "Mail" in `list`); scenario 5 live (a label on the other display's current Desktop is not a candidate and its last-seen time is updated; after the undo window, `list`, `show` and `check` leave the manifest byte-identical); scenario 6 with a hand-aged store (a retired image backdated 40 days and padded to 60 MB; the note appears once in a terminal, not again at once, not without a terminal, and again after `cleanup --yes` and another large old image); scenario 7 (`dnm prune` exits 2 and names `cleanup`)
 
 ## Stage 2
 
