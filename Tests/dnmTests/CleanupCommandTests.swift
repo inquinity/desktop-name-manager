@@ -129,9 +129,10 @@ import Testing
     }
 
     @Test(.enabled(if: CLI.connectedDisplayCount() > 0))
-    func theNudgeNeverAppearsWhenStandardErrorIsNotATerminal() throws {
+    func readOnlyCommandsNeverNudgeOrRecordOne() throws {
         let c = try Self.craft(); defer { try? FileManager.default.removeItem(atPath: c.path) }
-        // Make the store big enough to be due, then run commands that would nudge on a terminal (the ones that only read).
+        // A store big enough to be due; commands that only read never ask (which commands do, and the terminal rule, are
+        // in NudgeDecisionTests: `set` and `remove` cannot run here without changing a wallpaper).
         let big = try Self.stamp("Huge", state: .active, lastSeen: Date().addingTimeInterval(-90 * 86_400), created: Date().addingTimeInterval(-90 * 86_400), bytes: 80_000_000, in: c.store)
         try c.store.transaction { $0.stamps.append(big) }
         for arguments in [["show", "main"], ["list"], ["check"], ["displays"]] {
