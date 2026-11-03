@@ -144,9 +144,9 @@ Deleting a Desktop in Mission Control is something `dnm` is never told about, so
   uses the existing image instead of making another, so deleting and recreating Desktops adds nothing.
 - **`dnm cleanup`** finds the labeled images that no Desktop is known to show and that were removed, replaced or last
   seen at least 30 days ago (`--days N` for another age; `--days 0` for everything no Desktop shows now). It lists them
-  with why and how old, says plainly that **a Desktop that is not on screen now might still show one of them**, including a Desktop on a display
-  that is not connected (it would
-  fall back to the Mac's default wallpaper until you choose another or label it again), and asks before deleting. With
+  with why and how old, says plainly that **a Desktop that is not on screen now might still show one of them**,
+  including a Desktop on a display that is not connected (it would fall back to the Mac's default wallpaper until you
+  choose another or label it again), and asks before deleting. With
   no terminal it only describes, unless you pass `--yes`. `--json` prints the list. A change made moments ago can no
   longer be undone once cleanup has deleted the image it would bring back. Nothing is ever deleted unless you
   agree: no command cleans up by itself. After a label is set or removed, on a terminal, `dnm` may add one line

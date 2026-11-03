@@ -54,7 +54,7 @@ another Desktop off screen shows) is the one the plain warning and the scan addr
 Amended 2026-11-03 (0.2.1 code review): reuse made that residual case reachable through ordinary commands. Asking
 again for a retired label on a Desktop that shows it left it retired, undo after a reused `set` retired a label
 another Desktop still showed, and a retired image seen since still aged from its retirement. Each is fixed
-(data model §4 and §4a), so an image is offered only when nothing has shown it for the whole period.
+(data model §4 and §4a), so an image is offered only when nothing has been seen showing it for the whole period.
 
 ## R6. Last seen
 

@@ -152,6 +152,34 @@ import Testing
         #expect(try h.manifest().stamps[0].state == retired)
     }
 
+    @Test func undoAfterAReuseThatReplacedALabelPutsTheReusedStateBack() throws {
+        let (h, _) = try labeled("A"); defer { h.cleanUp() }
+        let a = try #require(try h.manifest().stamps.first)
+        try h.labeler.setLabel(LabelText("B"), on: h.display)
+        let replaced = try #require(try h.manifest().stamps.first { $0.id == a.id }).state
+        h.clock.advance(minutes: 5)
+        try h.labeler.setLabel(LabelText("A"), on: h.display)             // reuses the retired A, replacing B
+        try h.labeler.undoLastChange(on: h.display)
+        #expect(try h.manifest().stamps.first { $0.id == a.id }?.state == replaced, "as it was, not retired again as undone")
+    }
+
+    @Test func aRecordFromBeforeReuseUndoesAsBefore() throws {
+        // A change record written without `reusedFrom` still reads, and undo retires the label it produced.
+        let (h, _) = try labeled(); defer { h.cleanUp() }
+        try h.labeler.removeLabel(on: h.display)
+        h.clock.advance(minutes: 5)
+        try h.labeler.setLabel(LabelText("Mail"), on: h.display)
+        var root = try #require(try JSONSerialization.jsonObject(with: Data(contentsOf: h.store.manifestURL)) as? [String: Any])
+        var changes = try #require(root["changes"] as? [[String: Any]])
+        #expect(changes.contains { $0["reusedFrom"] != nil })
+        changes = changes.map { $0.filter { $0.key != "reusedFrom" } }
+        root["changes"] = changes
+        try JSONSerialization.data(withJSONObject: root).write(to: h.store.manifestURL)
+        #expect(try h.manifest().changes.allSatisfy { $0.reusedFrom == nil })
+        try h.labeler.undoLastChange(on: h.display)
+        #expect(try h.manifest().stamps[0].state == .retired(at: h.clock.now, reason: .undone))
+    }
+
     @Test func aFailedReuseLeavesTheManifestAsItWas() throws {
         let (h, original) = try labeled(); defer { h.cleanUp() }
         try h.labeler.removeLabel(on: h.display)

@@ -61,7 +61,7 @@ What the Desktop showed before its first label.
 | `state` | `active`, or `retired(at, reason)` with reason `replaced`, `removed` or `undone`. Since the 2026-10-05 amendment this is bookkeeping for `undo` and `cleanup` only (spec 009 replaced `prune`): other Desktops may still show a retired stamp, so the state never decides whether a Desktop is labeled. |
 
 Every stamp in the manifest has been applied (a failed set is rolled back), so applied stamps are deleted only by `dnm cleanup` (spec 009); housekeeping deletes only stray files that have no entry.
-| `supersededBy` | Optional: the stamp that replaced it (helps `undo` and `show`). |
+| `supersededBy` | Optional: the stamp that replaced it (a record only; amended for spec 009: nothing reads it, and `undo` uses its change record). |
 
 ### Change record (stored; one per display)
 

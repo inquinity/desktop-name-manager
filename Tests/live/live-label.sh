@@ -43,7 +43,7 @@ labels_applied=false
 usage() {
     print_colored "$COLOR_YELLOW" "Usage: Tests/live/live-label.sh [--dnm PATH] [--with-cooldown] [--dry-run] [--help]"
     print_colored "$COLOR_YELLOW" "  --dnm PATH        the dnm binary to test (default: build.noindex/release/dnm; build it first)"
-    print_colored "$COLOR_YELLOW" "  --with-cooldown   also run scenario 16: wait 31 minutes and check the cleanup"
+    print_colored "$COLOR_YELLOW" "  --with-cooldown   also run scenario 16: wait a minute and check housekeeping"
     print_colored "$COLOR_YELLOW" "  --dry-run, -n     print the steps without touching the wallpaper"
     print_colored "$COLOR_YELLOW" "Changes the real wallpaper of the Desktop you are on. Run only while idle."
 }
@@ -164,6 +164,19 @@ show_flags_missing_stamp() {
     grep -qi 'missing' <<<"$details"
 }
 
+count_stamp_files() {
+    find "$DNM_STORE_DIR" -maxdepth 1 -name '*.dnm.*' | wc -l | tr -d ' '
+}
+
+undo_says_nothing_to_undo() {
+    # Undo must refuse (exit 1) and say why; capture both streams so set -e does not stop the script.
+    local message
+    if message="$("$dnm_binary" undo 2>&1)"; then
+        return 1
+    fi
+    grep -q 'nothing to undo' <<<"$message"
+}
+
 manifest_value() {
     # manifest_value <key path>: read one value from the private manifest with plutil.
     plutil -extract "$1" raw -o - "${DNM_STORE_DIR}/manifest.json"
@@ -265,17 +278,22 @@ run_step "$dnm_binary" set "Rebuilt"
 check "set rebuilds the stamp and the label shows" ask_to_look "Is 'Rebuilt' showing?"
 run_step "$dnm_binary" remove
 
-# --- Scenario 16: cool-down cleanup (optional, 31 minutes) -----------------------------------------
+# --- Scenario 16: housekeeping (optional, about a minute) -----------------------------------------
 if "$with_cooldown"; then
-    print_colored "$COLOR_BRIGHTYELLOW" "Scenario 16: waiting 31 minutes for the cool-down (do not touch the wallpaper)"
-    run_step sleep 1860
-    run_step "$dnm_binary" list
+    print_colored "$COLOR_BRIGHTYELLOW" "Scenario 16: waiting 61 seconds for the undo window to close (do not touch the wallpaper)"
+    stamps_before=0
     if ! "$dry_run"; then
-        remaining="$(find "$DNM_STORE_DIR" -maxdepth 1 -name '*.dnm.*' | wc -l | tr -d ' ')"
-        check "no stamp files remain after the cool-down (none are active)" test "$remaining" -eq 0
+        stamps_before="$(count_stamp_files)"
+    fi
+    run_step sleep 61
+    run_step "$dnm_binary" list
+    check "undo says there is nothing to undo after the window" undo_says_nothing_to_undo
+    if ! "$dry_run"; then
+        # Housekeeping never deletes labeled images: only dnm cleanup does (spec 009).
+        check "every labeled image stays after housekeeping" test "$(count_stamp_files)" -eq "$stamps_before"
     fi
 else
-    print_colored "$COLOR_YELLOW" "Skipping scenario 16 (needs 31 minutes); run again with --with-cooldown."
+    print_colored "$COLOR_YELLOW" "Skipping scenario 16 (needs about a minute); run again with --with-cooldown."
 fi
 
 labels_applied=false
