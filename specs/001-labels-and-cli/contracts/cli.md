@@ -4,9 +4,9 @@ The binary is `dnm`. The same binary is installed as `desktop-name` and behaves
 identically (FR-013). Commands never prompt and never read from standard input.
 
 ```text
-dnm set [<display>] <label> [--label <text>] [--display <name>] [--desktop <n>] [--position <p>] [--size <s>] [--style <look>] [--color <c>]
-dnm remove [<display>] [--display <name>] [--desktop <n>]
-dnm undo   [<display>] [--display <name>] [--desktop <n>]
+dnm set [<display>] <label> [--label <text>] [--display <name>]... [--desktop <n>] [--position <p>] [--size <s>] [--style <look>] [--color <c>]
+dnm remove [<display> ...] [--display <name>]... [--desktop <n>]
+dnm undo   [<display> ...] [--display <name>]... [--desktop <n>]
 dnm show   [<display>] [--display <name>] [--desktop <n>] [--json]
 dnm cleanup [--days <n>] [--yes] [--json]   (replaced `dnm prune` in 0.2.1; spec 009)
 dnm about
@@ -16,6 +16,8 @@ dnm displays [--json]
 dnm alias [<name> [<display>]] [--remove <name>] [--json]   (spec 006)
 dnm --help | dnm <command> --help | dnm --version
 ```
+
+Several displays for `set`, `remove` and `undo`: `specs/010-several-displays/contracts/cli.md`.
 
 ## Common behavior
 

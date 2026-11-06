@@ -116,4 +116,28 @@ import Testing
         #expect(!script.contains("---completion set -- positional@1"), "\(shell)")
         #expect(!script.contains("---completion set -- --label"), "\(shell)")
     }
+
+    /// Spec 010 FR-012: every display word of `remove` and `undo` offers displays and aliases, as does a repeated
+    /// `--display`; `show` still completes one word only.
+    @Test(.enabled(if: CLI.connectedDisplayCount() > 0), arguments: ["remove", "undo"])
+    func laterDisplayWordsOfferDisplaysToo(_ command: String) throws {
+        let store = CLI.scratchStore()
+        defer { try? FileManager.default.removeItem(atPath: store) }
+        _ = try CLI.run(["alias", "desk"], store: store)
+        for line in [["dnm", command, "main", ""], ["dnm", command, "main", "desk", ""]] {
+            let result = try CLI.run(["---completion", command, "--", "positional@0", String(line.count - 1), "0"] + line, store: store)
+            #expect(result.status == 0 && result.errors.isEmpty, "\(line)")
+            let offered = lines(result)
+            #expect(offered.first == "main" && offered.contains("desk"), "\(line)")
+            for name in try connectedDisplayNames() { #expect(offered.contains(name), "\(line)") }
+        }
+        let repeated = try CLI.run(["---completion", command, "--", "--display", "5", "0", "dnm", command, "--display", "main", "--display", ""], store: store)
+        #expect(lines(repeated).first == "main" && lines(repeated).contains("desk"))
+    }
+
+    @Test(.enabled(if: CLI.binary != nil), arguments: ["zsh", "bash"])
+    func showCompletesOneDisplayWordOnly(_ shell: String) throws {
+        let script = try CLI.run(["--generate-completion-script", shell]).output
+        #expect(!script.contains("---completion show -- positional@1"), "\(shell)")
+    }
 }

@@ -1,7 +1,8 @@
 import Testing
 @testable import DesktopNameCore
 
-/// Every invocation in spec 008, against the one function that reads a command line (spec 008 SC-001).
+/// Every invocation in specs 008 and 010, against the one function that reads a command line (spec 008 SC-001, spec 010
+/// SC-001). A result names the displays in order, joined with ", ".
 @Suite struct DisplayArgumentsTests {
     let builtIn = FakeWallpaperSystem.makeDisplay(name: "Built-in Display", uuid: "A", isMain: true)
     let lg = FakeWallpaperSystem.makeDisplay(name: "LG Ultra HD", uuid: "B", isMain: false)
@@ -16,7 +17,7 @@ import Testing
     func read(_ words: [String], display: [String] = [], label: [String] = [], using displays: [Display]? = nil) -> Outcome {
         do {
             let request = try DisplayArguments.setRequest(words: words, displayFlags: display, labelFlags: label, in: displays ?? self.displays, aliases: aliases)
-            return .ok(display: request.target.display.name, label: request.label)
+            return .ok(display: request.targets.displays.map(\.name).joined(separator: ", "), label: request.label)
         } catch let error as DnmError {
             #expect(error.exitCode == 2)
             return .error(contains: [error.errorDescription ?? ""])
@@ -88,12 +89,26 @@ import Testing
         expect(read(["2", "x"]), .error(contains: ["Numbered displays are not supported"]))
     }
 
-    @Test func twoDifferentDisplaysAreNotSupportedYet() {
-        let several = "Multiple displays for a single command are not currently supported."
-        expect(read(["DP", "x"], display: ["main"]), .error(contains: [several]), "a command typed and then added to")
-        expect(read(["x"], display: ["main", "DP"]), .error(contains: [several]))
-        expect(read(["DP"], display: ["main"], label: ["x"]), .error(contains: [several]))
-        expect(read([], display: ["main", "DP", "lg"], label: ["x"]), .error(contains: [several]))
+    @Test func severalDisplaysAreTheWordThenEachFlagInOrder() {
+        expect(read(["main", "Mail"], display: ["DP"]), .ok(display: "Built-in Display, DP", label: "Mail"))
+        expect(read(["Mail"], display: ["DP", "main"]), .ok(display: "DP, Built-in Display", label: "Mail"))
+        expect(read(["DP", "x"], display: ["main"]), .ok(display: "DP, Built-in Display", label: "x"), "a command typed and then added to")
+        expect(read(["DP"], display: ["main"], label: ["x"]), .ok(display: "DP, Built-in Display", label: "x"))
+        expect(read([], display: ["main", "DP", "lg"], label: ["x"]), .ok(display: "Built-in Display, DP, LG Ultra HD", label: "x"))
+    }
+
+    @Test func aDisplayNamedAgainByAnotherNameKeepsItsFirstPlace() {
+        expect(read(["DP", "Mail"], display: ["DP"]), .ok(display: "DP", label: "Mail"))
+        expect(read(["main", "x"], display: ["DP", "Built-in Display"]), .ok(display: "Built-in Display, DP", label: "x"), "main and its name")
+        expect(read(["x"], display: ["lg", "DP", "LG Ultra HD"]), .ok(display: "LG Ultra HD, DP", label: "x"), "an alias and its display")
+        expect(read(["x"], display: ["DP", "lg", "dp"]), .ok(display: "DP, LG Ultra HD", label: "x"), "ignoring case")
+    }
+
+    @Test func everyDisplayIsResolvedBeforeAnythingIsReturned() {
+        expect(read(["main", "x"], display: ["DP", "NoSuchDisplay"]), .error(contains: ["No display matches \"NoSuchDisplay\""]))
+        expect(read(["main", "x"], display: ["DP", ""]), .error(contains: ["The display is empty"]))
+        expect(read(["main", "x"], display: ["old"]), .error(contains: ["The display aliased as old is not connected"]))
+        expect(read(["main", "DP", "Mail"]), .error(contains: ["got 3 words"]), "set still takes one display word")
     }
 
     @Test func theSameDisplayNamedMoreThanOnceIsOneDisplay() {
@@ -141,8 +156,8 @@ import Testing
     @Test func anOverriddenAliasKeepsItsWarning() throws {
         let rival = FakeWallpaperSystem.makeDisplay(name: "lg", uuid: "D", isMain: false)
         let request = try DisplayArguments.setRequest(words: ["lg", "x"], displayFlags: [], labelFlags: [], in: displays + [rival], aliases: aliases)
-        #expect(request.target.display.name == "lg")
-        #expect(request.target.notice == "lg is a connected display, which overrides alias lg (LG Ultra HD).")
+        #expect(request.targets.displays.map(\.name) == ["lg"])
+        #expect(request.targets.notice == "lg is a connected display, which overrides alias lg (LG Ultra HD).")
     }
 
     // MARK: remove, undo, show
@@ -165,9 +180,36 @@ import Testing
         expect(target([], display: ["DP"]), .ok(display: "DP", label: ""))
         expect(target(["DP"], display: ["main"]), .error(contains: ["Multiple displays for a single command are not currently supported."]))
         expect(target([], display: ["main", "DP"]), .error(contains: ["Multiple displays for a single command are not currently supported."]))
+        expect(target(["main"], display: ["NoSuch", "DP"]), .error(contains: ["No display matches \"NoSuch\""]), "a typo is reported, not the count")
         expect(target(["DP"], display: ["DP"]), .ok(display: "DP", label: ""), "the same display twice is one display")
         expect(target([], display: ["DP", "dp"]), .ok(display: "DP", label: ""))
         expect(target(["DP", "lg"]), .error(contains: ["show takes at most one display (got 2 words)", "use an alias"]))
         expect(target(["nope"]), .error(contains: ["No display matches \"nope\""]))
+    }
+
+    func targets(_ words: [String], display: [String] = []) -> Outcome {
+        do {
+            let targets = try DisplayArguments.targets(words: words, displayFlags: display, in: displays, aliases: aliases)
+            return .ok(display: targets.displays.map(\.name).joined(separator: ", "), label: targets.references.joined(separator: "|"))
+        } catch let error as DnmError {
+            #expect(error.exitCode == 2)
+            return .error(contains: [error.errorDescription ?? ""])
+        } catch { return .error(contains: ["wrong error type"]) }
+    }
+
+    @Test func removeAndUndoTakeAnyNumberOfDisplaysInOrder() {
+        expect(targets([]), .ok(display: "Built-in Display", label: "main"))
+        expect(targets(["main", "DP"]), .ok(display: "Built-in Display, DP", label: "main|DP"))
+        expect(targets(["DP"], display: ["main", "DP"]), .ok(display: "DP, Built-in Display", label: "DP|main"))
+        expect(targets(["lg", "LG Ultra", "dp"]), .ok(display: "LG Ultra HD, DP", label: "lg|dp"), "the word that named it first")
+        expect(targets(["main", "NoSuch"]), .error(contains: ["No display matches \"NoSuch\""]))
+        expect(targets(["main", " "]), .error(contains: ["The display is empty"]))
+    }
+
+    @Test func anOverrideNoticeIsGivenOnceForSeveralDisplays() throws {
+        let rival = FakeWallpaperSystem.makeDisplay(name: "lg", uuid: "D", isMain: false)
+        let targets = try DisplayArguments.targets(words: ["lg", "DP"], displayFlags: ["lg"], in: displays + [rival], aliases: aliases)
+        #expect(targets.displays.map(\.name) == ["lg", "DP"])
+        #expect(targets.notice == "lg is a connected display, which overrides alias lg (LG Ultra HD).")
     }
 }

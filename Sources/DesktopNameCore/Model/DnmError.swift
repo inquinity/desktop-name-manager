@@ -18,11 +18,15 @@ public enum DnmError: Error, Equatable, Sendable {
     case storeNotWritable(String)
     /// Anything else that stops the command (exit 1).
     case failure(String)
+    /// A command on several displays failed after changing some (spec 010 FR-006): the full message, which names the
+    /// displays already changed, and the exit status of the error that stopped it.
+    case partWay(String, exitCode: Int32)
 
     public var exitCode: Int32 {
         switch self {
         case .invalidInput: 2
         case .unsupportedWallpaper: 3
+        case .partWay(_, let exitCode): exitCode
         default: 1
         }
     }
@@ -39,6 +43,7 @@ extension DnmError: LocalizedError {
         case .newerManifest(let found, let supported): "The stored data is format \(found), newer than this tool understands (\(supported)). Update the tool. Nothing was changed."
         case .storeNotWritable(let message): "Cannot write the tool's storage: \(message). Nothing was changed."
         case .failure(let message): message
+        case .partWay(let message, _): message
         }
     }
 }

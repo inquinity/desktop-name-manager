@@ -50,9 +50,9 @@ Desktop for you (see below).
 
 | Command | What it does |
 |---|---|
-| `dnm set [<display>] <label>` | Label the current Desktop (of the main display, or of the display you name first). Options: `--style plain\|halo\|frosted`, `--color light\|dark\|#RRGGBB`, `--position bottom-left\|bottom-right\|top-left\|top-right\|bottom\|top`, `--size small\|medium\|large`. Anything left out is chosen from the wallpaper or uses its default. |
-| `dnm remove [<display>]` | Remove the label and restore the original wallpaper exactly. |
-| `dnm undo [<display>]` | Undo the last change on a display, for 60 seconds (one level). |
+| `dnm set [<display>] <label>` | Label the current Desktop (of the main display, or of the display you name first; add more with `--display`). Options: `--style plain\|halo\|frosted`, `--color light\|dark\|#RRGGBB`, `--position bottom-left\|bottom-right\|top-left\|top-right\|bottom\|top`, `--size small\|medium\|large`. Anything left out is chosen from the wallpaper or uses its default. |
+| `dnm remove [<display> ...]` | Remove the label and restore the original wallpaper exactly. |
+| `dnm undo [<display> ...]` | Undo the last change on each display named, for 60 seconds (one level). |
 | `dnm show [<display>]` | Show the label on the current Desktop. |
 | `dnm list` | List labeled Desktops and the current Desktop of each display. Only those are shown. |
 | `dnm displays` | List the connected displays, as `--display` accepts them, with their aliases. |
@@ -78,7 +78,8 @@ dnm set lg "Mail"                        # an alias avoids the quotes
 
 - **One word or two.** With two words to `set`, the first is the display and the second the label; with one, it is
   the label for the main display. More than that is an error that says what to type (`set` takes a label, or a
-  display and a label; quote anything with spaces). `remove`, `undo` and `show` take at most one display.
+  display and a label; quote anything with spaces). `remove` and `undo` take any number of displays; `show` takes
+  one.
 - **A lone word that is a display is refused.** `dnm set DP` is probably a label forgotten after the display, so
   `dnm` stops and shows both ways: `dnm set DP "<label>"` to label that display, and `dnm set --label DP` to use
   `DP` as the label. This covers exactly `main`, a display's full name and an alias, ignoring case; a part of a
@@ -87,7 +88,21 @@ dnm set lg "Mail"                        # an alias avoids the quotes
   label that starts with a dash is written `--label=-x`.
 - **`--display` still works** (`dnm set "Mail" --display DP`) and is the explicit form for scripts, together with
   `--label`: whether a lone word is refused depends on the displays connected and the aliases you have, which the
-  flags do not. One display per command for now: naming the same display twice (a word and `--display`) is fine, naming two different displays is refused with a plain message (several displays in one command are planned).
+  flags do not. Naming the same display twice (a word and `--display`, or a name and its alias) is one display.
+- **Several displays.** `set`, `remove` and `undo` act on every display named, in order: the display words first,
+  then each `--display`. `set` takes one display word, so add the others with `--display`:
+
+  ```sh
+  dnm set main "Mail" --display DP   # label the current Desktop of both displays
+  dnm remove main DP                 # and remove both labels
+  dnm undo main DP                   # undo the last change on each, within 60 seconds
+  ```
+
+  Every display is checked first, so a typo, an invalid label or a display with nothing to undo changes nothing. If a
+  display fails part-way (its wallpaper is not supported, say), the command stops there: the displays before it stay
+  changed, and the error names them and the `dnm undo` that puts them back. With `--desktop N`, each display's
+  Desktop N is labeled in turn. `show` stays one display (its `--json` is one document) and refuses two with
+  "Multiple displays for a single command are not currently supported."
 - **Order.** Options may come before, between or after the words; the examples put the display first because it
   reads best.
 

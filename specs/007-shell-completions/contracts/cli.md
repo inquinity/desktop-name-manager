@@ -12,7 +12,7 @@
 | `--position` | `bottom-left` `bottom-right` `top-left` `top-right` `bottom` `top` | `Position.allCases` |
 | `--size` | `small` `medium` `large` | `Size.allCases` |
 | `--color` | `light` `dark` | fixed (a `#RRGGBB` value is typed) |
-| first word of `set`, `remove`, `undo`, `show`; and `--display` | `main`, connected display names, usable aliases | live, `DisplayResolver.completionCandidates(includeAliases: true)` (spec 008) |
+| first word of `set` and `show`; every display word of `remove` and `undo` (spec 010); and every `--display` | `main`, connected display names, usable aliases | live, `DisplayResolver.completionCandidates(includeAliases: true)` (spec 008) |
 | second word of `set`; `--label` | nothing | |
 | `dnm alias <name>` | nothing (a new name) | |
 | `dnm alias --remove <name>` | every stored alias | live, stored aliases |

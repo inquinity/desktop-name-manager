@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-/// Spec 008 through the built binary, with a private store. The error cases stop before anything is changed, and
+/// Specs 008 and 010 through the built binary, with a private store. The error cases stop before anything is changed, and
 /// the positive cases use `show`, which only reads; no test here changes a wallpaper.
 @Suite struct PositionalDisplayTests {
     func displayNames() throws -> [String] {
@@ -31,8 +31,11 @@ import Testing
         Mistake(["set", "", "Mail"], "The display is empty"),
         Mistake(["show", "--display", ""], "The display is empty"),
         Mistake(["show", "main", "main"], "show takes at most one display (got 2 words)"),
-        Mistake(["remove", "a", "b"], "remove takes at most one display"),
-        Mistake(["undo", "a", "b", "c"], "undo takes at most one display (got 3 words)"),
+        Mistake(["remove", "main", "zz-no-such-display"], "No display matches \"zz-no-such-display\""),
+        Mistake(["undo", "main", "main", "zz-no-such-display"], "No display matches \"zz-no-such-display\""),
+        Mistake(["set", "main", "x", "--display", "zz-no-such-display"], "No display matches \"zz-no-such-display\""),
+        Mistake(["set", "main", String(repeating: "x", count: 31), "--display", "main"], "30"),
+        Mistake(["remove", "main", "--display", ""], "The display is empty"),
     ]
 
     @Test(.enabled(if: CLI.connectedDisplayCount() > 0), arguments: PositionalDisplayTests.mistakes)
@@ -76,9 +79,14 @@ import Testing
     func theHelpShowsTheRealGrammar() throws {
         let set = try CLI.run(["set", "--help"])
         #expect(set.output.contains("dnm set [<display>] <label>") && set.output.contains("dnm set [<display>] --label <text>"))
-        for command in ["show", "remove", "undo"] {
-            #expect(try CLI.run([command, "--help"]).output.contains("dnm \(command) [<display>]"), "\(command)")
+        #expect(try CLI.run(["show", "--help"]).output.contains("dnm show [<display>] [options]"))
+        for command in ["remove", "undo"] {
+            let help = try CLI.run([command, "--help"]).output
+            let flowed = help.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+            #expect(flowed.contains("dnm \(command) [<display> ...] [options]") && flowed.contains("dnm \(command) main DP"), "\(command)")
         }
+        let flowed = set.output.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        #expect(flowed.contains("dnm set main \"Mail\" --display DP"))
     }
 
     @Test(.enabled(if: CLI.connectedDisplayCount() > 0))
@@ -93,17 +101,30 @@ import Testing
         }
     }
 
+    /// `show` stays one display (spec 010 FR-002); `set`, `remove` and `undo` with a typo among several displays change
+    /// nothing (SC-002, SC-003).
     @Test(.enabled(if: CLI.connectedDisplayCount() > 1))
-    func twoDifferentDisplaysAreRefusedWithThePlainMessage() throws {
+    func showRefusesTwoDisplaysAndATypoAmongSeveralChangesNothing() throws {
         let store = CLI.scratchStore()
         defer { try? FileManager.default.removeItem(atPath: store) }
         let other = try #require(try displayNames().first { name in
             (try? CLI.run(["show", "main", "--json"]).output.contains("\"name\" : \"\(name)\"")) == false
         })
-        for arguments in [["show", "main", "--display", other], ["show", "--display", "main", "--display", other], ["set", "main", "x", "--display", other]] {
+        for arguments in [["show", "main", "--display", other], ["show", "--display", "main", "--display", other]] {
             let result = try CLI.run(arguments, store: store)
             #expect(result.status == 2 && result.output.isEmpty, "\(arguments)")
             #expect(result.errors == "dnm: Multiple displays for a single command are not currently supported.\n", "\(arguments): \(result.errors)")
         }
+        for arguments in [["set", "main", "x", "--display", other, "--display", "zz-no-such-display"],
+                          ["remove", "main", other, "zz-no-such-display"], ["undo", other, "main", "zz-no-such-display"],
+                          ["set", "main", String(repeating: "y", count: 31), "--display", other]] {
+            let result = try CLI.run(arguments, store: store)
+            #expect(result.status == 2 && result.output.isEmpty, "\(arguments): \(result.errors)")
+            #expect(!FileManager.default.fileExists(atPath: store + "/manifest.json"), "\(arguments)")
+        }
+        // Nothing to undo on either display: exit 1, nothing changed, nothing stored.
+        let undo = try CLI.run(["undo", "main", other], store: store)
+        #expect(undo.status == 1 && undo.output.isEmpty && undo.errors.contains("Cannot undo: there is nothing to undo on"))
+        #expect(!FileManager.default.fileExists(atPath: store + "/manifest.json"))
     }
 }

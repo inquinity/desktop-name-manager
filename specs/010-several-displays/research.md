@@ -26,6 +26,9 @@ No dependency, interface or permission changes. Each item below is a design ques
   (spec 008 spike); only its help and completion change.
 - **Considered:** one array argument (`[String]`) for all words: equivalent for parsing, but the first word's help
   text ("Default: main") reads better on its own.
+- **As built:** `DisplayWords` is the one array (`words: [String]`), with "Several may be named. Default: main." in
+  its help; it completes every word through one callback. `show` has its own `ShowWords` (one word plus a private
+  `extra`), so its help, its completion and its "at most one display" message are unchanged.
 
 ## R3. Running the change display by display
 
@@ -43,6 +46,17 @@ No dependency, interface or permission changes. Each item below is a design ques
 - **The undo command it suggests** names the changed displays by the words the person used where those resolve to
   them, else by display name, quoted for a POSIX shell (spec 008 FR-007's function).
 - **Considered:** rolling back (rejected by the maintainer, 2026-11-06); continuing after a failure (same).
+- **As built:**
+  - `DisplayBatch.run(_:undoArguments:_:)`. The extended error is a new case, `DnmError.partWay(message, exitCode:)`,
+    which carries the stopping error's exit status: several cases wrap their message in fixed text, so the same case
+    cannot carry a longer message. A failure on the first display still throws the original error unchanged.
+  - "Nothing was changed." in the stopping error becomes "Nothing was changed on <display>.", since other displays
+    were changed (likewise "Nothing was labeled.").
+  - The closure returns whether it changed the display: `remove` on a display without a label is not named as
+    changed.
+  - The suggested `dnm undo` uses the word that first named each display (`Targets.references`, `main` when none was
+    named), written `--display=` when it starts with a dash, and adds `--desktop N` when it was given. `undo` itself
+    suggests no command (an undo cannot be undone; spec 001 FR-022 keeps one level), and only names the displays.
 
 ## R4. Checks before anything changes, and `--desktop`
 
@@ -77,7 +91,7 @@ No dependency, interface or permission changes. Each item below is a design ques
 
 ## R6. Tests without a real wallpaper
 
-- **Decision:** `FakeWallpaperSystem` gains a per-display failure (`setError(for:)`, keeping the global `setError`)
+- **Decision:** `FakeWallpaperSystem` gains a per-display failure (`setErrors[uuid]`, keeping the global `setError`)
   so a failure on the second of three displays can be made (SC-002). Tests:
   - `DisplayArgumentsTests`: the table of every invocation in the spec with its ordered displays (SC-001), including
     duplicates by different names, the word's hint, an empty display, `show` refusing two;
@@ -93,3 +107,9 @@ No dependency, interface or permission changes. Each item below is a design ques
 ## R7. Minimum macOS
 
 - **Decision:** unchanged, macOS 26 (the project minimum). Nothing in this feature uses a newer interface.
+
+## R8. `Context.onDesktop` with several displays (tasks T022)
+
+- **Checked, no change:** `onDesktop` makes a new `SystemDesktopSwitcher` for each call and `DesktopNavigator.visit`
+  restores the pointer and returns to the starting Desktop for each display, so a loop over displays needs nothing
+  more. The Accessibility check runs on the first display reached, before anything changes (contract §3, item 4).

@@ -8,7 +8,7 @@ struct ShowCommand: ParsableCommand {
         abstract: "Show the label details (the current Desktop, or pick one with a display and --desktop).",
         usage: "dnm show [<display>] [options]")
 
-    @OptionGroup var words: DisplayWords
+    @OptionGroup var words: ShowWords
     @OptionGroup var target: DisplayOption
     @OptionGroup var place: DesktopOption
 

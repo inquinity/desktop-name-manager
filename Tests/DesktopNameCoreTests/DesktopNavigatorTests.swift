@@ -210,4 +210,34 @@ final class FakeSwitcher: DesktopSwitching {
         } catch { Issue.record("wrong error") }
         #expect(fake.steps == 0)
     }
+
+    /// Spec 010 User Story 5: `--desktop 2` on two displays visits each in turn, with its own switcher as
+    /// `Context.onDesktop` makes one per display. The second has no Desktop 2: it fails when reached, after the first
+    /// was labeled, and the part-way message follows.
+    @Test func severalDisplaysAreVisitedInTurnAndAMissingDesktopFailsWhenReached() throws {
+        let main = FakeWallpaperSystem.makeDisplay(name: "Built-in Display", uuid: "DISPLAY-A", isMain: true)
+        let switchers = ["DISPLAY-A": FakeSwitcher(desktops: 3, position: 3), "DISPLAY-B": FakeSwitcher(desktops: 1, position: 1)]
+        var labeled: [String] = []
+        do {
+            try DisplayBatch.run(DisplayArguments.Targets(displays: [main, display], references: ["main", "DP"], notice: nil),
+                                 undoArguments: ["--desktop", "2"]) { target in
+                let fake = try #require(switchers[target.uuid])
+                try DesktopNavigator(switcher: fake).visit(desktop: 2, on: target) {
+                    #expect(fake.position == 2)
+                    labeled.append(target.name)
+                }
+                return true
+            }
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect(error.exitCode == 1)
+            let text = error.errorDescription ?? ""
+            #expect(text.contains("No Desktop change happened on DP"), "\(text)")
+            #expect(text.hasSuffix("Changed before this: Built-in Display. To put it back within 60 seconds: dnm undo main --desktop 2."), "\(text)")
+        }
+        #expect(labeled == ["Built-in Display"])
+        let first = try #require(switchers["DISPLAY-A"]), second = try #require(switchers["DISPLAY-B"])
+        #expect(first.position == 3 && first.pointedAt == "Built-in Display" && first.pointerRestored, "the first returned to where it was")
+        #expect(second.position == 1 && second.pointedAt == "DP" && second.pointerRestored)
+    }
 }

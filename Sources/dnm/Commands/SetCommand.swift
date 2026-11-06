@@ -4,7 +4,7 @@ import DesktopNameCore
 struct SetCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "set",
-        abstract: "Set the Desktop label (the current Desktop, or pick one with a display and --desktop).",
+        abstract: "Set the Desktop label (the current Desktop, or pick displays and --desktop).",
         usage: "dnm set [<display>] <label> [options]\n       dnm set [<display>] --label <text> [options]",
         discussion: """
         A label is one line of 1 to 30 characters. Options you leave out use their defaults; they never inherit from a label being replaced.
@@ -12,6 +12,9 @@ struct SetCommand: ParsableCommand {
         With two words, the first is the display and the second the label: dnm set DP1 "Mail". With one word it is the label \
         for the main display, unless it is the name of a display or an alias (then it is refused: say which you mean). \
         Quote anything with spaces; an alias avoids quoting a display name. --label names the label outright.
+
+        To label several displays at once, add them with --display: dnm set main "Mail" --display DP. They are changed \
+        in order; if one fails, the command stops and says which were already changed and how to undo them.
         """)
 
     @Argument(help: ArgumentHelp("The display, or, when it is the only word, the label.", valueName: "display"),
@@ -49,11 +52,13 @@ struct SetCommand: ParsableCommand {
             let request = try context.setRequest(words: (first.map { [$0] } ?? []) + (second.map { [$0] } ?? []) + extra,
                                                  option: target, labelFlags: labelFlag)
             let text = try LabelText(request.label)
-            context.warn(request.target)
-            let display = request.target.display
-            var result = try context.onDesktop(place, of: display) { try context.labeler.setLabel(text, options: options, on: display) }
-            result.displayName = place.describe(result.displayName)
-            Output.out(result.confirmation)
+            context.warn(request.targets.notice)
+            try DisplayBatch.run(request.targets, undoArguments: context.undoArguments(place)) { display in
+                var result = try context.onDesktop(place, of: display) { try context.labeler.setLabel(text, options: options, on: display) }
+                result.displayName = place.describe(result.displayName)
+                Output.out(result.confirmation)
+                return true
+            }
             Nudge.showIfDue(context)
         }
     }

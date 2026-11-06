@@ -141,4 +141,67 @@ import Testing
         try h.labeler.undoLastChange(on: other)
         #expect(try h.system.currentWallpaper(on: other).url?.resolvingSymlinksInPath() == second.resolvingSymlinksInPath())
     }
+
+    // MARK: checkUndo (spec 010 FR-003, research R4)
+
+    enum Refusal: CaseIterable, Sendable { case nothing, expired, wallpaperChanged, previousImageGone, originalGone }
+
+    /// A harness in which undo is refused for `refusal`.
+    func refusing(_ refusal: Refusal) throws -> LabelerHarness {
+        let h = try LabelerHarness()
+        let original = try h.showOriginal()
+        guard refusal != .nothing else { return h }
+        try h.labeler.setLabel(LabelText("Email"), on: h.display)
+        switch refusal {
+        case .nothing: break
+        case .expired: h.clock.advance(seconds: 61)
+        case .wallpaperChanged: try h.showOriginal(SyntheticImages.dark(), name: "other.png")
+        case .previousImageGone:
+            try h.labeler.setLabel(LabelText("Mail"), on: h.display)
+            h.store.removeFile(named: try #require(try h.manifest().stamps.first).fileName)
+        case .originalGone: try FileManager.default.removeItem(at: original)
+        }
+        return h
+    }
+
+    func error(_ body: () throws -> Void) -> DnmError? {
+        do { try body(); return nil } catch { return error as? DnmError }
+    }
+
+    @Test(arguments: Refusal.allCases)
+    func checkUndoRefusesWhatUndoRefusesAndChangesNothing(_ refusal: Refusal) throws {
+        let h = try refusing(refusal); defer { h.cleanUp() }
+        let manifestURL = h.store.directory.appendingPathComponent("manifest.json")
+        let stored = try? Data(contentsOf: manifestURL)
+        let files = h.storeFiles
+
+        let checked = error { try h.labeler.checkUndo(on: h.display, onScreen: true) }
+        #expect(checked != nil, "\(refusal)")
+        #expect(h.system.setCalls.count == (refusal == .nothing ? 0 : h.system.setCalls.count))
+        let calls = h.system.setCalls.count
+        #expect((try? Data(contentsOf: manifestURL)) == stored, "\(refusal): the stored data is untouched")
+        #expect(h.storeFiles == files)
+
+        let undone = error { try h.labeler.undoLastChange(on: h.display) }
+        #expect(checked == undone, "\(refusal): the same message")
+        #expect(h.system.setCalls.count == calls)
+    }
+
+    @Test func theRecordOnlyCheckPassesWhereOnlyTheCurrentWallpaperDiffers() throws {
+        let h = try refusing(.wallpaperChanged); defer { h.cleanUp() }
+        try h.labeler.checkUndo(on: h.display, onScreen: false)
+        #expect(throws: DnmError.self) { try h.labeler.checkUndo(on: h.display, onScreen: true) }
+        for refusal in [Refusal.nothing, .expired] {
+            let other = try refusing(refusal); defer { other.cleanUp() }
+            #expect(throws: DnmError.self, "\(refusal)") { try other.labeler.checkUndo(on: other.display, onScreen: false) }
+        }
+    }
+
+    @Test func checkUndoPassesWhereUndoWorks() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        try h.showOriginal()
+        try h.labeler.setLabel(LabelText("Email"), on: h.display)
+        try h.labeler.checkUndo(on: h.display, onScreen: true)
+        try h.labeler.undoLastChange(on: h.display)
+    }
 }
