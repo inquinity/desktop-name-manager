@@ -82,11 +82,15 @@ synthetic display names (`main`, `DP`, `Side`) in tests and docs; build and test
 - [X] T025 [P] Amend `specs/008-positional-display/spec.md` (FR-002, FR-004, FR-006 and the clarification on several displays, pointing to spec 010) and `specs/008-positional-display/contracts/cli.md` §1 and §2; amend `specs/007-shell-completions/contracts/cli.md` (completion of every display word of `remove` and `undo`); check `specs/001-labels-and-cli/contracts/cli.md` for a one-display statement
 - [X] T026 `Tests/live/live-syntax.sh` (with the shell-script-expert skill, small changes only): the `set` check that expected two displays to be refused becomes a check that both are labeled; add quickstart scenarios 1 to 6 and 8 for two or more displays; skip them with a message on one display; every wallpaper restored with `dnm remove` (SC-004)
 - [X] T027 `just test` and `just periphery` pass (a native build first, so periphery reads a fresh index); scan the diff for personal paths, names and UUIDs (SC-005)
-- [ ] T028 Live run of `Tests/live/live-syntax.sh` on the maintainer's Mac with two or more displays, under the live-test rules (back up `Index.plist`, private `DNM_STORE_DIR`, restore with `dnm remove`), quoting `dnm --version`; quickstart scenario 7 (`--desktop` on every display) only after asking for live control and announcing it; record the results in this file (SC-004)
+- [X] T028 Live run of `Tests/live/live-syntax.sh` on the maintainer's Mac with two or more displays, under the live-test rules (back up `Index.plist`, private `DNM_STORE_DIR`, restore with `dnm remove`), quoting `dnm --version`; quickstart scenario 7 (`--desktop` on every display) only after asking for live control and announcing it; record the results in this file (SC-004)
   - 2026-11-06, `dnm 0.2.1 (5) 0cf7680`, macOS 27.2, two displays: `Tests/live/live-syntax.sh` passed all 60 checks
     (quickstart scenarios 1 to 6 and 8); both displays showed no label afterwards. A first attempt refused every `set`
     because the Desktops on screen showed labels from the installed release, which the private store does not know
-    (by design; nothing changed). Scenario 7 (`--desktop` on every display) not yet run.
+    (by design; nothing changed).
+  - Scenario 7, same build, with live control announced and approved: `dnm set main "Two" --display DP --desktop 2`
+    labeled Desktop 2 of each display in order (exit 0); `dnm remove main DP --desktop 2` restored both (exit 0);
+    neither Desktop 2 shows a label afterwards. The main display returned to its starting Desktop; the second display
+    had started on its Desktop 2 (confirmed by the maintainer), so it showed the label there as expected.
 
 ## Dependencies
 
