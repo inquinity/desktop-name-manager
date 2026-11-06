@@ -46,8 +46,9 @@ In this order, each failure ending the command with nothing changed and the mess
 3. for `undo`, every display has a change it can undo now (`Cannot undo: ...`, exit 1);
 4. with `--desktop`, the Accessibility permission (exit 1, as today).
 
-Checks that need Desktop N on screen (it exists; for `undo`, it still shows what the change produced) are made
-[decision pending, research R4].
+With `--desktop`, item 3 checks each display's undo record and window only; the checks that need Desktop N on
+screen (it exists; for `undo`, it still shows what the change produced) are made when that display is reached, and a
+failure there is a part-way failure (§4). Research R4.
 
 ## 4. Output and exit status
 

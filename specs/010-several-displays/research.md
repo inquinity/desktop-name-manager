@@ -63,7 +63,9 @@ No dependency, interface or permission changes. Each item below is a design ques
   2. **A checking pass first.** Visit Desktop N of every display, check, return; then visit each again to change it.
      Keeps FR-004 as written; doubles the switching (for two displays on Desktop 3 of 4, roughly 6 to 10 seconds more)
      and doubles the window in which the person switching Desktops by hand aborts the command.
-- **Status:** a decision for the maintainer before tasks are written.
+- **Decision (maintainer, 2026-11-06): option 1, check while changing.** The spec's FR-004 and User Story 5 are
+  amended. With `--desktop`, `undo` checks each display's record and window first (`checkUndo` without the
+  current-wallpaper comparison), and the full check runs on Desktop N as part of the change.
 
 ## R5. Output and the reminder
 

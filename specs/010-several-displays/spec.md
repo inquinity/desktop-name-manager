@@ -26,6 +26,12 @@ file, `dnm apply` (F10), are later)
 - **Q: May `remove` and `undo` take several display words, as in `dnm undo main DP`?**
   - **A**: Yes, `remove` and `undo` only (maintainer). `set` keeps at most one display word plus `--display`, because
     its last word is the label. `show` keeps at most one display (FR-002).
+- **Q: With `--desktop`, are the checks that need Desktop N on screen made before any display changes?**
+  - **A**: No: they are made when each display is reached (maintainer, after planning; research R4). Public interfaces
+    cannot count a display's Desktops or read a Desktop that is not showing without stepping there, about a second a
+    step, so a checking pass would double the switching. Resolution, the Accessibility permission and each display's
+    undo record are still checked first; a display without Desktop N, or whose Desktop N no longer shows what the
+    change produced, fails when it is reached, and the part-way rule (FR-006) applies.
 
 ## User Scenarios & Testing
 
@@ -127,8 +133,9 @@ to the Desktop it was on.
 
 1. **Given** `--desktop 2` and two displays, **Then** each display is switched to its Desktop 2, labeled, and
    returned, one display after the other, as a single `--desktop` command does today.
-2. **Given** one display has fewer than N Desktops, **Then** the command fails before changing any display (the
-   number of Desktops is checked for every named display first), with the message a single command gives.
+2. **Given** the second display has fewer than N Desktops, **Then** the first display is labeled, the command stops
+   at the second with the message a single command gives, and the part-way rule (User Story 4) applies; a failure on
+   the first display changes nothing.
 3. **Given** Accessibility is not granted, **Then** the command fails before anything changes, as today.
 
 ---
@@ -171,10 +178,13 @@ to the Desktop it was on.
   single command are not currently supported."; spec 008 FR-004 still applies to it.
 - **FR-003**: Before changing any display, the command MUST validate the label and options, resolve every named
   display with the single resolution algorithm (spec 006), and, for `undo`, check that each display has a change it
-  can undo; any failure MUST change nothing and give the message a single command gives.
-- **FR-004**: With `--desktop N`, before changing any display the command MUST check that every named display has a
-  Desktop N (and that the Accessibility permission is granted, as today); Desktop N of each display is then changed
-  in turn, each display returning to the Desktop it was on.
+  can undo (with `--desktop`, as far as FR-004 allows); any failure MUST change nothing and give the message a single
+  command gives.
+- **FR-004**: With `--desktop N`, before changing any display the command MUST check the Accessibility permission (as
+  today) and, for `undo`, that each display has an undo record within its window. Desktop N of each display is then
+  changed in turn, each display returning to the Desktop it was on. Checks that need Desktop N on screen (that it
+  exists; for `undo`, that it still shows what the change produced) MUST be made when that display is reached, and a
+  failure there follows FR-006 (Clarifications, 2026-11-06).
 - **FR-005**: Displays MUST be changed in the order named: the display words in order, then each `--display` value in
   order, duplicates removed, keeping the first.
 - **FR-006**: At the first failure while changing displays, the command MUST stop, MUST NOT attempt the remaining

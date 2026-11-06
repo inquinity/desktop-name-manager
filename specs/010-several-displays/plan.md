@@ -57,7 +57,7 @@ No violations; Complexity Tracking is empty. Re-checked after Phase 1: unchanged
 ```text
 specs/010-several-displays/
 ├── plan.md              # this file
-├── research.md          # R1-R7 (R4 has a decision pending)
+├── research.md          # R1-R7
 ├── data-model.md        # no stored-data change; in-memory values
 ├── quickstart.md        # automated and live validation
 ├── contracts/cli.md     # grammar, order, checks, output, exit status
@@ -89,8 +89,8 @@ core file and one new test file.
 
 ## Phases
 
-0. **Decision R4** (maintainer): with `--desktop`, check Desktop-level conditions while changing (recommended, amends
-   FR-004 and User Story 5 scenario 2) or in a checking pass first.
+0. **Decision R4** (maintainer, 2026-11-06): with `--desktop`, Desktop-level checks are made while changing; spec
+   FR-003, FR-004 and User Story 5 amended.
 1. **Core reading**: `DisplayArguments.Targets` and `targets(...)`; `setRequest` returns `Targets`; `show` keeps
    `target(...)`. The table test of every command line in the spec, ordered displays, duplicates by different names,
    empty values, the word's hint, notices once.
