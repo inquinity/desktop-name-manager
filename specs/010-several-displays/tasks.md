@@ -37,7 +37,7 @@ synthetic display names (`main`, `DP`, `Side`) in tests and docs; build and test
 
 - [ ] T010 [US1] In `Sources/dnm/Context.swift`, `setRequest` returns `Targets`; `warn` prints each override notice once, after the label and options are validated and before the first change (research R5)
 - [ ] T011 [US1] In `Sources/dnm/Commands/SetCommand.swift`, validate the label and options, get the `Targets`, then run `DisplayBatch` over them, each display through `context.onDesktop` and `labeler.setLabel`, printing its confirmation line as it succeeds; `Nudge.showIfDue` once, after the loop; the help says several displays may be named, with the example `dnm set main "Mail" --display DP` (FR-007, FR-011, FR-013)
-- [ ] T012 [P] [US1] In `Tests/dnmTests/` (the in-process parse tests), `set` with a display word and repeated `--display` parses into the expected words and flags; options between the words still work
+- [ ] T012 [P] [US1] In `Tests/dnmTests/CommandParsingTests.swift`, `set` with a display word and repeated `--display` parses into the expected words and flags; options between the words still work
 
 **Checkpoint**: User Story 1 works on its own; one display behaves as in 0.2.1.
 
@@ -51,7 +51,7 @@ synthetic display names (`main`, `DP`, `Side`) in tests and docs; build and test
 - [ ] T014 [US2] In `Sources/dnm/Context.swift`, add `targets(command:words:option:)` for `remove` and `undo`; `target(...)` stays for `show`
 - [ ] T015 [US2] In `Sources/dnm/Commands/RemoveCommand.swift`, run `DisplayBatch` over the targets, printing `No label on <display>.` or the removed line per display; the reminder once after the loop; usage `dnm remove [<display> ...] [options]` and the example `dnm remove main DP`
 - [ ] T016 [US2] In `Sources/dnm/Commands/UndoCommand.swift`, before the first change call `checkUndo` for every display (the record-only variant with `--desktop`), then run `DisplayBatch`; usage `dnm undo [<display> ...] [options]` and the example `dnm undo main DP` (FR-003, FR-004)
-- [ ] T017 [P] [US2] In `Tests/dnmTests/` (in-process parse and completion tests), `remove` and `undo` with several words and `--display`; Tab offers displays and aliases for the second and later words of `remove` and `undo` and for a repeated `--display`, and still nothing beyond one word for `show` (FR-012)
+- [ ] T017 [P] [US2] In `Tests/dnmTests/CommandParsingTests.swift` and `Tests/dnmTests/CompletionTests.swift`, `remove` and `undo` with several words and `--display`; Tab offers displays and aliases for the second and later words of `remove` and `undo` and for a repeated `--display`, and still nothing beyond one word for `show` (FR-012)
 
 **Checkpoint**: User Stories 1 and 2 work; `show` is unchanged.
 
