@@ -11,7 +11,7 @@ The features in build order. Each milestone is reached when its feature is done;
 
 | Milestone | Feature | Specification | Status |
 |---|---|---|---|
-| **M1 (MVP)** | Labels and the `dnm` command-line tool | [specs/001-labels-and-cli](specs/001-labels-and-cli/) | **Released as 0.1.0 (build 1), 2026-10-07**: notarized, in the unlisted `desktop-name-manager` cask. Installed and checked on macOS 26 and 27; in daily use. The Intel refusal check remains. **0.1.1 (build 2)** and **0.1.2 (build 3)** released 2026-10-09 with display aliases (F2) and shell completions (F1); **0.2.0 (build 4)** released 2026-10-10 with the display as a positional argument (F8) |
+| **M1 (MVP)** | Labels and the `dnm` command-line tool | [specs/001-labels-and-cli](specs/001-labels-and-cli/) | **Released as 0.1.0 (build 1), 2026-10-07**: notarized, in the unlisted `desktop-name-manager` cask. Installed and checked on macOS 26 and 27; in daily use. The Intel refusal check remains. **0.1.1 (build 2)** and **0.1.2 (build 3)** released 2026-10-09 with display aliases (F2) and shell completions (F1); **0.2.0 (build 4)** released 2026-10-10 with the display as a positional argument (F8); **0.2.1 (build 5)** released 2026-11-03 with label reuse and `dnm cleanup` (F4, stage 1) |
 | M2 | The menu-bar app and label editor | not written | Notes only |
 | M3 | Quick View: see every label, switch to one | not written | Notes only |
 | M4 | Desktop groups, display roles and sites (home and work monitors) | not written | Notes only |
@@ -71,7 +71,7 @@ release yet.
 |---|---|---|
 | Display aliases: short names for displays, tied to the display's identity ([specs/006-display-aliases](specs/006-display-aliases/)). Comes before F1 | F2 | 0.1.1 (released 2026-10-09) |
 | Shell completions for bash and zsh: every command and option, with display names and aliases (F2) offered live for `--display` (as git offers branch names) and the fixed values of `--style`, `--color`, `--position` and `--size`; installed by the cask ([specs/007-shell-completions](specs/007-shell-completions/)) | F1 | 0.1.2 (released 2026-10-09) |
-| Reuse of identical labeled images; `dnm cleanup` (replaces `prune`) for old and unseen labels, a last-seen record, and a nudge at 50 MB; nothing is deleted automatically ([specs/009-stamp-reuse-and-cleanup](specs/009-stamp-reuse-and-cleanup/), stage 1) | F4 | 0.2.1 |
+| Reuse of identical labeled images; `dnm cleanup` (replaces `prune`) for old and unseen labels, a last-seen record, and a nudge at 50 MB; nothing is deleted automatically ([specs/009-stamp-reuse-and-cleanup](specs/009-stamp-reuse-and-cleanup/), stage 1) | F4 | 0.2.1 (released 2026-11-03) |
 | `dnm cleanup --scan`: find labels of deleted Desktops exactly by visiting every Desktop (Accessibility, opt-in) ([specs/009-stamp-reuse-and-cleanup](specs/009-stamp-reuse-and-cleanup/), stage 2); a bigger concept, so a minor version | F9 | 0.3.0 |
 | Batch labeling: several Desktops, and several displays (`--display` repeated), in one command ([backlog](docs/backlog.md)) | F3 | 0.2.2 |
 | Multi-line labels: an app feature (M2), not a CLI one ([backlog](docs/backlog.md)) | F5 | After 1.0.0 at the earliest |

@@ -13,7 +13,10 @@ Ideas recorded for later. None is part of a current spec.
   shortcuts with Accessibility, and for shipping the command-line tool.
 - **Multi-line labels** (roadmap F5, after 1.0.0 at the earliest). An app feature (M2), not a CLI one.
   Labels are one line of 30 characters for now (spec 001).
-- **Clean up all labeled images after a manual reset** (2026-10-06; roadmap F4, 0.2.1). After a person resets wallpapers by
+- **Clean up all labeled images after a manual reset** (2026-10-06; roadmap F4). **Stage 1 released in 0.2.1
+  (2026-11-03)** as `dnm cleanup`, with label reuse and the nudge (spec 009); `cleanup --days 0` offers every image no
+  Desktop shows now, which covers the manual reset. The scan (`cleanup --scan`, stage 2 of spec 009) is still open.
+  The notes below are the history of the decision. After a person resets wallpapers by
   hand (picking a picture in System Settings > Wallpaper on each Desktop, or turning "Show on all Spaces"
   on, which is one setting for every display, picking a picture, and turning it off again), the
   store still holds images and records for labels no Desktop shows. `prune` deletes only retired labels,
