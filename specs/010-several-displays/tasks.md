@@ -92,7 +92,10 @@ synthetic display names (`main`, `DP`, `Side`) in tests and docs; build and test
     neither Desktop 2 shows a label afterwards. The main display returned to its starting Desktop; the second display
     had started on its Desktop 2 (confirmed by the maintainer), so it showed the label there as expected.
   - After the review fixes (`dnm 0.2.1 (5) 9b682f5`): `Tests/live/live-syntax.sh` passed all 60 checks again on two
-    displays; both showed no label afterwards. Scenario 7 was not repeated.
+    displays; both showed no label afterwards.
+  - Scenario 7 repeated on `9b682f5` under approved live control: both Desktop 2s labeled in order and then restored
+    (exit 0 each); the lines print on each Desktop as the change is made. The second display was still on its Desktop
+    2, as in the first run.
 
 ## Dependencies
 
