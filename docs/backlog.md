@@ -87,6 +87,21 @@ Ideas recorded for later. None is part of a current spec.
   value together name the displays (a union, decided 2026-10-12: a command typed and then added to must not need editing); `--desktop` means that Desktop of each display; `set`, `remove` and `undo` only, because
   `show --json` prints one document.
 
+- **Apply a label file** (2026-11-06; roadmap F10, late 0.x or after 1.0.0; set aside by the maintainer). `dnm apply
+  <file>` reads a file of commands, one per line, and applies them in order, so a whole arrangement of labels is one
+  command:
+
+  ```
+  set main my-project
+  set middle email
+  set right "Internet reading"
+  ```
+
+  It could also name Desktops (for example `desktop: 1`). The menu-bar app (M2) could be built around the same file,
+  as the place a layout is saved and edited. Builds on several displays in one command (F3, 0.2.2). To decide when it
+  is specified: the file format (the command syntax as above, or a mapping), how quoting and comments work, what
+  happens at the first failure, and whether Desktops need the Accessibility permission as `--desktop` does.
+
 - **Display aliases** (2026-10-07; roadmap F2, 0.1.1, before shell completions F1 in 0.1.2). Short names for displays, for example `DP1` for a long monitor name, so
   `--display DP1` works. An alias is tied to the display's stable identity (never shown), not its name, so
   it also tells apart two monitors of the same model that report the same name, which no name or partial

@@ -78,6 +78,7 @@ release yet.
 | `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) | F6 | Not set |
 | Display as a positional argument: `dnm set [<display>] <label>` and `dnm remove\|undo\|show [<display>]`, with `--display` still accepted ([specs/008-positional-display](specs/008-positional-display/)); a change of syntax, so it takes 0.2.0 and moves every later feature back | F8 | 0.2.0 (released 2026-10-10) |
 | Quiet flag: `-q` / `--quiet` (and `DNM_QUIET=1`) suppresses warnings, such as an alias overridden by a display's name, on every command; results and errors still print ([backlog](docs/backlog.md)) | F7 | 0.3.0 |
+| Apply a label file: `dnm apply <file>` runs `set` lines (display, label and later Desktop) in order, so a whole arrangement is one command; a base the app (M2) could build on ([backlog](docs/backlog.md)) | F10 | Late 0.x or after 1.0.0 |
 
 ## Minimum viable product (M1)
 
