@@ -36,6 +36,9 @@ import Testing
 
     @Test func repeatsAreSeenNotSwallowed() throws {
         #expect(try set("x", "--display", "DP1", "--display", "main").shape.display == ["DP1", "main"])
+        #expect(try set("main", "Mail", "--display", "DP").shape == Shape(first: "main", second: "Mail", extra: [], display: ["DP"], label: []))
+        #expect(try set("main", "--display", "DP", "--size", "large", "Mail", "--display", "Side").shape
+                == Shape(first: "main", second: "Mail", extra: [], display: ["DP", "Side"], label: []), "options between the words")
         #expect(try set("--label", "a", "--label", "b").shape.label == ["a", "b"])
     }
 
@@ -47,6 +50,14 @@ import Testing
         #expect(try set("DP1", "--", "-x").shape == Shape(first: "DP1", second: "-x", extra: [], display: [], label: []))
         #expect(try set("--label=-x", "DP1").shape.label == ["-x"])
         #expect(throws: (any Error).self) { try SetCommand.parse(["--label", "-x", "DP1"]) }
+    }
+
+    @Test func removeAndUndoTakeSeveralDisplayWordsAndFlags() throws {
+        #expect(try RemoveCommand.parse(["main", "DP", "Side"]).words.words == ["main", "DP", "Side"])
+        let remove = try RemoveCommand.parse(["main", "--desktop", "2", "DP", "--display", "Side", "--display", "main"])
+        #expect(remove.words.words == ["main", "DP"] && remove.target.display == ["Side", "main"] && remove.place.desktop == 2)
+        let undo = try UndoCommand.parse(["--display", "DP", "main"])
+        #expect(undo.words.words == ["main"] && undo.target.display == ["DP"])
     }
 
     @Test func theOtherCommandsTakeOneOptionalDisplayWord() throws {

@@ -14,6 +14,9 @@ final class FakeWallpaperSystem: WallpaperSystem {
     private(set) var setCalls: [SetCall] = []
     /// When set, `setWallpaper` throws this error and changes nothing.
     var setError: Error?
+    /// When set for a display's UUID, `setWallpaper` on that display throws this error and changes nothing (checked
+    /// before `setError`), so a test can make one of several displays fail.
+    var setErrors: [String: Error] = [:]
     /// Called just before a wallpaper is set, to test ordering.
     var beforeSet: (() -> Void)?
     /// Like the real system, report a newly set wallpaper only after this many reads (0 = at once).
@@ -52,6 +55,7 @@ final class FakeWallpaperSystem: WallpaperSystem {
 
     func setWallpaper(_ url: URL, placement: WallpaperPlacement, on display: Display) throws {
         beforeSet?()
+        if let error = setErrors[display.uuid] { throw error }
         if let setError { throw setError }
         setCalls.append(SetCall(url: url, placement: placement, displayUUID: display.uuid))
         let shown = CurrentWallpaper(url: url, placement: placement)

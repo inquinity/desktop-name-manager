@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #
-# Live checks of the positional display syntax (spec 008, tasks T011 and T012) against the REAL wallpaper.
+# Live checks of the positional display syntax (spec 008, tasks T011 and T012) and of several displays in one
+# command (spec 010, quickstart scenarios 1 to 6 and 8) against the REAL wallpaper.
 #
 # On every connected display it labels, shows, replaces, undoes and removes using the display as a word, as
 # --display, with --label, through an alias and as "main"; checks that each display gets its own label; and
-# checks that the mistakes (two different displays, a lone word that is a display) are refused and change nothing,
-# and that naming the same display twice works as for one display.
+# checks that the mistakes (two different displays for `show`, a lone word that is a display) are refused and change
+# nothing, and that naming the same display twice works as for one display. With two or more displays it then labels,
+# removes and undoes on every display in one command each; with one display those checks are skipped.
 # It never switches Desktops: it acts on the Desktop showing on each display.
 #
 # This changes the wallpaper of the Desktop you are on, on every display. Run it only while you are idle, on
@@ -207,7 +209,7 @@ for name in "${display_names[@]}"; do
     check "--display given twice for the same display is accepted" succeeds show --display "$name" --display "$name"
     for other in "${display_names[@]}"; do
         [[ "$other" == "$name" ]] && continue
-        check "naming ${other} as well is refused (several displays are not supported yet)" exits_with 2 set "$name" "Twice" --display "$other"
+        check "show with ${other} as well is refused (show takes one display)" exits_with 2 show "$name" --display "$other"
     done
     check "--label given twice is refused" exits_with 2 set "$name" --label "One" --label "Two"
     check "three words are refused" exits_with 2 set "$name" "Too" "many"
@@ -249,6 +251,51 @@ for name in "${display_names[@]}"; do
     dnm remove "$name"
     check "${name}: removed" shows_no_label "$name"
 done
+
+# --- Several displays in one command (spec 010) -----------------------------------------------------
+if ((${#display_names[@]} < 2)); then
+    print_colored "$COLOR_YELLOW" "Only one display: skipping the several-display checks (spec 010 needs two or more)."
+else
+    print_colored "$COLOR_BRIGHTYELLOW" "Several displays in one command"
+    first_display="${display_names[0]}"
+    second_display="${display_names[1]}"
+    # The first display as the word, every other one with --display.
+    other_display_flags=()
+    for name in "${display_names[@]:1}"; do
+        other_display_flags+=(--display "$name")
+    done
+
+    dnm set "$first_display" "Both" "${other_display_flags[@]}"
+    for name in "${display_names[@]}"; do
+        check "set <display> <label> --display ... labels ${name}" shows_label "$name" "Both"
+    done
+
+    dnm remove "${display_names[@]}"
+    for name in "${display_names[@]}"; do
+        check "remove <display> <display> ... restores ${name}" shows_no_label "$name"
+    done
+
+    dnm set "$first_display" "Again" "${other_display_flags[@]}"
+    dnm undo "${display_names[@]}"
+    for name in "${display_names[@]}"; do
+        check "undo <display> <display> ... restores ${name}" shows_no_label "$name"
+    done
+
+    # The first display has nothing to undo now, so nothing may change on either.
+    dnm set "$second_display" "Only"
+    check "undo is refused when one display has nothing to undo (exit 1)" exits_with 1 undo "$first_display" "$second_display"
+    check "the refused undo changed nothing on ${second_display}" shows_label "$second_display" "Only"
+    check "the refused undo changed nothing on ${first_display}" shows_no_label "$first_display"
+
+    check "a typo among several displays is refused (exit 2)" exits_with 2 set "$first_display" "Typo" --display "zz-no-such-display"
+    check "the typo changed nothing" shows_no_label "$first_display"
+    check "show with two displays is refused (exit 2)" exits_with 2 show "$first_display" --display "$second_display"
+
+    for name in "${display_names[@]}"; do
+        dnm remove "$name"
+        check "${name}: removed" shows_no_label "$name"
+    done
+fi
 labels_applied=false
 
 if "$dry_run"; then

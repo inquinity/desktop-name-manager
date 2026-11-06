@@ -3,7 +3,7 @@ import ArgumentParser
 /// The shared `--desktop` option (spec 001 FR-027).
 struct DesktopOption: ParsableArguments {
     @Option(name: .long, help: ArgumentHelp(
-        "Act on this Desktop of the display (1 is the first, as Mission Control numbers them) instead of the one showing. The display switches there and back, which needs the Accessibility permission; see `dnm check`. Don't type while it runs. A full-screen app among the Desktops can shift the count.",
+        "Act on this Desktop of the display (1 is the first, as Mission Control numbers them) instead of the one showing. The display switches there and back, which needs the Accessibility permission; see `dnm check`. Don't type or move the pointer while it runs. A full-screen app among the Desktops can shift the count.",
         valueName: "n"))
     var desktop: Int?
 

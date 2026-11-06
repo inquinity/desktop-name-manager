@@ -210,4 +210,75 @@ final class FakeSwitcher: DesktopSwitching {
         } catch { Issue.record("wrong error") }
         #expect(fake.steps == 0)
     }
+
+    /// Spec 010 User Story 5: `--desktop 2` on two displays visits each in turn, with its own switcher as
+    /// `Context.onDesktop` makes one per display. The second has no Desktop 2: it fails when reached, after the first
+    /// was labeled, and the part-way message follows.
+    @Test func severalDisplaysAreVisitedInTurnAndAMissingDesktopFailsWhenReached() throws {
+        let main = FakeWallpaperSystem.makeDisplay(name: "Built-in Display", uuid: "DISPLAY-A", isMain: true)
+        let switchers = ["DISPLAY-A": FakeSwitcher(desktops: 3, position: 3), "DISPLAY-B": FakeSwitcher(desktops: 1, position: 1)]
+        var labeled: [String] = []
+        do {
+            try DisplayBatch.run(DisplayArguments.Targets(displays: [main, display], references: ["main", "DP"], notice: nil),
+                                 undoArguments: ["--desktop", "2"]) { target, changed in
+                let fake = try #require(switchers[target.uuid])
+                try DesktopNavigator(switcher: fake).visit(desktop: 2, on: target) {
+                    #expect(fake.position == 2)
+                    labeled.append(target.name)
+                    changed()
+                }
+            }
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect(error.exitCode == 1)
+            let text = error.errorDescription ?? ""
+            #expect(text.contains("No Desktop change happened on DP"), "\(text)")
+            #expect(text.hasSuffix("Changed before this: Built-in Display. To put it back within 60 seconds: dnm undo main --desktop 2."), "\(text)")
+        }
+        #expect(labeled == ["Built-in Display"])
+        let first = try #require(switchers["DISPLAY-A"]), second = try #require(switchers["DISPLAY-B"])
+        #expect(first.position == 3 && first.pointedAt == "Built-in Display" && first.pointerRestored, "the first returned to where it was")
+        #expect(second.position == 1 && second.pointedAt == "DP" && second.pointerRestored)
+    }
+
+    /// Review finding: a display changed on Desktop N whose step back is not confirmed is counted as changed, so the
+    /// part-way message names it and the suggested undo includes it.
+    @Test func aDisplayChangedBeforeItsWayBackFailedIsNamedAsChanged() throws {
+        let main = FakeWallpaperSystem.makeDisplay(name: "Built-in Display", uuid: "DISPLAY-A", isMain: true)
+        let lost = FakeSwitcher(desktops: 3, position: 1)
+        lost.unconfirmedSteps = [3]   // 1: left (nothing), 2: right to Desktop 2, 3: left, back: not confirmed
+        let switchers = ["DISPLAY-A": FakeSwitcher(desktops: 3, position: 1), "DISPLAY-B": lost]
+        func run(_ displays: [Display], _ references: [String]) throws {
+            try DisplayBatch.run(DisplayArguments.Targets(displays: displays, references: references, notice: nil),
+                                 undoArguments: ["--desktop", "2"]) { target, changed in
+                let fake = try #require(switchers[target.uuid])
+                try DesktopNavigator(switcher: fake).visit(desktop: 2, on: target) { changed() }
+            }
+        }
+        do {
+            try run([main, display], ["main", "DP"])
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect(error.exitCode == 1)
+            #expect((error.errorDescription ?? "").hasSuffix("Changed: Built-in Display, DP. To put them back within 60 seconds: dnm undo main DP --desktop 2."), "\(error)")
+        }
+
+        // On the first of two displays: named too, and the second is never attempted.
+        lost.unconfirmedSteps = [6]
+        do {
+            try run([display, main], ["DP", "main"])
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").hasSuffix("Changed: DP. To put it back within 60 seconds: dnm undo DP --desktop 2."), "\(error)")
+        }
+
+        // One display: the error exactly as a single command gives it.
+        lost.unconfirmedSteps = [9]
+        do {
+            try run([display], ["DP"])
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            if case .failure(let message) = error { #expect(message.contains("returning DP")) } else { Issue.record("\(error)") }
+        }
+    }
 }
