@@ -19,16 +19,17 @@ struct RemoveCommand: ParsableCommand {
         try Self.guarded {
             let context = Context()
             let targets = try context.targets(words: words, option: target)
-            try DisplayBatch.run(targets, undoArguments: context.undoArguments(place)) { display in
-                var result = try context.onDesktop(place, of: display) { try context.labeler.removeLabel(on: display) }
-                result.displayName = place.describe(result.displayName)
-                switch result.outcome {
-                case .noLabel:
-                    Output.out("No label on \(result.displayName).")
-                    return false
-                case .removed(let label):
-                    Output.out("Removed the label \"\(label.text.value)\" from \(result.displayName) and restored the original wallpaper.")
-                    return true
+            try DisplayBatch.run(targets, undoArguments: context.undoArguments(place)) { display, changed in
+                try context.onDesktop(place, of: display) {
+                    var result = try context.labeler.removeLabel(on: display)
+                    result.displayName = place.describe(result.displayName)
+                    switch result.outcome {
+                    case .noLabel:
+                        Output.out("No label on \(result.displayName).")
+                    case .removed(let label):
+                        changed()
+                        Output.out("Removed the label \"\(label.text.value)\" from \(result.displayName) and restored the original wallpaper.")
+                    }
                 }
             }
             Nudge.showIfDue(context)

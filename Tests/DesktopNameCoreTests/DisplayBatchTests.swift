@@ -18,7 +18,7 @@ import Testing
 
     @Test func everyDisplayRunsInOrder() throws {
         var order: [String] = []
-        try DisplayBatch.run(targets([main, dp, side], ["main", "DP", "Side"]), undoArguments: []) { order.append($0.name); return true }
+        try DisplayBatch.run(targets([main, dp, side], ["main", "DP", "Side"]), undoArguments: []) { display, changed in order.append(display.name); changed() }
         #expect(order == ["Built-in Display", "DP", "Side"])
     }
 
@@ -26,7 +26,7 @@ import Testing
         let error = DnmError.unsupportedWallpaper("dynamic")
         var attempted: [String] = []
         #expect(throws: error) {
-            try DisplayBatch.run(targets([main, dp], ["main", "DP"]), undoArguments: []) { display in
+            try DisplayBatch.run(targets([main, dp], ["main", "DP"]), undoArguments: []) { display, changed in
                 attempted.append(display.name)
                 throw error
             }
@@ -37,10 +37,10 @@ import Testing
     @Test func aFailureOnTheSecondOfThreeNamesWhatChangedAndKeepsTheExitStatus() {
         var attempted: [String] = []
         do {
-            try DisplayBatch.run(targets([main, dp, side], ["main", "dp", "Side"]), undoArguments: []) { display in
+            try DisplayBatch.run(targets([main, dp, side], ["main", "dp", "Side"]), undoArguments: []) { display, changed in
                 attempted.append(display.name)
                 if display.uuid == "B" { throw DnmError.unsupportedWallpaper("dynamic") }
-                return true
+                changed()
             }
             Issue.record("expected an error")
         } catch let error as DnmError {
@@ -52,18 +52,18 @@ import Testing
 
     @Test func anErrorThatNamesTheDisplayGetsNoPrefix() {
         #expect(throws: DnmError.partWay("Cannot undo: the wallpaper on DP has changed since that change. Changed before this: Built-in Display, Side. To put them back within 60 seconds: dnm undo main Side --desktop 2.", exitCode: 1)) {
-            try DisplayBatch.run(targets([main, side, dp], ["main", "Side", "DP"]), undoArguments: ["--desktop", "2"]) { display in
+            try DisplayBatch.run(targets([main, side, dp], ["main", "Side", "DP"]), undoArguments: ["--desktop", "2"]) { display, changed in
                 if display.uuid == "B" { throw DnmError.cannotUndo("the wallpaper on DP has changed since that change") }
-                return true
+                changed()
             }
         }
     }
 
     @Test func anInputErrorPartWayStillExitsTwo() {
         do {
-            try DisplayBatch.run(targets([main, dp], ["main", "DP"]), undoArguments: []) { display in
+            try DisplayBatch.run(targets([main, dp], ["main", "DP"]), undoArguments: []) { display, changed in
                 if display.uuid == "B" { throw DnmError.invalidInput("DP has 1 Desktop; there is no Desktop 2. Nothing was changed.") }
-                return true
+                changed()
             }
         } catch let error as DnmError {
             #expect(error.exitCode == 2)
@@ -76,9 +76,9 @@ import Testing
         let odd = FakeWallpaperSystem.makeDisplay(name: "-odd", uuid: "E", isMain: false)
         let quote = FakeWallpaperSystem.makeDisplay(name: "Bob's", uuid: "F", isMain: false)
         do {
-            try DisplayBatch.run(targets([lg, odd, quote, dp], ["LG Ultra HD", "-odd", "Bob's", "DP"]), undoArguments: []) { display in
+            try DisplayBatch.run(targets([lg, odd, quote, dp], ["LG Ultra HD", "-odd", "Bob's", "DP"]), undoArguments: []) { display, changed in
                 if display.uuid == "B" { throw DnmError.failure("stop") }
-                return true
+                changed()
             }
         } catch {
             #expect(message(error).hasSuffix("dnm undo 'LG Ultra HD' --display=-odd 'Bob'\\''s'."), "\(message(error))")
@@ -87,9 +87,9 @@ import Testing
 
     @Test func aDisplayThatChangedNothingIsNotNamed() {
         do {
-            try DisplayBatch.run(targets([main, dp, side], ["main", "DP", "Side"]), undoArguments: []) { display in
+            try DisplayBatch.run(targets([main, dp, side], ["main", "DP", "Side"]), undoArguments: []) { display, changed in
                 if display.uuid == "C" { throw DnmError.failure("stop") }
-                return display.uuid == "B"   // main had no label to remove
+                if display.uuid == "B" { changed() }   // main had no label to remove
             }
         } catch {
             #expect(message(error).hasSuffix("Changed before this: DP. To put it back within 60 seconds: dnm undo DP."), "\(message(error))")
@@ -98,9 +98,9 @@ import Testing
 
     @Test func undoSuggestsNoUndo() {
         do {
-            try DisplayBatch.run(targets([main, dp], ["main", "DP"]), undoArguments: nil) { display in
+            try DisplayBatch.run(targets([main, dp], ["main", "DP"]), undoArguments: nil) { display, changed in
                 if display.uuid == "B" { throw DnmError.failure("stop") }
-                return true
+                changed()
             }
         } catch {
             #expect(message(error) == "On DP: stop Changed before this: Built-in Display.")
@@ -110,11 +110,34 @@ import Testing
     @Test func oneDisplayBehavesAsASingleCall() throws {
         let error = DnmError.accessDenied("no")
         #expect(throws: error) {
-            try DisplayBatch.run(targets([main], ["main"]), undoArguments: []) { _ in throw error }
+            try DisplayBatch.run(targets([main], ["main"]), undoArguments: []) { _, _ in throw error }
         }
         var ran = 0
-        try DisplayBatch.run(targets([main], ["main"]), undoArguments: []) { _ in ran += 1; return true }
+        try DisplayBatch.run(targets([main], ["main"]), undoArguments: []) { _, changed in ran += 1; changed() }
         #expect(ran == 1)
+    }
+
+    @Test func aNameInsideAnotherWordDoesNotCountAsNamingTheDisplay() {
+        do {
+            try DisplayBatch.run(targets([main, dp], ["main", "DP"]), undoArguments: []) { display, changed in
+                if display.uuid == "B" { throw DnmError.failure("DP2 is busy.") }
+                changed()
+            }
+        } catch {
+            #expect(message(error).hasPrefix("On DP: DP2 is busy."), "\(message(error))")
+        }
+    }
+
+    @Test func aTypedWordWithControlCharactersIsReplacedByTheDisplaysName() {
+        do {
+            try DisplayBatch.run(targets([main, dp], ["ma\u{1B}[2Jin", "DP"]), undoArguments: []) { display, changed in
+                if display.uuid == "B" { throw DnmError.failure("stop") }
+                changed()
+            }
+        } catch {
+            #expect(message(error).hasSuffix("dnm undo 'Built-in Display'."), "\(message(error))")
+            #expect(!message(error).unicodeScalars.contains(where: TerminalText.isUnsafe))
+        }
     }
 
     // MARK: with the labeler and the fake wallpaper system (User Stories 3 and 4)
@@ -141,9 +164,9 @@ import Testing
         let text = try LabelText("Mail")
 
         do {
-            try DisplayBatch.run(targets(displays, ["main", "DP", "Side"]), undoArguments: []) { display in
+            try DisplayBatch.run(targets(displays, ["main", "DP", "Side"]), undoArguments: []) { display, changed in
                 try h.labeler.setLabel(text, on: display)
-                return true
+                changed()
             }
             Issue.record("expected an error")
         } catch let error as DnmError {
@@ -168,9 +191,9 @@ import Testing
         h.system.setErrors["B"] = DnmError.accessDenied("the file is locked")
 
         #expect(throws: DnmError.self) {
-            try DisplayBatch.run(targets(displays, ["main", "DP", "Side"]), undoArguments: []) { display in
+            try DisplayBatch.run(targets(displays, ["main", "DP", "Side"]), undoArguments: []) { display, changed in
                 try h.labeler.removeLabel(on: display)
-                return true
+                changed()
             }
         }
         let after = try shown(h, displays)
@@ -202,5 +225,26 @@ import Testing
         }
         #expect(try shown(h, displays) == before)
         #expect(!h.store.hasManifest)
+    }
+
+    /// Review question: two displays labeled alike (same picture, same text) undo independently; images are reused
+    /// per display, never across displays.
+    @Test func twoDisplaysLabeledAlikeUndoIndependently() throws {
+        let h = try LabelerHarness(extraDisplays: [dp]); defer { h.cleanUp() }
+        let original = try h.showOriginal()
+        h.system.show(original, on: dp)
+        let text = try LabelText("Mail")
+        try DisplayBatch.run(targets([h.display, dp], ["main", "DP"]), undoArguments: []) { display, changed in
+            try h.labeler.setLabel(text, on: display)
+            changed()
+        }
+        #expect(Set(try h.manifest().stamps.map(\.fileName)).count == 2, "one image per display")
+        for display in [h.display, dp] { try h.labeler.checkUndo(on: display, onScreen: true) }
+        try DisplayBatch.run(targets([h.display, dp], ["main", "DP"]), undoArguments: nil) { display, changed in
+            try h.labeler.undoLastChange(on: display)
+            changed()
+        }
+        let shown = try shown(h, [h.display, dp])
+        #expect(shown == [original.resolvingSymlinksInPath(), original.resolvingSymlinksInPath()])
     }
 }

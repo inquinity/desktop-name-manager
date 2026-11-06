@@ -22,15 +22,17 @@ struct UndoCommand: ParsableCommand {
             // Every display is checked before the first change. With --desktop, the checks that need Desktop N on
             // screen are made when each display is reached (spec 010 research R4).
             for display in targets.displays { try context.labeler.checkUndo(on: display, onScreen: place.desktop == nil) }
-            try DisplayBatch.run(targets, undoArguments: nil) { display in
-                var result = try context.onDesktop(place, of: display) { try context.labeler.undoLastChange(on: display) }
-                result.displayName = place.describe(result.displayName)
-                if let label = result.restoredLabel {
-                    Output.out("Restored label \"\(label.text.value)\" on \(result.displayName).")
-                } else {
-                    Output.out("Restored the original wallpaper on \(result.displayName).")
+            try DisplayBatch.run(targets, undoArguments: nil) { display, changed in
+                try context.onDesktop(place, of: display) {
+                    var result = try context.labeler.undoLastChange(on: display)
+                    changed()
+                    result.displayName = place.describe(result.displayName)
+                    if let label = result.restoredLabel {
+                        Output.out("Restored label \"\(label.text.value)\" on \(result.displayName).")
+                    } else {
+                        Output.out("Restored the original wallpaper on \(result.displayName).")
+                    }
                 }
-                return true
             }
         }
     }

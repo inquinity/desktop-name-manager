@@ -186,7 +186,8 @@ dnm set DP   "Projects" --desktop 3
 In a script, prefer the explicit form, which cannot be misread: `dnm set --display DP --label "Mail" --desktop 2`.
 
 What you see: the display slides to that Desktop, the label is applied, and it slides back to the
-Desktop it started on. The pointer moves to that display and returns. Don't type while it runs.
+Desktop it started on. The pointer moves to that display and returns. Don't type or move the pointer while it runs:
+the shortcuts act on the display under the pointer.
 
 `--desktop` is opt-in and needs two things, which `dnm check` reports:
 - **Accessibility** for the app you run `dnm` from (your terminal): System Settings > Privacy &

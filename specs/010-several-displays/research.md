@@ -52,8 +52,13 @@ No dependency, interface or permission changes. Each item below is a design ques
     cannot carry a longer message. A failure on the first display still throws the original error unchanged.
   - "Nothing was changed." in the stopping error becomes "Nothing was changed on <display>.", since other displays
     were changed (likewise "Nothing was labeled.").
-  - The closure returns whether it changed the display: `remove` on a display without a label is not named as
-    changed.
+  - The closure calls `changed()` as soon as the display's change is made, and prints its line there: `remove` on a
+    display without a label is not named as changed, and a display that fails afterwards (with `--desktop`, the way
+    back) is named as changed and included in the suggested undo (code and security reviews, 2026-11-06). With one
+    display the error is always passed through unchanged (FR-009).
+  - The `On <display>: ` prefix is added unless the message names the display as a whole word ("DP" is not named by
+    "DP2"). A typed word with a control or bidirectional character is replaced in the suggestion by the display's
+    sanitized name.
   - The suggested `dnm undo` uses the word that first named each display (`Targets.references`, `main` when none was
     named), written `--display=` when it starts with a dash, and adds `--desktop N` when it was given. `undo` itself
     suggests no command (an undo cannot be undone; spec 001 FR-022 keeps one level), and only names the displays.

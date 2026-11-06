@@ -52,17 +52,20 @@ failure there is a part-way failure (§4). Research R4.
 
 ## 4. Output and exit status
 
-- One line per display, as each succeeds, in order: the line a single command prints for it
+- One line per display, as each change is made (on Desktop N, with `--desktop`), in order: the line a single command prints for it
   (`Labeled "Mail" on DP (...)`, `Removed the label ... from main ...`, `No label on DP.`, `Restored ... on main.`).
 - `remove` on a display without a label prints `No label on <display>.` and continues; it is not a failure.
 - The override warning for an alias prints once, on standard error, before the first change.
 - The cleanup reminder (spec 009) is considered once, after the last display (`set` and `remove` only).
 - Exit 0 when every display succeeded.
 - A failure on the first display: the message and exit status of a single command; nothing changed.
-- A failure on a later display: that error's exit status, and its message (prefixed `On <display>: ` when it does not
-  name the display; "Nothing was changed." becomes "Nothing was changed on <display>.") followed by
-  `Changed before this: <names>. To put them back within 60 seconds: dnm undo <displays>.` ("it" for one display),
-  the displays by the words that named them, quoted for a POSIX shell, with `--desktop N` when it was given. Displays
+- A failure on a later display, or on any display after its own change was made (with `--desktop`, a step back that
+  macOS did not confirm, or a Desktop switch while dnm worked): that error's exit status, and its message (prefixed
+  `On <display>: ` when it does not name the display as a whole word; "Nothing was changed." becomes "Nothing was changed on <display>.") followed by
+  `Changed before this: <names>. To put them back within 60 seconds: dnm undo <displays>.` ("it" for one display;
+  `Changed: <names>.` when the failing display was changed too, and it is then in the command), the displays by the
+  words that named them (by display name where a word has a control or bidirectional character), quoted for a POSIX
+  shell, with `--desktop N` when it was given. Displays
   after it are not attempted. A display that `remove` found without a label is not named. `undo` names the displays
   it changed and suggests no command: an undo cannot be undone.
 

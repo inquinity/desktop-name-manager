@@ -196,7 +196,9 @@ to the Desktop it was on.
 - **FR-008**: Each display's change MUST be recorded and undone exactly as a single command's is today: one undo
   record per display, with its own 60-second window. No new stored data and no change to the stored data's format.
 - **FR-009**: With exactly one display named, every command MUST behave exactly as in 0.2.1 (output, exit status and
-  errors).
+  errors). One deliberate exception (code review, 2026-11-06): `undo` checks its record first, so a display with
+  nothing to undo says so before the wallpaper is read and, with `--desktop`, before any Desktop is switched or the
+  Accessibility permission is checked (contract §3).
 - **FR-010**: How the words and flags are read MUST stay in the one interpretation function in the core library
   (spec 008 FR-005), which now returns the resolved displays in order; the commands contain no display matching of
   their own.

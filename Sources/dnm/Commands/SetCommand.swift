@@ -53,11 +53,15 @@ struct SetCommand: ParsableCommand {
                                                  option: target, labelFlags: labelFlag)
             let text = try LabelText(request.label)
             context.warn(request.targets.notice)
-            try DisplayBatch.run(request.targets, undoArguments: context.undoArguments(place)) { display in
-                var result = try context.onDesktop(place, of: display) { try context.labeler.setLabel(text, options: options, on: display) }
-                result.displayName = place.describe(result.displayName)
-                Output.out(result.confirmation)
-                return true
+            try DisplayBatch.run(request.targets, undoArguments: context.undoArguments(place)) { display, changed in
+                // The line is printed on the Desktop, as soon as the change is made: a failure on the way back
+                // follows it, and the display is counted as changed.
+                try context.onDesktop(place, of: display) {
+                    var result = try context.labeler.setLabel(text, options: options, on: display)
+                    changed()
+                    result.displayName = place.describe(result.displayName)
+                    Output.out(result.confirmation)
+                }
             }
             Nudge.showIfDue(context)
         }
