@@ -1,10 +1,12 @@
-// Centralized version configuration, as in the sibling project (Belvedere).
-// `just release <major|minor|revision>` bumps these; `just version` prints them.
-// The command-line build stamps both into the binary (scripts/build-stamp.sh); the app (M2) will read
-// this file directly.
+// Centralized version configuration, as in the sibling project (Belvedere); `just version` prints it.
+// MARKETING_VERSION is the version being worked on: the release procedure moves it to the next revision right
+// after a release (`just publish record`), and `just bump <major|minor|revision>` moves it by hand.
+// CURRENT_PROJECT_VERSION is the build number: every `just build`, `just build-release` and `just release` adds
+// one, so no two builds share a number. The command-line build stamps both into the binary
+// (scripts/build-stamp.sh); the app (M2) will read this file directly.
 
 // Local settings that are never committed (signing identity, notary profile): see Secrets.xcconfig.
 #include? "Secrets.xcconfig"
 
-MARKETING_VERSION = 0.2.1
+MARKETING_VERSION = 0.2.2
 CURRENT_PROJECT_VERSION = 5

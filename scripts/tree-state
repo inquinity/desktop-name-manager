@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Print the state of the working tree, for the build stamp and the release recipe:
+#   clean         nothing uncommitted (new files that are not ignored count as uncommitted)
+#   build-number  the only change is the CURRENT_PROJECT_VERSION line in Version.xcconfig, which every
+#                 `just build` moves forward (scripts/build-stamp.sh --bump); it is not a code change
+#   dirty         anything else
+repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+changes="$(git -C "$repository_root" status --porcelain)"
+if [[ -z "$changes" ]]; then
+    printf 'clean\n'
+    exit 0
+fi
+# Anything other than a modified Version.xcconfig (staged or not) is a real change.
+if [[ ! "$changes" =~ ^(M\ |\ M|MM)\ Version\.xcconfig$ ]]; then
+    printf 'dirty\n'
+    exit 0
+fi
+# Every changed line of Version.xcconfig (against HEAD) must be the build number.
+changed_lines="$(git -C "$repository_root" diff --unified=0 HEAD -- Version.xcconfig \
+    | grep -E '^[-+]' | grep -vE '^(\+\+\+|---) ' || true)"
+if [[ -n "$changed_lines" ]] && ! printf '%s\n' "$changed_lines" | grep -qvE '^[-+]CURRENT_PROJECT_VERSION = [0-9]+$'; then
+    printf 'build-number\n'
+else
+    printf 'dirty\n'
+fi

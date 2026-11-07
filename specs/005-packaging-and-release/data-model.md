@@ -6,8 +6,8 @@ Files, not a database. Nothing here holds a credential, a personal path or an id
 
 | Field | Example | Rules |
 |---|---|---|
-| version | `0.1.0` | Semantic version; `MARKETING_VERSION` in `Version.xcconfig` at the tag; never reused (FR-003) |
-| build | `1` | `CURRENT_PROJECT_VERSION`; moves forward with every bump (`just release`) |
+| version | `0.1.0` | Semantic version; `MARKETING_VERSION` in `Version.xcconfig` at the tag; never reused (FR-003); moved to the next revision by the `record` stage (amended 2026-11-06) |
+| build | `1` | `CURRENT_PROJECT_VERSION`; moves forward with every `just build`, `just build-release` and `just release`, so no two builds share one (amended 2026-11-06) |
 | release commit | "Release 0.1.0 build 1" | HEAD at release time; holds the version bump and `docs/release-notes/<version>.md` |
 | tag | `v0.1.0` | Signed, annotated, on the release commit; HEAD at release time (FR-001, FR-004) |
 | commit | short hash | The tagged commit; the tree must be clean |

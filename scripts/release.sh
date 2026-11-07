@@ -5,8 +5,9 @@
 #
 #   check -> build -> notarize -> verify -> push -> draft -> publish -> cask -> reinstall -> record
 #
-# `just release <segment>` prepares a release first (bump, notes, "Release X build N" commit, signed tag), and
-# `just publish <stage>` runs these stages for the version in Version.xcconfig.
+# `just release` prepares a release of the version in Version.xcconfig first (new build number, notes,
+# "Release X build N" commit, signed tag), `just publish <stage>` runs these stages for it, and `record`
+# finally moves Version.xcconfig to the next revision.
 #
 # Nothing is published, pushed or changed in the tap unless that stage is run with --confirm. Credentials come
 # from the environment (DNM_SIGNING_IDENTITY, DNM_NOTARY_PROFILE) or the local, git-ignored Secrets.xcconfig
@@ -60,7 +61,7 @@ usage() {
     print_colored "$COLOR_YELLOW" "  publish   make the draft public (needs --confirm)"
     print_colored "$COLOR_YELLOW" "  cask      test the cask in a temporary local tap, write it into --tap DIR (needs --confirm); never pushes"
     print_colored "$COLOR_YELLOW" "  reinstall put the cask back on this Mac from the tap, once the tap serves this version (needs --confirm)"
-    print_colored "$COLOR_YELLOW" "  record    append the procedure log to the gate record"
+    print_colored "$COLOR_YELLOW" "  record    append the procedure log to the gate record and start the next revision"
     print_colored "$COLOR_YELLOW" "  --uninstall-first  with cask: uninstall the cask installed on this Mac for the test (reinstall restores it)"
     print_colored "$COLOR_YELLOW" "  --dry-run  with check or build: list every unmet gate, sign ad hoc if no identity is set, send nothing"
     print_colored "$COLOR_YELLOW" "Credentials: DNM_SIGNING_IDENTITY / DNM_NOTARY_PROFILE, or SIGNING_IDENTITY / NOTARY_PROFILE in the"
@@ -103,8 +104,8 @@ done
 
 tag="v${version}"
 build_number="$("${repository_root}/scripts/build-num")"
-# What a release build of this version prints for --version (the sibling project's form).
-release_display="${version} (${build_number})"
+# What a release build of this version prints for --version.
+release_display="${version} build ${build_number}"
 release_subject="Release ${version} build ${build_number}"
 notes_file="${repository_root}/docs/release-notes/${version}.md"
 artifact_directory="${repository_root}/build.noindex/release-artifacts/${version}"
@@ -671,7 +672,12 @@ stage_record() {
     [[ -s "$procedure_log" ]] || die "no procedure log yet for ${version}"
     cat "$procedure_log" >>"$gate_record"
     : >"$procedure_log"
-    print_colored "$COLOR_GREEN" "Appended the procedure log to ${gate_record#"${repository_root}"/}; review and commit it."
+    # The release is out: from here on, builds are of the next version. The build number stays; the next build
+    # moves it. `just bump <segment>` changes the version again if the next one is not a revision.
+    if [[ "$(source_version)" == "$version" ]]; then
+        "${repository_root}/scripts/bump-version.sh" revision
+    fi
+    print_colored "$COLOR_GREEN" "Appended the procedure log to ${gate_record#"${repository_root}"/} and started $(source_version) in Version.xcconfig; review and commit both."
 }
 
 # --- Main ------------------------------------------------------------------------------------------

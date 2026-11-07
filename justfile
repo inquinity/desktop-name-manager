@@ -9,18 +9,19 @@ scratch := "build.noindex"
 default:
     @just --list
 
-# Debug build of the library and dnm. Every build is stamped with its commit (see scripts/build-stamp.sh),
-# so `dnm --version` shows which commit you are running.
+# Debug build of the library and dnm. Every build moves the build number in Version.xcconfig forward and is
+# stamped with it and its commit (see scripts/build-stamp.sh), so `dnm --version` shows exactly what you run.
 build *args:
-    flags=(); while IFS= read -r flag; do flags+=("$flag"); done < <(scripts/build-stamp.sh); \
+    flags=(); while IFS= read -r flag; do flags+=("$flag"); done < <(scripts/build-stamp.sh --bump); \
     swift build --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}
 
-# Optimized build of dnm (build.noindex/release/dnm).
+# Optimized build of dnm (build.noindex/release/dnm), with a new build number like `just build`.
 build-release *args:
-    flags=(); while IFS= read -r flag; do flags+=("$flag"); done < <(scripts/build-stamp.sh); \
+    flags=(); while IFS= read -r flag; do flags+=("$flag"); done < <(scripts/build-stamp.sh --bump); \
     swift build -c release --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}
 
-# Unit and contract tests (they never change your real wallpaper).
+# Unit and contract tests (they never change your real wallpaper). They keep the build number: the release
+# check runs them on the tagged commit, which must stay clean.
 test *args:
     flags=(); while IFS= read -r flag; do flags+=("$flag"); done < <(scripts/build-stamp.sh); \
     swift test --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}
@@ -43,13 +44,22 @@ observe *args:
 version:
     @printf '%s build %s\n' "$(scripts/ver)" "$(scripts/build-num)"
 
-# Cut a release (seg: major|minor|revision, or current to keep the version): bump, compose the notes,
-# commit "Release <v> build <n>", make the signed tag, then check the gates. Pushes nothing.
-release seg: _require-clean _require-notes
+# Start the next version by hand (seg: major|minor|revision). The release procedure already moves to the next
+# revision after a release (`just publish record`); use this when the next version should be something else.
+bump seg:
+    scripts/bump-version.sh {{ seg }}
+
+# Cut a release of the version in Version.xcconfig: give it a new build number, compose the notes, commit
+# "Release <v> build <n>", make the signed tag, then check the gates. Pushes nothing.
+release: _require-clean _require-notes
     #!/usr/bin/env bash
     set -euo pipefail
-    scripts/bump-version.sh {{ seg }}
-    v="$(scripts/ver)"; n="$(scripts/build-num)"
+    v="$(scripts/ver)"
+    if git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
+        echo "v$v is already tagged: start the next version first (just bump <segment>)" >&2; exit 1
+    fi
+    scripts/bump-version.sh build
+    n="$(scripts/build-num)"
     notes="docs/release-notes/$v.md"
     scripts/compose-release-notes.sh --version "$v" > "$notes.tmp"
     mv "$notes.tmp" "$notes"
@@ -68,9 +78,10 @@ publish stage *args:
 _require-notes:
     @scripts/compose-release-notes.sh --check
 
-# (internal) fail unless the working tree is clean
+# (internal) fail unless the working tree is clean; a build number moved by `just build` is fine, since the
+# release commit takes Version.xcconfig anyway
 _require-clean:
-    @git diff --quiet && git diff --cached --quiet \
+    @[[ "$(scripts/tree-state)" != "dirty" ]] \
         || { echo "working tree is dirty -- commit or stash first" >&2; exit 1; }
 
 # Remove build output.

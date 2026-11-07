@@ -54,7 +54,7 @@ fi
 
 commit="$(git -C "$repository_root" rev-parse --short HEAD)"
 dirty=""
-if [[ -n "$(git -C "$repository_root" status --porcelain)" ]]; then
+if [[ "$("${repository_root}/scripts/tree-state")" == "dirty" ]]; then
     dirty=" (with uncommitted changes)"
 fi
 
@@ -65,12 +65,12 @@ if "$dry_run"; then
 fi
 
 print_colored "$COLOR_BRIGHTYELLOW" "Building a universal release of dnm (commit ${commit}${dirty})..."
-# Stamp the build with its commit, so `dnm --version` in the kit says what the testers are running.
+# Stamp the build with a new build number and its commit, so `dnm --version` in the kit says what the testers run.
 # One flag per line, so a checkout path with spaces stays one argument.
 stamp_flags=()
 while IFS= read -r stamp_flag; do
     stamp_flags+=("$stamp_flag")
-done < <("${repository_root}/scripts/build-stamp.sh")
+done < <("${repository_root}/scripts/build-stamp.sh" --bump)
 (cd "$repository_root" && swift build -c release --arch arm64 --arch x86_64 --product dnm --scratch-path "${repository_root}/build.noindex" \
     --force-resolved-versions "${stamp_flags[@]}")
 built_binary="${repository_root}/build.noindex/out/Products/Release/dnm"

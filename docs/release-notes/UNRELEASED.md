@@ -6,3 +6,4 @@
   `dnm undo` that puts them back. There is no rollback.
 - **`--desktop N`** labels Desktop N of each display in turn, each returning to where it was.
 - **Unchanged:** one display behaves exactly as before, and `show` still takes one display.
+- **Clearer `--version`.** A release prints `0.2.2 build 6`; a build from source prints `0.2.2 build 7 (<commit>)`.

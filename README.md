@@ -217,8 +217,8 @@ or undo is not possible); `2` invalid input; `3` unsupported wallpaper (dynamic,
 catalog, shuffle, or none reported). Nothing is changed when a command fails.
 
 `dnm --version` says which build you have: a release prints its version and build number (for example
-`0.1.0 (1)`); any other build adds the commit it was built from (for example `0.1.0 (1) 9398ae4`, with `+`
-if there were uncommitted changes). A build without a stamp says so.
+`0.2.2 build 6`); any other build adds the commit it was built from (for example `0.2.2 build 7 (9398ae4)`,
+with `+` if there were uncommitted changes). A build without a stamp says so.
 
 Good to know:
 - Labeling the Desktop on screen needs no macOS permissions; only `--desktop` needs Accessibility.
@@ -263,11 +263,12 @@ yet. `prototype/` holds the proof of concept that validated the approach, and
 ## Development
 
 ```sh
-just build        # build the library and the tool (output goes to build.noindex/, not .build/)
+just build        # build the library and the tool (output goes to build.noindex/, not .build/); adds one to the build number
 just test         # unit and contract tests (they never change your real wallpaper)
-just build-release  # optimized build: build.noindex/release/dnm (the version, build number and commit are stamped in)
-just version      # the version and build number from Version.xcconfig, e.g. "0.1.0 build 1"
-just release <s>  # cut a release: bump (major, minor, revision or current), notes, commit, signed tag
+just build-release  # optimized build: build.noindex/release/dnm (a new build number, the version and commit are stamped in)
+just version      # the version and build number from Version.xcconfig, e.g. "0.2.2 build 6"
+just bump <s>     # start a different next version (major, minor or revision); a release already moves to the next revision
+just release      # cut a release of the version in Version.xcconfig: new build number, notes, commit, signed tag
 just publish <stage> [--confirm]  # run a stage of scripts/release.sh for that version (see spec 005)
 just periphery    # unused-code scan (needs `brew install periphery`)
 just kit          # assemble the live-test kit to copy to another Mac
