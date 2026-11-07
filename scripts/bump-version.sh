@@ -40,6 +40,20 @@ case "$segment" in
     *) print_colored "$COLOR_RED" "bump-version: the segment must be major, minor, revision or build"; exit 2 ;;
 esac
 
+# One bump at a time: two builds started together must not both read N and write N + 1. mkdir is atomic.
+lock_directory="${PROJECT_ROOT}/build.noindex/version-bump.lock"
+mkdir -p "${PROJECT_ROOT}/build.noindex"
+lock_attempts=0
+until mkdir "$lock_directory" 2>/dev/null; do
+    lock_attempts=$((lock_attempts + 1))
+    if ((lock_attempts > 100)); then
+        print_colored "$COLOR_RED" "bump-version: ${lock_directory} has been held for 10 seconds; remove it if no build is running"
+        exit 1
+    fi
+    sleep 0.1
+done
+trap 'rmdir "$lock_directory" 2>/dev/null || true' EXIT
+
 current_version="$("${PROJECT_ROOT}/scripts/ver")"
 current_build="$("${PROJECT_ROOT}/scripts/build-num")"
 [[ "$current_build" =~ ^[0-9]+$ ]] \

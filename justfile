@@ -12,19 +12,21 @@ default:
 # Debug build of the library and dnm. Every build moves the build number in Version.xcconfig forward and is
 # stamped with it and its commit (see scripts/build-stamp.sh), so `dnm --version` shows exactly what you run.
 build *args:
-    flags=(); while IFS= read -r flag; do flags+=("$flag"); done < <(scripts/build-stamp.sh --bump); \
+    stamp="$(scripts/build-stamp.sh --bump)"; flags=(); while IFS= read -r flag; do flags+=("$flag"); done <<<"$stamp"; \
     swift build --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}
 
 # Optimized build of dnm (build.noindex/release/dnm), with a new build number like `just build`.
 build-release *args:
-    flags=(); while IFS= read -r flag; do flags+=("$flag"); done < <(scripts/build-stamp.sh --bump); \
+    stamp="$(scripts/build-stamp.sh --bump)"; flags=(); while IFS= read -r flag; do flags+=("$flag"); done <<<"$stamp"; \
     swift build -c release --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}
 
 # Unit and contract tests (they never change your real wallpaper). They keep the build number: the release
-# check runs them on the tagged commit, which must stay clean.
+# check runs them on the tagged commit, which must stay clean. The version-script tests run in a throwaway
+# repository afterwards.
 test *args:
-    flags=(); while IFS= read -r flag; do flags+=("$flag"); done < <(scripts/build-stamp.sh); \
-    swift test --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}
+    stamp="$(scripts/build-stamp.sh)"; flags=(); while IFS= read -r flag; do flags+=("$flag"); done <<<"$stamp"; \
+    swift test --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}; \
+    Tests/scripts/version-scripts-test.sh
 
 # Unused-code scan (needs `brew install periphery`).
 periphery:

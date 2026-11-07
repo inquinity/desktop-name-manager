@@ -103,7 +103,11 @@ done
 [[ " ${stages} " == *" ${stage} "* ]] || die "unknown stage \"${stage}\"; stages: ${stages}" 2
 
 tag="v${version}"
-build_number="$("${repository_root}/scripts/build-num")"
+# The release commit holds the build number. A `just build` after `just release` moves the one in the working
+# tree, so read it from HEAD; the build stage refuses such a tree outright.
+build_number="$(git -C "$repository_root" show HEAD:Version.xcconfig \
+    | awk -F' *= *' '$1 == "CURRENT_PROJECT_VERSION" { print $2; exit }')"
+[[ "$build_number" =~ ^[0-9]+$ ]] || die "no build number in Version.xcconfig at HEAD"
 # What a release build of this version prints for --version.
 release_display="${version} build ${build_number}"
 release_subject="Release ${version} build ${build_number}"
@@ -289,16 +293,21 @@ stage_build() {
     fi
 
     # A release stamp needs a clean tree; a dry run on a dirty tree builds an interim stamp instead.
+    if ! "$dry_run" && ! tree_is_clean; then
+        die "the working tree is not clean (a \`just build\` since \`just release\` moves the build number): run git checkout Version.xcconfig, or commit, and retry"
+    fi
     local stamp_option="--release" expected_version="$release_display"
     if "$dry_run" && ! tree_is_clean; then
         stamp_option=""
         expected_version=""
         print_colored "$COLOR_YELLOW" "Dirty tree: building with an interim stamp for the dry run."
     fi
-    local stamp_flags=() stamp_flag
+    # Captured first, so a refused stamp stops the stage with its own message.
+    local stamp_output stamp_flags=() stamp_flag
+    stamp_output="$(scripts/build-stamp.sh ${stamp_option:+"$stamp_option"})" || die "the build stamp was refused (see above)"
     while IFS= read -r stamp_flag; do
         stamp_flags+=("$stamp_flag")
-    done < <(scripts/build-stamp.sh ${stamp_option:+"$stamp_option"})
+    done <<<"$stamp_output"
 
     print_colored "$COLOR_BRIGHTYELLOW" "Building dnm ${version} for arm64..."
     local build_arguments=(-c release --arch arm64 --product dnm --scratch-path build.noindex --force-resolved-versions)
@@ -670,13 +679,14 @@ stage_reinstall() {
 
 stage_record() {
     [[ -s "$procedure_log" ]] || die "no procedure log yet for ${version}"
-    cat "$procedure_log" >>"$gate_record"
-    : >"$procedure_log"
     # The release is out: from here on, builds are of the next version. The build number stays; the next build
-    # moves it. `just bump <segment>` changes the version again if the next one is not a revision.
+    # moves it. `just bump <segment>` changes the version again if the next one is not a revision. Bumped first,
+    # so a failure leaves the log in place for a rerun. Stages run after this one name the next version.
     if [[ "$(source_version)" == "$version" ]]; then
         "${repository_root}/scripts/bump-version.sh" revision
     fi
+    cat "$procedure_log" >>"$gate_record"
+    : >"$procedure_log"
     print_colored "$COLOR_GREEN" "Appended the procedure log to ${gate_record#"${repository_root}"/} and started $(source_version) in Version.xcconfig; review and commit both."
 }
 
