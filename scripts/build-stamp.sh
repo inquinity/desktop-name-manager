@@ -70,15 +70,17 @@ if [[ "$kind" == "release" && "$tree_state" != "clean" ]]; then
     exit 1
 fi
 
+# The version and build number come from Version.xcconfig, the single source (as in the sibling project). A bump
+# reports the number it wrote: read back from the file, another build's bump in between could give both the same.
+version="$("${repository_root}/scripts/ver")"
 if "$bump"; then
-    "${repository_root}/scripts/bump-version.sh" build >&2
+    build="$("${repository_root}/scripts/bump-version.sh" build)"
+else
+    build="$("${repository_root}/scripts/build-num")"
 fi
 
 # The file name carries the stamp, so a different commit changes the link command and forces a relink.
 mkdir -p "$stamp_directory"
-# The version and build number come from Version.xcconfig, the single source (as in the sibling project).
-version="$("${repository_root}/scripts/ver")"
-build="$("${repository_root}/scripts/build-num")"
 stamp_file="${stamp_directory}/stamp-${version}-${build}-${commit}-${kind}-${dirty}.txt"
 printf 'version=%s\nbuild=%s\ncommit=%s\ndirty=%s\nkind=%s\n' "$version" "$build" "$commit" "$dirty" "$kind" >"$stamp_file"
 

@@ -41,12 +41,14 @@ three or more words are an error) are unchanged; only the "two different display
 
 In this order, each failure ending the command with nothing changed and the message a single command gives:
 
-1. the label and label options (`set`);
+1. the label options (`set`);
 2. every display resolved (§2);
-3. for `undo`, every display has a change it can undo now (`Cannot undo: ...`, exit 1);
-4. with `--desktop`, the Accessibility permission (exit 1, as today).
+3. the label itself (`set`). The order is 0.2.1's, so a single command reports the same error first (amended
+   2026-11-09 after the 0.2.2 code review, which found the label listed before the displays);
+4. for `undo`, every display has a change it can undo now (`Cannot undo: ...`, exit 1);
+5. with `--desktop`, the Accessibility permission (exit 1, as today).
 
-With `--desktop`, item 3 checks each display's undo record and window only; the checks that need Desktop N on
+With `--desktop`, item 4 checks each display's undo record and window only; the checks that need Desktop N on
 screen (it exists; for `undo`, it still shows what the change produced) are made when that display is reached, and a
 failure there is a part-way failure (§4). Research R4.
 
@@ -59,13 +61,16 @@ failure there is a part-way failure (§4). Research R4.
 - The cleanup reminder (spec 009) is considered once, after the last display (`set` and `remove` only).
 - Exit 0 when every display succeeded.
 - A failure on the first display: the message and exit status of a single command; nothing changed.
+- A failure on a later display when nothing was changed before it (`remove` found no label): that error's exit
+  status and message, prefixed `On <display>: ` as below, with no "Changed" sentence (amended 2026-11-09).
 - A failure on a later display, or on any display after its own change was made (with `--desktop`, a step back that
   macOS did not confirm, or a Desktop switch while dnm worked): that error's exit status, and its message (prefixed
   `On <display>: ` when it does not name the display as a whole word; "Nothing was changed." becomes "Nothing was changed on <display>.") followed by
   `Changed before this: <names>. To put them back within 60 seconds: dnm undo <displays>.` ("it" for one display;
   `Changed: <names>.` when the failing display was changed too, and it is then in the command), the displays by the
   words that named them (by display name where a word has a control or bidirectional character), quoted for a POSIX
-  shell, with `--desktop N` when it was given. Displays
+  shell, with `--desktop N` when it was given. A "run `dnm undo` if needed" in the error becomes "run the undo below if
+needed", since a bare `dnm undo` means main (amended 2026-11-09). Displays
   after it are not attempted. A display that `remove` found without a label is not named. `undo` names the displays
   it changed and suggests no command: an undo cannot be undone.
 

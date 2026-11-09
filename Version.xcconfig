@@ -2,8 +2,9 @@
 // MARKETING_VERSION is the version being worked on: the release procedure moves it to the next revision right
 // after a release (`just publish record`), and `just bump <major|minor|revision>` moves it by hand.
 // CURRENT_PROJECT_VERSION is the build number: every `just build`, `just build-release` and `just release` adds
-// one, so no two builds share a number. The command-line build stamps both into the binary
-// (scripts/build-stamp.sh); the app (M2) will read this file directly.
+// one, so no two builds from this checkout share a number while the change is kept (commit it with the work;
+// resetting the file, a fresh clone or another worktree starts again from the committed number). The command-line
+// build stamps both into the binary (scripts/build-stamp.sh); the app (M2) will read this file directly.
 
 // Local settings that are never committed (signing identity, notary profile): see Secrets.xcconfig.
 #include? "Secrets.xcconfig"

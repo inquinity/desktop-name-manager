@@ -96,6 +96,34 @@ import Testing
         }
     }
 
+    @Test func aLaterDisplayFailingWithNothingChangedIsNamed() {
+        do {
+            try DisplayBatch.run(targets([main, dp], ["main", "DP"]), undoArguments: []) { display, changed in
+                if display.uuid == "B" { throw DnmError.failure("The store could not be read.") }
+                // main had no label to remove: nothing changed
+            }
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect(error.exitCode == 1)
+            #expect(message(error) == "On DP: The store could not be read.")
+        } catch { Issue.record("wrong error: \(error)") }
+    }
+
+    @Test func aDesktopSwitchPointsAtTheUndoBelowNotABareUndo() {
+        do {
+            try DisplayBatch.run(targets([main, dp], ["main", "DP"]), undoArguments: ["--desktop", "2"]) { display, changed in
+                changed()
+                if display.uuid == "B" {
+                    throw DnmError.failure("The Desktop on DP changed while dnm was working on Desktop 2, so the change may have gone to another Desktop. Check with `dnm show`, and run `dnm undo` if needed. dnm did not switch back.")
+                }
+            }
+            Issue.record("expected an error")
+        } catch {
+            #expect(!message(error).contains("run `dnm undo` if needed"), "\(message(error))")
+            #expect(message(error).hasSuffix("run the undo below if needed. dnm did not switch back. Changed: Built-in Display, DP. To put them back within 60 seconds: dnm undo main DP --desktop 2."), "\(message(error))")
+        }
+    }
+
     @Test func undoSuggestsNoUndo() {
         do {
             try DisplayBatch.run(targets([main, dp], ["main", "DP"]), undoArguments: nil) { display, changed in

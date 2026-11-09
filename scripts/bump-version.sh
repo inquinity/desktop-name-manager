@@ -5,9 +5,11 @@
 #                         below it. The build number is left alone. The release procedure does this right after
 #                         a release (`just publish record`), so the file always names the version being worked on;
 #                         `just bump <segment>` does it by hand.
-#   build                 add one to CURRENT_PROJECT_VERSION, the build number. Every `just build` and
-#                         `just build-release` does this (scripts/build-stamp.sh --bump), and so does `just release`,
-#                         so no two builds share a number.
+#   build                 add one to CURRENT_PROJECT_VERSION, the build number, and print the new number (alone,
+#                         on standard output; the message goes to standard error). Every `just build` and
+#                         `just build-release` does this (scripts/build-stamp.sh --bump), and so does `just release`.
+#                         Callers use the printed number rather than reading the file again, so two builds started
+#                         together still get different numbers.
 #
 # Usage: scripts/bump-version.sh <major|minor|revision|build>
 
@@ -23,11 +25,12 @@ COLOR_BLUE="\e[34m"          # Available for general use; does not show on scree
 COLOR_BRIGHTYELLOW="\e[93m"  # Used for highlighting important actions and status
 COLOR_RESET="\e[0m"          # Used to reset color formatting
 
-# Function to print colored output
+# Function to print colored output (to standard error: `build` prints only the new number on standard output,
+# which callers capture, so every message must stay visible on the terminal)
 print_colored() {
     local color=$1
     local message=$2
-    printf "%b%s%b\n" "$color" "$message" "$COLOR_RESET"
+    printf "%b%s%b\n" "$color" "$message" "$COLOR_RESET" >&2
 }
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -62,6 +65,7 @@ if [[ "$segment" == "build" ]]; then
     new_build=$((current_build + 1))
     sed -i '' -E "s/^CURRENT_PROJECT_VERSION = .*/CURRENT_PROJECT_VERSION = ${new_build}/" "$VERSION_CONFIG"
     print_colored "$COLOR_GREEN" "Build ${current_build} -> ${new_build} (${current_version})."
+    printf '%s\n' "$new_build"
     exit 0
 fi
 
