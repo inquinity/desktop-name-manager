@@ -75,9 +75,10 @@ Ideas recorded for later. None is part of a current spec.
     after `set`, which has no visible cause. So the scan is not made the default; the description before the
     question says plainly that a Desktop not currently on screen might still show one of these images, and
     `--scan` is offered as the exact way.
-- **Batch labeling** (2026-10-06; roadmap F3, 0.2.2). Label several Desktops in one command (for example from a list of
-  display, Desktop and label), so the walk to find each display's position happens once instead of once
-  per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
+- **Batch labeling** (2026-10-06; roadmap F3 and F11). Several displays in one command was released in
+  0.2.2 (F3, spec 010); several Desktops of one display (F11) has no release yet. Label several Desktops
+  in one command (for example from a list of display, Desktop and label), so the walk to find each
+  display's position happens once instead of once per command (see `docs/research/timings.md`). How people will mostly use the tool (the app, one-off CLI
   commands or scripts) is not known yet, and should set this item's priority.
 
   Several displays in one command (2026-10-09, raised while specifying F8): `dnm set "x" --display DP1 --display main`.
