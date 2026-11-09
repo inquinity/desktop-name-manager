@@ -2,7 +2,8 @@
 
 ```text
 scripts/release.sh <version> <stage> [--dry-run] [--confirm] [--tap DIR] [--help]
-just release <major|minor|revision|current>   # before the stages: bump, notes, "Release X build N", signed tag
+just release                                  # before the stages: new build number, notes, "Release X build N", signed tag
+just bump <major|minor|revision>              # start a next version other than the next revision
 just publish <stage> [--confirm] ...          # a stage for the version in Version.xcconfig
 ```
 
@@ -21,7 +22,7 @@ stage's output in `build.noindex/release-artifacts/<version>/`.
 | `publish` | Turns the draft public. | **yes**. Needs `--confirm` |
 | `cask` | Renders the cask into the local tap clone given by `--tap`, runs `brew audit --cask --strict --online` and a local-tap install, run and uninstall test, then prints the `git` commands to commit and push the tap. Never pushes. | no (prints the push). Needs `--confirm` |
 | `reinstall` | After `cask --uninstall-first` removed the cask from this Mac and the tap has been pushed: wait until the tap serves the version, install or upgrade only if the installed version differs, and check that `dnm --version` and `desktop-name --version` equal the release and every completion file is in place. | **yes**, with `--confirm` (installs software on this Mac) |
-| `record` | Appends the procedure log (kept in the build folder so the tree stays clean during the release) to the gate record, for the maintainer to review and commit. | no |
+| `record` | Moves `Version.xcconfig` to the next revision (the build number stays), then appends the procedure log (kept in the build folder so the tree stays clean during the release) to the gate record; the maintainer reviews and commits both. Stages run after it name the next version. | no |
 
 ## Options
 

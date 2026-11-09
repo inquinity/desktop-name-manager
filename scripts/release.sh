@@ -5,8 +5,9 @@
 #
 #   check -> build -> notarize -> verify -> push -> draft -> publish -> cask -> reinstall -> record
 #
-# `just release <segment>` prepares a release first (bump, notes, "Release X build N" commit, signed tag), and
-# `just publish <stage>` runs these stages for the version in Version.xcconfig.
+# `just release` prepares a release of the version in Version.xcconfig first (new build number, notes,
+# "Release X build N" commit, signed tag), `just publish <stage>` runs these stages for it, and `record`
+# finally moves Version.xcconfig to the next revision.
 #
 # Nothing is published, pushed or changed in the tap unless that stage is run with --confirm. Credentials come
 # from the environment (DNM_SIGNING_IDENTITY, DNM_NOTARY_PROFILE) or the local, git-ignored Secrets.xcconfig
@@ -60,7 +61,7 @@ usage() {
     print_colored "$COLOR_YELLOW" "  publish   make the draft public (needs --confirm)"
     print_colored "$COLOR_YELLOW" "  cask      test the cask in a temporary local tap, write it into --tap DIR (needs --confirm); never pushes"
     print_colored "$COLOR_YELLOW" "  reinstall put the cask back on this Mac from the tap, once the tap serves this version (needs --confirm)"
-    print_colored "$COLOR_YELLOW" "  record    append the procedure log to the gate record"
+    print_colored "$COLOR_YELLOW" "  record    append the procedure log to the gate record and start the next revision"
     print_colored "$COLOR_YELLOW" "  --uninstall-first  with cask: uninstall the cask installed on this Mac for the test (reinstall restores it)"
     print_colored "$COLOR_YELLOW" "  --dry-run  with check or build: list every unmet gate, sign ad hoc if no identity is set, send nothing"
     print_colored "$COLOR_YELLOW" "Credentials: DNM_SIGNING_IDENTITY / DNM_NOTARY_PROFILE, or SIGNING_IDENTITY / NOTARY_PROFILE in the"
@@ -102,9 +103,13 @@ done
 [[ " ${stages} " == *" ${stage} "* ]] || die "unknown stage \"${stage}\"; stages: ${stages}" 2
 
 tag="v${version}"
-build_number="$("${repository_root}/scripts/build-num")"
-# What a release build of this version prints for --version (the sibling project's form).
-release_display="${version} (${build_number})"
+# The release commit holds the build number. A `just build` after `just release` moves the one in the working
+# tree, so read it from HEAD; the build stage refuses such a tree outright.
+build_number="$(git -C "$repository_root" show HEAD:Version.xcconfig \
+    | awk -F' *= *' '$1 == "CURRENT_PROJECT_VERSION" { print $2; exit }')"
+[[ "$build_number" =~ ^[0-9]+$ ]] || die "no build number in Version.xcconfig at HEAD"
+# What a release build of this version prints for --version.
+release_display="${version} build ${build_number}"
 release_subject="Release ${version} build ${build_number}"
 notes_file="${repository_root}/docs/release-notes/${version}.md"
 artifact_directory="${repository_root}/build.noindex/release-artifacts/${version}"
@@ -288,16 +293,21 @@ stage_build() {
     fi
 
     # A release stamp needs a clean tree; a dry run on a dirty tree builds an interim stamp instead.
+    if ! "$dry_run" && ! tree_is_clean; then
+        die "the working tree is not clean (a \`just build\` since \`just release\` moves the build number): run git checkout Version.xcconfig, or commit, and retry"
+    fi
     local stamp_option="--release" expected_version="$release_display"
     if "$dry_run" && ! tree_is_clean; then
         stamp_option=""
         expected_version=""
         print_colored "$COLOR_YELLOW" "Dirty tree: building with an interim stamp for the dry run."
     fi
-    local stamp_flags=() stamp_flag
+    # Captured first, so a refused stamp stops the stage with its own message.
+    local stamp_output stamp_flags=() stamp_flag
+    stamp_output="$(scripts/build-stamp.sh ${stamp_option:+"$stamp_option"})" || die "the build stamp was refused (see above)"
     while IFS= read -r stamp_flag; do
         stamp_flags+=("$stamp_flag")
-    done < <(scripts/build-stamp.sh ${stamp_option:+"$stamp_option"})
+    done <<<"$stamp_output"
 
     print_colored "$COLOR_BRIGHTYELLOW" "Building dnm ${version} for arm64..."
     local build_arguments=(-c release --arch arm64 --product dnm --scratch-path build.noindex --force-resolved-versions)
@@ -669,9 +679,15 @@ stage_reinstall() {
 
 stage_record() {
     [[ -s "$procedure_log" ]] || die "no procedure log yet for ${version}"
+    # The release is out: from here on, builds are of the next version. The build number stays; the next build
+    # moves it. `just bump <segment>` changes the version again if the next one is not a revision. Bumped first,
+    # so a failure leaves the log in place for a rerun. Stages run after this one name the next version.
+    if [[ "$(source_version)" == "$version" ]]; then
+        "${repository_root}/scripts/bump-version.sh" revision
+    fi
     cat "$procedure_log" >>"$gate_record"
     : >"$procedure_log"
-    print_colored "$COLOR_GREEN" "Appended the procedure log to ${gate_record#"${repository_root}"/}; review and commit it."
+    print_colored "$COLOR_GREEN" "Appended the procedure log to ${gate_record#"${repository_root}"/} and started $(source_version) in Version.xcconfig; review and commit both."
 }
 
 # --- Main ------------------------------------------------------------------------------------------

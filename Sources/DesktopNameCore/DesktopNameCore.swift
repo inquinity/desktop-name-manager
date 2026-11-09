@@ -6,16 +6,16 @@ public enum DesktopNameCoreInfo {
     /// The version (`MARKETING_VERSION` in Version.xcconfig), as stamped into this binary; "unknown" without a stamp.
     public static var version: String { BuildStamp.read()?.version ?? "unknown" }
 
-    /// What `dnm --version` prints, in the sibling project's form: `0.1.0 (1)` for a release (version and build
-    /// number), `0.1.0 (1) 9398ae4` for any other build (with the commit it was built from, and `+` if the tree
+    /// What `dnm --version` prints: `0.2.2 build 6` for a release (version and build number), and
+    /// `0.2.2 build 6 (9398ae4)` for any other build (with the commit it was built from, and `+` if the tree
     /// had uncommitted changes), so a tester can see exactly what they run. A build without a stamp says so.
     public static var displayVersion: String { displayVersion(stamp: BuildStamp.read()) }
 
     static func displayVersion(stamp: BuildStamp?) -> String {
         guard let stamp else { return "unknown version (built without a build stamp)" }
-        let release = "\(stamp.version) (\(stamp.build))"
+        let release = "\(stamp.version) build \(stamp.build)"
         if stamp.isRelease { return release }
-        return "\(release) \(stamp.commit)\(stamp.dirty ? "+" : "")"
+        return "\(release) (\(stamp.commit)\(stamp.dirty ? "+" : ""))"
     }
 }
 

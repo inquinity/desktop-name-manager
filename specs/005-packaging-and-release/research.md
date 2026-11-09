@@ -21,7 +21,7 @@ command-line tool and for this repository's rule that no credential name is ever
   release build stamp (`scripts/build-stamp.sh --release`, which refuses a dirty tree), into
   `build.noindex/`. The version and build number come from `Version.xcconfig` (read by `scripts/ver` and
   `scripts/build-num`, stamped into the binary), the single source (FR-003); the procedure checks that the
-  built `dnm --version` prints exactly `<version> (<build>)`.
+  built `dnm --version` prints exactly `<version> build <build>` (`<version> (<build>)` until 2026-11-06).
 - **Why:** the same toolchain and pinned dependency as the tested builds (security plan S5).
 - **Considered:** a universal build (built and tested, but Intel is out of scope for 0.1.0).
 

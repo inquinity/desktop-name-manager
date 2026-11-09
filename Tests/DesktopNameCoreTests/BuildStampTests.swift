@@ -17,14 +17,14 @@ import Testing
 
     @Test func aReleaseBuildShowsVersionAndBuildNumber() {
         let release = BuildStamp(version: "0.1.0", build: "1", commit: "9398ae4", dirty: false, isRelease: true)
-        #expect(DesktopNameCoreInfo.displayVersion(stamp: release) == "0.1.0 (1)")
+        #expect(DesktopNameCoreInfo.displayVersion(stamp: release) == "0.1.0 build 1")
     }
 
     @Test func otherBuildsAlsoShowTheCommit() {
         let clean = BuildStamp(version: "0.1.0", build: "1", commit: "9398ae4", dirty: false, isRelease: false)
         let dirty = BuildStamp(version: "0.1.0", build: "1", commit: "9398ae4", dirty: true, isRelease: false)
-        #expect(DesktopNameCoreInfo.displayVersion(stamp: clean) == "0.1.0 (1) 9398ae4")
-        #expect(DesktopNameCoreInfo.displayVersion(stamp: dirty) == "0.1.0 (1) 9398ae4+")
+        #expect(DesktopNameCoreInfo.displayVersion(stamp: clean) == "0.1.0 build 1 (9398ae4)")
+        #expect(DesktopNameCoreInfo.displayVersion(stamp: dirty) == "0.1.0 build 1 (9398ae4+)")
     }
 
     @Test func aBuildWithoutAStampSaysSoInsteadOfLookingLikeARelease() {
