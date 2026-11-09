@@ -117,6 +117,7 @@ import Testing
                     throw DnmError.failure("The Desktop on DP changed while dnm was working on Desktop 2, so the change may have gone to another Desktop. Check with `dnm show`, and run `dnm undo` if needed. dnm did not switch back.")
                 }
             }
+            Issue.record("expected an error")
         } catch {
             #expect(!message(error).contains("run `dnm undo` if needed"), "\(message(error))")
             #expect(message(error).hasSuffix("run the undo below if needed. dnm did not switch back. Changed: Built-in Display, DP. To put them back within 60 seconds: dnm undo main DP --desktop 2."), "\(message(error))")

@@ -681,7 +681,7 @@ stage_reinstall() {
 }
 
 stage_record() {
-    [[ -s "$procedure_log" ]] || die "no procedure log yet for ${version} (after a record stage that stopped part-way, run: scripts/release.sh ${version} record)"
+    [[ -s "$procedure_log" ]] || die "no procedure log for ${version}: no stage has run since the last record"
     # Safe to run again after a failure part-way: the log is appended only once, and the version moves only once.
     local last_logged
     last_logged="$(tail -n 1 "$procedure_log")"

@@ -25,11 +25,12 @@ COLOR_BLUE="\e[34m"          # Available for general use; does not show on scree
 COLOR_BRIGHTYELLOW="\e[93m"  # Used for highlighting important actions and status
 COLOR_RESET="\e[0m"          # Used to reset color formatting
 
-# Function to print colored output
+# Function to print colored output (to standard error: `build` prints only the new number on standard output,
+# which callers capture, so every message must stay visible on the terminal)
 print_colored() {
     local color=$1
     local message=$2
-    printf "%b%s%b\n" "$color" "$message" "$COLOR_RESET"
+    printf "%b%s%b\n" "$color" "$message" "$COLOR_RESET" >&2
 }
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -63,7 +64,7 @@ current_build="$("${PROJECT_ROOT}/scripts/build-num")"
 if [[ "$segment" == "build" ]]; then
     new_build=$((current_build + 1))
     sed -i '' -E "s/^CURRENT_PROJECT_VERSION = .*/CURRENT_PROJECT_VERSION = ${new_build}/" "$VERSION_CONFIG"
-    print_colored "$COLOR_GREEN" "Build ${current_build} -> ${new_build} (${current_version})." >&2
+    print_colored "$COLOR_GREEN" "Build ${current_build} -> ${new_build} (${current_version})."
     printf '%s\n' "$new_build"
     exit 0
 fi

@@ -31,7 +31,8 @@ fi
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 scratch_repository="$(mktemp -d)"
-trap 'rm -rf "$scratch_repository"' EXIT
+printed_directory="$(mktemp -d)"
+trap 'rm -rf "$scratch_repository" "$printed_directory"' EXIT
 failures=0
 
 # git in the scratch repository only, with no signing and a neutral identity.
@@ -125,7 +126,6 @@ expect_equal "minor resets the revision" "0.3.0 6" "$("${scratch_repository}/scr
 expect_equal "major resets minor and revision" "1.0.0 6" "$("${scratch_repository}/scripts/ver") $("${scratch_repository}/scripts/build-num")"
 reset_tree
 
-printed_directory="$(mktemp -d)"
 for build_index in 1 2 3 4 5 6 7 8; do
     "${scratch_repository}/scripts/bump-version.sh" build >"${printed_directory}/${build_index}" 2>/dev/null &
 done
@@ -133,7 +133,6 @@ wait
 expect_equal "eight bumps at once end at 13" "13" "$("${scratch_repository}/scripts/build-num")"
 expect_equal "eight bumps at once each print a different number, 6 to 13" "6 7 8 9 10 11 12 13" \
     "$(cat "${printed_directory}"/* | sort -n | tr '\n' ' ' | sed 's/ $//')"
-rm -rf "$printed_directory"
 reset_tree
 
 bump_status=0
