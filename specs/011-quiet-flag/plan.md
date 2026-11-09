@@ -24,7 +24,8 @@ parser (R4). No stored data, dependency, interface or permission changes.
 parsing at both positions), binary tests through `CLI.run` (standard output identical with and without quiet mode,
 errors identical, help text, generated completion scripts), the live script `Tests/live/live-syntax.sh`
 
-**Target Platform**: macOS 26 or later, Apple silicon (unchanged)
+**Target Platform**: macOS 26 or later, Apple silicon (minimum unchanged: the feature uses only the argument parser
+and standard error, nothing newer than macOS 26)
 
 **Project Type**: CLI over a shared core library (the app, M2, later)
 

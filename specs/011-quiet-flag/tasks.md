@@ -15,16 +15,16 @@ target changes; `DesktopNameCore` is untouched.
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm the baseline on `main`: `just build`, `just test` and `just periphery` pass before any change, and quote `dnm --version`
+- [ ] T001 Confirm the baseline on `main`: `just build`, `just test` and `just periphery` pass before any change, and quote `dnm --version`; then run `just bump minor` so `Version.xcconfig` reads 0.3.0 (F7 lands before F9, which shares the release), and commit it with the first change
 
 ## Phase 2: Foundational (blocks every story)
 
 - [ ] T002 Create `Sources/dnm/GlobalOptions.swift`: `struct GlobalOptions: ParsableArguments` with `@Flag(name: .shortAndLong, help: "Hide warnings and notes; results and errors are always shown. DNM_QUIET=1 does the same.") var quiet = false`, and a protocol `HasGlobalOptions { var global: GlobalOptions { get } }` (research R1, contracts/cli.md §1)
-- [ ] T003 In `Sources/dnm/Output.swift`, add the quiet setting (`nonisolated(unsafe) static var quiet = false`, documented as written once in `Dnm.main` before the command runs), `warning(_:)` printing `dnm: warning: <text>` and `note(_:)` printing `<text>` (callers pass the full `dnm: note: ...` line) to standard error unless quiet; `err` stays for errors and is never gated (research R2, data-model.md "Kinds of standard-error text")
+- [ ] T003 In `Sources/dnm/Output.swift`, add the quiet setting (`nonisolated(unsafe) static var quiet = false`, documented as written once in `Dnm.main` before the command runs), `warning(_:)` printing `dnm: warning: <text>` and `note(_:)` printing `dnm: note: <text>` to standard error unless quiet (both add their own prefix, research R2), through a pure `static func shouldPrint(_ kind: Kind, quiet: Bool) -> Bool` (`Kind`: `.warning`, `.note`); `err` stays for errors and is never gated (research R2, data-model.md "Kinds of standard-error text")
 - [ ] T004 In `Sources/dnm/Dnm.swift`, add `@OptionGroup var global: GlobalOptions` to `Dnm` and conform it to `HasGlobalOptions`; in `main()`, after `parseAsRoot()` and before `run()`, set `Output.quiet` from the parsed command's `global.quiet` when it conforms to `HasGlobalOptions` (research R1, R2)
 - [ ] T005 Add `@OptionGroup var global: GlobalOptions` and `HasGlobalOptions` to all 11 subcommands in `Sources/dnm/Commands/` (`Set`, `Remove`, `Undo`, `Show`, `List`, `Displays`, `Alias`, `Cleanup`, `Prune`, `About`, `Check`); `prune` still fails with its message naming `cleanup` (contracts/cli.md §1)
 - [ ] T006 [P] Create `Tests/dnmTests/QuietModeTests.swift` with in-process parse tests (`Dnm.parseAsRoot`): `-q set x`, `set -q x`, `set x -q`, `-q set -q x`, `--quiet show`, and every subcommand with `-q` parse with `global.quiet == true`; without it, `false`; a label or `--label` value that is literally `-q` after `--` stays a label (FR-001)
-- [ ] T007 [P] In `Tests/dnmTests/QuietModeTests.swift`, test the gate: with the mode off, `warning` and `note` write; with it on, they write nothing, and `err` still writes (route through a writer that tests can capture, or test the decision function that `Output` uses, without flipping the process-wide setting in parallel tests) (FR-003, FR-004)
+- [ ] T007 [P] In `Tests/dnmTests/QuietModeTests.swift`, a table test of `Output.shouldPrint(_:quiet:)`: both kinds print with quiet off and do not with quiet on; the test never sets `Output.quiet` (it is process-wide and tests run in parallel); that `err` is never gated is covered by T010 and the binary tests (FR-003, FR-004)
 
 **Checkpoint**: `just test` passes; every command accepts `-q` before or after its name; nothing is held back yet.
 
@@ -61,8 +61,8 @@ target changes; `DesktopNameCore` is untouched.
 
 **Independent test**: `Nudge.line` with quiet on returns nothing and never asks the store.
 
-- [ ] T017 [US3] In `Sources/dnm/Nudge.swift`, change `line(standardErrorIsTerminal:due:)` to `line(standardErrorIsTerminal:quiet:due:)`: when `quiet` is true, return `nil` without calling `due()`, exactly as without a terminal; `showIfDue` passes `Output.quiet` and prints with `Output.note` (FR-006, research R3, clarification Q2)
-- [ ] T018 [P] [US3] In `Tests/dnmTests/NudgeDecisionTests.swift`, update the existing tests to the new signature and add: quiet on a terminal with a reminder due prints nothing and does not ask the store (`asked == false`); quiet off still prints the line (SC-005)
+- [ ] T017 [US3] In `Sources/dnm/Nudge.swift`, change `line(standardErrorIsTerminal:due:)` to `line(standardErrorIsTerminal:quiet:due:)`: when `quiet` is true, return `nil` without calling `due()`, exactly as without a terminal; the line it returns no longer starts with `dnm: note: ` (now added by `Output.note`), and `showIfDue` passes `Output.quiet` and prints with `Output.note`, so the text on screen is unchanged (FR-006, research R3, clarification Q2)
+- [ ] T018 [P] [US3] In `Tests/dnmTests/NudgeDecisionTests.swift`, update the existing tests to the new signature and to the line without its `dnm: note: ` prefix, and add: quiet on a terminal with a reminder due prints nothing and does not ask the store (`asked == false`); quiet off still prints the line (SC-005)
 
 **Checkpoint**: User Stories 1 to 3 work.
 
@@ -82,9 +82,10 @@ target changes; `DesktopNameCore` is untouched.
 - [ ] T021 [P] `README.md`: quiet mode (`-q` / `--quiet` before or after the command name, `DNM_QUIET=1`), what it hides (warnings and notes, including the cleanup reminder) and that results and errors always show; the overridden-alias example (FR-010)
 - [ ] T022 [P] `docs/release-notes/UNRELEASED.md` (bullets only): quiet mode and `DNM_QUIET=1`
 - [ ] T023 [P] Amend `specs/001-labels-and-cli/contracts/cli.md` (the streams rule, as in `specs/011-quiet-flag/contracts/cli.md` §5; the short-options rule: `-q` decided by spec 011), `specs/006-display-aliases/spec.md` FR-012 ("unless quiet mode is on, spec 011"), and `specs/009-stamp-reuse-and-cleanup/spec.md` (the nudge Q&A: not in quiet mode, and a quiet run does not count) (FR-011)
-- [ ] T024 `Tests/live/live-syntax.sh` (with the shell-script-expert skill, small changes only): seed the private store with an overridden alias for the main display (as T011); `set`, `remove` and `undo` on it print the warning without quiet mode and an empty standard error with `-q`, `dnm -q ...` and `DNM_QUIET=1`; labels applied and removed as without quiet mode; every wallpaper restored with `dnm remove`
+- [ ] T024 `Tests/live/live-syntax.sh` (with the shell-script-expert skill, small changes only): seed the private store with an overridden alias for the main display (as T011); `set`, `remove` and `undo` on it print the warning without quiet mode and an empty standard error with `-q`, `dnm -q ...` and `DNM_QUIET=1`; labels applied and removed as without quiet mode, with `dnm list` and `dnm show` reporting the same state after a quiet run as after one without (this is the check of FR-005 for commands that change wallpapers, which the automated tests cannot run); every wallpaper restored with `dnm remove`
 - [ ] T025 `just test` and `just periphery` pass (a native build first, so periphery reads a fresh index); `CommandsStayThinTests` still passes; scan the diff for personal paths, names and UUIDs (the made-up all-zero UUID only)
-- [ ] T026 Quickstart by-hand scenarios 1 to 10 (no wallpaper change; scenario 10 is Tab completion in bash and zsh at the keyboard) and a live run of `Tests/live/live-syntax.sh` on the maintainer's Mac under the live-test rules (back up `Index.plist`, private `DNM_STORE_DIR`, restore with `dnm remove`), quoting `dnm --version`; record the results in this file
+- [ ] T026 Independent review before merge (constitution VII): a code review and a security review, each by a separate agent with fresh context given only the branch's diff against `main`; findings fixed (with a fresh re-review of the fixes) or accepted by the maintainer, and recorded in this file
+- [ ] T027 Quickstart by-hand scenarios 1 to 10 (no wallpaper change; scenario 10 is Tab completion in bash and zsh at the keyboard) and a live run of `Tests/live/live-syntax.sh` on the maintainer's Mac under the live-test rules (back up `Index.plist`, private `DNM_STORE_DIR`, restore with `dnm remove`), quoting `dnm --version`; record the results in this file
 
 ## Dependencies
 
@@ -92,7 +93,7 @@ target changes; `DesktopNameCore` is untouched.
 - Phase 2 before every story. US1 (Phase 3) first: T008 and T009 before T011; T011 before T016.
 - US2 (Phase 4) and US3 (Phase 5) are independent of each other and need only Phase 2 (T016 also needs T011).
 - US4 (Phase 6) needs only Phase 2 (T002 holds the help text).
-- Phase 7 after the stories it describes; T026 last.
+- Phase 7 after the stories it describes; T026 (review) after T025; T027 last, after the review's fixes.
 
 ## Parallel examples
 
@@ -107,4 +108,4 @@ target changes; `DesktopNameCore` is untouched.
 1. **MVP**: Phases 1-3. `-q` hides the override warning and changes nothing else; it is useful on its own.
 2. Add US2 (`DNM_QUIET`) and US3 (the reminder), then US4's help and completion checks.
 3. Polish: docs, spec amendments, the live script and the live run.
-4. Version: F7 ships in 0.3.0 with F9; whichever lands first runs `just bump minor` (research R6).
+4. Version: F7 ships in 0.3.0 with F9 and is built first, so T001 runs `just bump minor` (research R6).

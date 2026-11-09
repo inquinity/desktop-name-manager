@@ -45,7 +45,9 @@ Afterwards: remove the throwaway store.
 ## Live (changes the wallpaper)
 
 Follow the live-test rules in `CLAUDE.md`: back up `Index.plist`, use a throwaway `DNM_STORE_DIR`, and remove the
-labels with `dnm remove` afterwards. `Tests/live/live-syntax.sh` runs scenarios 1 to 8 for `set`, `remove` and
+labels with `dnm remove` afterwards, restoring `Index.plist` only if that leaves something wrong. (Constitution VII
+says to restore it afterwards; `CLAUDE.md`'s narrower rule is the project's practice since spec 001. Accepted
+2026-11-09; reconciling the two is a separate constitution change.) `Tests/live/live-syntax.sh` runs scenarios 1 to 8 for `set`, `remove` and
 `undo` with the overridden alias: the label is applied and removed as without quiet mode, and standard error is
 empty in quiet mode.
 

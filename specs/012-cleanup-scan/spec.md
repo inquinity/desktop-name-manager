@@ -122,10 +122,11 @@ As a user who scripts `dnm`, I want the scan to behave predictably without a ter
 
 **Acceptance Scenarios**:
 
-1. **Given** no terminal and no `--yes`, **Then** `dnm cleanup --scan` describes what it would do, does not switch,
-   deletes nothing, says to add `--yes`, and exits 0.
-2. **Given** `--json` and no `--yes`, **Then** one JSON document describes the displays the scan would visit; nothing
-   is switched or deleted.
+1. **Given** Accessibility is granted, no terminal and no `--yes`, **Then** `dnm cleanup --scan` describes what it
+   would do, does not switch, deletes nothing, says to add `--yes`, and exits 0. (Without Accessibility, the
+   permission check comes first, as everywhere: FR-001, exit 1.)
+2. **Given** Accessibility is granted, `--json` and no `--yes`, **Then** one JSON document describes the displays the
+   scan would visit; nothing is switched or deleted.
 3. **Given** `--json --yes`, **Then** the scan runs, deletes, and prints one JSON document with the candidates, the
    displays not checked, and whether anything was deleted.
 
@@ -143,6 +144,12 @@ As a user, I want options that do not apply to the scan to be refused, not ignor
 
 ### Edge Cases
 
+- **A display where no step moves**: public interfaces cannot tell a display with one Desktop from switching
+  shortcuts that are off. Treating it as one Desktop when the shortcuts are off would read only the current Desktop
+  and offer labels in use for deletion, so the scan treats it as one Desktop only when a step was confirmed on some
+  display in the same run (the shortcuts are on); otherwise it stops with the `--desktop` "nothing moved"
+  explanation and deletes nothing (FR-017). A Mac with one display and one Desktop therefore cannot be scanned; the
+  message says why, and the age-based `cleanup` still works.
 - **Full-screen app Spaces** sit among the Desktops; the scan steps through them like Desktops. Their wallpaper
   rarely matters: only the set of labeled images seen counts (spec 009 research R7).
 - **"Displays have separate Spaces" off**: all displays share one set of Desktops. The scan MUST still visit every
@@ -171,7 +178,8 @@ As a user, I want options that do not apply to the scan to be refused, not ignor
   and with no output before the check, and stop with the explanation `--desktop` uses when it is missing (exit 1).
 - **FR-002**: On a terminal, it MUST describe the walk (the connected displays, an estimated duration, that the
   Desktops slide and the pointer moves, not to type) and ask before switching; without a terminal and without
-  `--yes`, and with `--json` without `--yes`, it MUST describe and exit 0 without switching.
+  `--yes`, and with `--json` without `--yes`, it MUST describe and exit 0 without switching. These describe-only
+  runs come after the permission check of FR-001, like every scan.
 - **FR-003**: It MUST visit every Desktop of every connected display, using only what `--desktop` uses (the two
   switching shortcuts and the public notice that the Desktop changed), reading each Desktop's wallpaper only once it
   is stable, and MUST return each display to the Desktop it started on and the pointer to where it was.
@@ -206,6 +214,10 @@ As a user, I want options that do not apply to the scan to be refused, not ignor
 - **FR-016**: As the walk reaches each display, `dnm` MUST print one progress line to standard error,
   `Scanning <display>…`, only when standard error is a terminal and never with `--json`. It is a progress message
   (spec 011's kinds: neither a warning nor a note), so quiet mode MUST NOT hide it.
+- **FR-017**: When no step moves on a display, the scan MUST treat it as having one Desktop only if a step was
+  confirmed on some display in the same run (decided after every display has been walked, so the order of displays
+  does not matter); otherwise it MUST stop with the `--desktop` "nothing moved" explanation, delete nothing and exit
+  1. With "Displays have separate Spaces" off, the single walk is the run.
 
 ### Key Entities
 

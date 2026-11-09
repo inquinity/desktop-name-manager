@@ -14,7 +14,8 @@
 
 ## R2. One place that decides whether a warning or note is printed
 
-- **Decision**: `Output` gains `warning(_:)` and `note(_:)` (prefixes `dnm: warning: ` and `dnm: note: `) and a
+- **Decision**: `Output` gains `warning(_:)` and `note(_:)` (each adds its own prefix, `dnm: warning: ` and
+  `dnm: note: `, so callers pass only the text; the nudge's line drops its prefix accordingly) and a
   `quiet` setting, set once in `Dnm.main` after parsing and before the command runs. Every warning and note goes
   through them; `Output.err` stays for errors only. `Context.warn`, the `dnm alias` warning loop and `Nudge` call
   the new functions.
@@ -58,4 +59,5 @@
 ## R6. Version
 
 - **Decision**: F7 is planned for 0.3.0 with F9. `Version.xcconfig` reads 0.2.3 after the 0.2.2 release; `just bump
-  minor` moves it to 0.3.0 when the first 0.3.0 feature lands. Not part of this feature's tasks unless F7 is first.
+  minor` moves it to 0.3.0 when the first 0.3.0 feature lands. F7 is built first (it is smaller, and F9 builds on
+  its output rules), so the bump is part of this feature's T001.

@@ -24,7 +24,8 @@ deletion reuse the age-based cleanup's plan, report and deletion (R5). No stored
 wallpapers per display (walk order, return, failures, interrupt, separate Spaces off, selection, deletion); command
 tests in-process and through the binary (refusals, no-terminal and `--json` behavior, help); a new live script
 
-**Target Platform**: macOS 26 or later, Apple silicon (unchanged)
+**Target Platform**: macOS 26 or later, Apple silicon (minimum unchanged: the walk uses what `--desktop` already
+uses, and `NSScreen.screensHaveSeparateSpaces` and `sigaction` are far older than macOS 26)
 
 **Project Type**: CLI over a shared core library
 

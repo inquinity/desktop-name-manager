@@ -65,6 +65,8 @@ dnm cleanup --scan [--yes] [--json]
 ## 4. Failures during the walk (standard error)
 
 - The `--desktop` messages for a missing permission and for shortcuts that are off, ending `Nothing was deleted.`
+  The "nothing moved" message is given only when no step moved on any display in the run (spec FR-017); a display
+  where nothing moved, beside one where steps were confirmed, is counted as having one Desktop.
 - Someone else switched: `The Desktop on <display> changed while dnm was scanning. Nothing was deleted. dnm no longer
   knows where <display> is, so it did not switch back; return to your Desktop yourself.`
 - Other displays already scanned are back where they started and are named: `Scanned and returned: <displays>.`
@@ -72,7 +74,8 @@ dnm cleanup --scan [--yes] [--json]
 ## 5. Ctrl-C
 
 - First: the walk stops stepping forward, the display returns to its starting Desktop and the pointer to where it
-  was, then `Stopped. Scanned: <displays>. Nothing was deleted.` on standard error, exit 130.
+  was, then `Stopped. Scanned: <displays>. Nothing was deleted.` on standard error, exit 130; before the first
+  display is finished, `Stopped before any display was scanned. Nothing was deleted.`
 - Second, while returning: `Stopped; <display> may be on another Desktop.`, exit 130 at once.
 - Outside the walk (at a question), Ctrl-C ends the command as for any command; nothing is deleted.
 

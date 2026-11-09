@@ -10,6 +10,13 @@ Carries over spec 009 research R7 and settles what it left open.
   `visit`'s guards: the permission check, `nothingMoved` when a display with one Desktop cannot be told from shortcuts
   that are off (a step right and back, as `visit` does for Desktop 1), the announced-changes count (more changes than
   steps means someone else switched: stop, do not switch back), `maximumSteps`.
+- **One Desktop or shortcuts off** (spec FR-017): when no step moves on a display, the walk cannot tell the two
+  apart. A wrong "one Desktop" would read only the current Desktop and offer labels in use for deletion. So the walk
+  reports "nothing moved" (with that display's one read, made before any step) instead of throwing, and the scan
+  decides after every display has been walked: if any step in the run was confirmed, the shortcuts are on and each
+  such display has one Desktop (its read stands); if none was, the scan throws `nothingMoved` and deletes nothing.
+  Deciding at the end means the order of displays does not matter (a main display with one Desktop beside a second
+  display with several is scanned).
 - **Rationale**: the same public interfaces and the same failure handling as `--desktop`, which is proven live;
   one walk costs about (start − 1) + (N − 1) + (N − start) steps, at most 2N, about a second each
   (`docs/research/timings.md`).
@@ -88,4 +95,4 @@ Carries over spec 009 research R7 and settles what it left open.
 
 ## R8. Version
 
-0.3.0 with F7. `Version.xcconfig` reads 0.2.3; whichever 0.3.0 feature lands first runs `just bump minor`.
+0.3.0 with F7, which is built and merged first and moves `Version.xcconfig` to 0.3.0 (spec 011 T001).

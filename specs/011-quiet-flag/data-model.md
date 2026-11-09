@@ -15,6 +15,7 @@ No stored data changes: the manifest stays format 3, and nothing about quiet mod
 | Error | `dnm: ` (and the usage hint `Run \`dnm --help\` for usage.`) | every failure | printed, unchanged |
 | Warning | `dnm: warning: ` | an alias overridden by a connected display's name (commands that resolve it; `dnm alias`) | held back |
 | Note | `dnm: note: ` | the cleanup nudge after `set` or `remove` (spec 009) | held back, and not counted as shown |
+| Message | none | from 0.3.0, the scan's progress lines, `Scanning <display>…` (spec 012 FR-016), and the scan's interrupt and failure reports | printed, unchanged |
 
 Standard output (results, lists, `--json` documents, cleanup's description and questions) is not standard-error
 text and is never affected.

@@ -30,7 +30,9 @@ Use a throwaway store: `export DNM_STORE_DIR="$(mktemp -d)"`.
 
 Ask for live control and announce it first (`say "Requesting lyve control"`), and announce when done. Follow the
 live-test rules in `CLAUDE.md`: back up `Index.plist`, use a throwaway `DNM_STORE_DIR`, remove labels with
-`dnm remove` afterwards.
+`dnm remove` afterwards, and restore `Index.plist` only if that leaves something wrong. (Constitution VII says to
+restore it afterwards; `CLAUDE.md`'s narrower rule is the project's practice since spec 001. Accepted 2026-11-09;
+reconciling the two is a separate constitution change.)
 
 1. **One display**: `Tests/live/live-scan.sh` labels three Desktops (creating them if needed), asks the person to
    delete the middle one in Mission Control, runs `dnm cleanup --scan --yes`, and checks that exactly that label was
