@@ -4,7 +4,9 @@
 
 **Created**: 2026-10-10
 
-**Status**: Stage 1 implemented (0.2.1, awaiting its live check and release); stage 2 (`--scan`) not started
+**Status**: Stage 1 released in 0.2.1 (2026-11-03). Stage 2 (`cleanup --scan`, roadmap F9) moved to its own
+specification, [specs/012-cleanup-scan](../012-cleanup-scan/spec.md) (2026-11-09), which replaces FR-011, User
+Story 4, SC-006 and tasks T020 to T026 here; they are kept below for the record.
 
 **Target release**: stage 1 (reuse, `cleanup`, last-seen, nudge) in 0.2.1; stage 2 (`cleanup --scan`) in 0.3.0 (a bigger concept, so a minor version), see "Stages". `ROADMAP.md` has the rows.
 

@@ -29,6 +29,8 @@ description: "Task list for feature F4: reuse of labeled images and dnm cleanup"
 
 ## Stage 2
 
+Moved to `specs/012-cleanup-scan` (2026-11-09); the tasks below are kept for the record and are not worked here.
+
 - [ ] T020 `DesktopNavigator`: visit every Desktop of a display (left to Desktop 1, right to the last), returning to the start; unit tests with the fake switcher (several Desktops, one Desktop, shortcuts off, a step that does not confirm)
 - [ ] T021 Settle-until-stable read of the display's wallpaper at each Desktop (two reads about 100 ms apart, bounded by the confirmation timeout); tests with the fake system's delayed reports
 - [ ] T022 `Scan.swift`: the images seen on all Desktops of each connected display; labels of those displays that were not seen; labels of absent displays named and left alone; updates `lastSeen` for everything seen
