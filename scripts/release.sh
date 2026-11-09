@@ -292,9 +292,12 @@ stage_build() {
         die "no usable signing identity: set DNM_SIGNING_IDENTITY or SIGNING_IDENTITY in Secrets.xcconfig (needed when the keychain has no single Developer ID Application identity)"
     fi
 
-    # A release stamp needs a clean tree; a dry run on a dirty tree builds an interim stamp instead.
-    if ! "$dry_run" && ! tree_is_clean; then
-        die "the working tree is not clean (a \`just build\` since \`just release\` moves the build number): run git checkout Version.xcconfig, or commit, and retry"
+    # A release stamp needs a clean tree and the signed tag on HEAD (check said so, but a commit since then would
+    # otherwise be signed and notarized, and only push would notice); a dry run on a dirty tree builds an interim
+    # stamp instead.
+    if ! "$dry_run"; then
+        tree_is_clean || die "the working tree is not clean (a \`just build\` since \`just release\` moves the build number): run git checkout Version.xcconfig and retry, and build nothing else until the record stage (the next build would reuse that number)"
+        tag_is_signed_on_head || die "${tag} is not a signed tag on HEAD: run the check stage again"
     fi
     local stamp_option="--release" expected_version="$release_display"
     if "$dry_run" && ! tree_is_clean; then
@@ -678,14 +681,19 @@ stage_reinstall() {
 }
 
 stage_record() {
-    [[ -s "$procedure_log" ]] || die "no procedure log yet for ${version}"
+    [[ -s "$procedure_log" ]] || die "no procedure log yet for ${version} (after a record stage that stopped part-way, run: scripts/release.sh ${version} record)"
+    # Safe to run again after a failure part-way: the log is appended only once, and the version moves only once.
+    local last_logged
+    last_logged="$(tail -n 1 "$procedure_log")"
+    if ! grep -qxF -- "$last_logged" "$gate_record"; then
+        cat "$procedure_log" >>"$gate_record"
+    fi
     # The release is out: from here on, builds are of the next version. The build number stays; the next build
-    # moves it. `just bump <segment>` changes the version again if the next one is not a revision. Bumped first,
-    # so a failure leaves the log in place for a rerun. Stages run after this one name the next version.
+    # moves it. `just bump <segment>` changes the version again if the next one is not a revision. Stages run
+    # after this one (through `just publish`) name the next version.
     if [[ "$(source_version)" == "$version" ]]; then
         "${repository_root}/scripts/bump-version.sh" revision
     fi
-    cat "$procedure_log" >>"$gate_record"
     : >"$procedure_log"
     print_colored "$COLOR_GREEN" "Appended the procedure log to ${gate_record#"${repository_root}"/} and started $(source_version) in Version.xcconfig; review and commit both."
 }

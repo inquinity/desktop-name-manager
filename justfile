@@ -60,8 +60,7 @@ release: _require-clean _require-notes
     if git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
         echo "v$v is already tagged: start the next version first (just bump <segment>)" >&2; exit 1
     fi
-    scripts/bump-version.sh build
-    n="$(scripts/build-num)"
+    n="$(scripts/bump-version.sh build)"
     notes="docs/release-notes/$v.md"
     scripts/compose-release-notes.sh --version "$v" > "$notes.tmp"
     mv "$notes.tmp" "$notes"

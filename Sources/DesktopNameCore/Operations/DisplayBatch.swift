@@ -11,12 +11,14 @@ public enum DisplayBatch {
     ///
     /// When several displays were named and at least one was changed, the error keeps its exit status and its message
     /// is followed by the displays changed and, when `undoArguments` is given, the `dnm undo` command that puts them
-    /// back (with those arguments, `--desktop 2` say). `undo` passes nil: an undo cannot itself be undone. Otherwise the
-    /// error is passed through unchanged, so one display behaves exactly as a single command (FR-009).
+    /// back (with those arguments, `--desktop 2` say). `undo` passes nil: an undo cannot itself be undone. A failure
+    /// on a later display with nothing changed yet (`remove` found no label before it) still names the display that
+    /// failed. A failure on the first display is passed through unchanged, so one display behaves exactly as a single
+    /// command (FR-009).
     public static func run(_ targets: DisplayArguments.Targets, undoArguments: [String]?,
                            _ each: (_ display: Display, _ changed: () -> Void) throws -> Void) throws {
         var changed: [(display: Display, reference: String)] = []
-        for (display, reference) in zip(targets.displays, targets.references) {
+        for (index, (display, reference)) in zip(targets.displays, targets.references).enumerated() {
             var changedHere = false
             do {
                 try each(display) { changedHere = true }
@@ -24,7 +26,7 @@ public enum DisplayBatch {
             } catch {
                 let failedAfterChange = changedHere
                 if failedAfterChange { changed.append((display, reference)) }
-                guard targets.displays.count > 1, !changed.isEmpty else { throw error }
+                guard targets.displays.count > 1, index > 0 || !changed.isEmpty else { throw error }
                 let dnmError = error as? DnmError ?? .failure(error.localizedDescription)
                 throw partWay(dnmError, on: display, changed: changed, includingFailed: failedAfterChange,
                               undoArguments: undoArguments)
@@ -41,6 +43,11 @@ public enum DisplayBatch {
         for phrase in ["Nothing was changed", "Nothing was labeled"] {
             message = message.replacingOccurrences(of: "\(phrase).", with: "\(phrase) on \(name).")
         }
+        // With several displays, the undo to run is the one given below, not a bare `dnm undo` (which means main).
+        if undoArguments != nil, !changed.isEmpty {
+            message = message.replacingOccurrences(of: "run `dnm undo` if needed", with: "run the undo below if needed")
+        }
+        guard !changed.isEmpty else { return .partWay(message, exitCode: error.exitCode) }
         let names = changed.map { TerminalText.sanitized($0.display.name) }.joined(separator: ", ")
         message += includingFailed ? " Changed: \(names)." : " Changed before this: \(names)."
         if let undoArguments {

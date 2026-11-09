@@ -75,6 +75,12 @@ set_build 7
 expect_equal "staged 6 and unstaged 7 are build-number" "build-number" "$(tree_state)"
 reset_tree
 
+set_build 7
+scratch_git add Version.xcconfig
+set_build 6
+expect_equal "staged 7 and unstaged 6 are dirty (6 would be reused)" "dirty" "$(tree_state)"
+reset_tree
+
 set_build 4
 expect_equal "a lower build number is dirty" "dirty" "$(tree_state)"
 reset_tree
@@ -109,8 +115,8 @@ expect_equal "a rename is dirty" "dirty" "$(tree_state)"
 reset_tree
 
 # --- bump-version.sh ---
-"${scratch_repository}/scripts/bump-version.sh" build >/dev/null
-expect_equal "build adds one to the build number" "0.2.2 5->6" "$("${scratch_repository}/scripts/ver") 5->$("${scratch_repository}/scripts/build-num")"
+printed_build="$("${scratch_repository}/scripts/bump-version.sh" build 2>/dev/null)"
+expect_equal "build adds one to the build number and prints only it" "0.2.2 6 6" "$("${scratch_repository}/scripts/ver") $("${scratch_repository}/scripts/build-num") ${printed_build}"
 "${scratch_repository}/scripts/bump-version.sh" revision >/dev/null
 expect_equal "revision moves the version and keeps the build number" "0.2.3 6" "$("${scratch_repository}/scripts/ver") $("${scratch_repository}/scripts/build-num")"
 "${scratch_repository}/scripts/bump-version.sh" minor >/dev/null
@@ -119,11 +125,15 @@ expect_equal "minor resets the revision" "0.3.0 6" "$("${scratch_repository}/scr
 expect_equal "major resets minor and revision" "1.0.0 6" "$("${scratch_repository}/scripts/ver") $("${scratch_repository}/scripts/build-num")"
 reset_tree
 
+printed_directory="$(mktemp -d)"
 for build_index in 1 2 3 4 5 6 7 8; do
-    "${scratch_repository}/scripts/bump-version.sh" build >/dev/null &
+    "${scratch_repository}/scripts/bump-version.sh" build >"${printed_directory}/${build_index}" 2>/dev/null &
 done
 wait
-expect_equal "eight bumps at once give eight numbers" "13" "$("${scratch_repository}/scripts/build-num")"
+expect_equal "eight bumps at once end at 13" "13" "$("${scratch_repository}/scripts/build-num")"
+expect_equal "eight bumps at once each print a different number, 6 to 13" "6 7 8 9 10 11 12 13" \
+    "$(cat "${printed_directory}"/* | sort -n | tr '\n' ' ' | sed 's/ $//')"
+rm -rf "$printed_directory"
 reset_tree
 
 bump_status=0
