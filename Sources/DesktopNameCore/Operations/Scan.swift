@@ -219,7 +219,7 @@ public enum ScanText {
             ? "dnm will visit every Desktop of \(preview.displays.count == 1 ? "this display" : "these displays, one display at a time"): \(names)."
             : "dnm will visit every Desktop once; these displays switch together (\"Displays have separate Spaces\" is off): \(names)."
         return [first,
-                "It takes about \(secondsPerDesktop) seconds per Desktop. The Desktops slide by and the pointer moves; do not type until it is done. Ctrl-C stops it only while your terminal is the active app.",
+                "It takes about \(secondsPerDesktop) seconds per Desktop. The Desktops slide by and the pointer moves; do not type until it is done. Ctrl-C stops it only while this terminal window is in front.",
                 "Each display returns to the Desktop it started on."]
     }
 

@@ -75,19 +75,17 @@ clean), delete the Desktop `dnm` misreads, and label the new one; shell history 
 repeat. Keeping the left-most Desktop unlabeled avoids the problem altogether, because new Desktops then
 never inherit a label.
 
-## KI-4: Ctrl-C during `cleanup --scan` reaches `dnm` only while the terminal is active
+## KI-4: Ctrl-C during `cleanup --scan` reaches `dnm` only while its terminal window is in front
 
 **Status:** open, documented (found live 2026-11-10, macOS 27.2, 0.3.0 build 30).
 
-**What happens.** A keyboard Ctrl-C goes to the active app. While the scan walks, macOS makes active an app with a
-window on the Desktop shown; once that is not the terminal running `dnm`, Ctrl-C goes to that app (seen live: to
-another terminal app) and the scan runs to the end. When Ctrl-C does reach `dnm`, the stop works as specified
-(spec 012 FR-015): the display returns, nothing is deleted, exit 130.
+**What happens.** A keyboard Ctrl-C goes to the front window. While the scan walks, macOS brings forward an app with a
+window on the Desktop shown; once that is not the terminal window running `dnm`, Ctrl-C goes there (seen live: to
+another terminal app) and the scan runs to the end. When Ctrl-C does reach `dnm`, the stop works as specified (spec
+012 FR-015): the display returns, nothing is deleted, exit 130.
 
-**Workaround.** Assign the terminal to all Desktops (its Dock menu > Options > All Desktops); expected to keep it
-active, not yet checked live. The scan asks
-before deleting, unless `--yes` is given.
+**Workaround.** Answer no when the scan asks before deleting (not possible with `--yes`). Assigning the terminal to
+all Desktops (its Dock menu > Options > All Desktops) is expected to keep its window in front; not yet checked live.
 
-**Direction.** A way to stop that works from any app, for example stopping when the person switches Desktops
-during the walk (the walk already notices that), is on the backlog.
-
+**Direction.** A way to stop that works from any app, for example stopping when the person switches Desktops during
+the walk (the walk already notices that), is on the backlog.

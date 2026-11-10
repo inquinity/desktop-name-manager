@@ -27,7 +27,7 @@ dnm cleanup --scan [--yes] [--json]
 
    ```text
    dnm will visit every Desktop of these displays, one display at a time: Built-in Display, DP1.
-   It takes about 2 seconds per Desktop. The Desktops slide by and the pointer moves; do not type until it is done. Ctrl-C stops it only while your terminal is the active app.
+   It takes about 2 seconds per Desktop. The Desktops slide by and the pointer moves; do not type until it is done. Ctrl-C stops it only while this terminal window is in front.
    Each display returns to the Desktop it started on.
    Scan every Desktop now? [y/N]
    ```
@@ -84,6 +84,8 @@ dnm cleanup --scan [--yes] [--json]
 - Other displays already scanned are back where they started and are named: `Scanned and returned: <displays>.`
 
 ## 5. Ctrl-C
+
+A Ctrl-C reaches `dnm` only while its terminal window is in front (known issue KI-4, amended 2026-11-10).
 
 - First: the walk stops stepping forward, the display returns to its starting Desktop and the pointer to where it
   was, then `Stopped. Scanned: <displays>. Nothing was deleted.` on standard error, exit 130; before the first

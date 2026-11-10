@@ -215,7 +215,7 @@ import Testing
     func theHelpDescribesTheScan() throws {
         let text = try CLI.run(["cleanup", "--help"]).output.split(whereSeparator: \.isWhitespace).joined(separator: " ")
         for needle in ["--scan Visit every Desktop of every connected display (needs Accessibility; the Desktops slide by), then list the labels that no Desktop shows and ask before deleting them.",
-                       "Labels of displays that are not connected are left alone and named.", "(exit 130)"] {
+                       "Labels of displays that are not connected are left alone and named.", "(exit 130)", "only while the terminal window running dnm is in front."] {
             #expect(text.contains(needle), "\(needle)")
         }
         #expect(try CLI.run(["--help"]).output.contains("130"))

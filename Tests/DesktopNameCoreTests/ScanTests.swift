@@ -431,7 +431,8 @@ import Testing
                                   notConnected: [], hasLabelsToCheck: true)
         let separate = ScanText.description(preview, separateSpaces: true)
         #expect(separate[0] == "dnm will visit every Desktop of these displays, one display at a time: Built-in Display, DP1.")
-        #expect(separate[1].contains("about 2 seconds per Desktop") && separate[1].contains("do not type"))
+        #expect(separate[1].contains("about 2 seconds per Desktop") && separate[1].contains("do not type")
+                && separate[1].contains("Ctrl-C stops it only while this terminal window is in front."))
         #expect(separate[2] == "Each display returns to the Desktop it started on.")
         #expect(ScanText.description(preview, separateSpaces: false)[0].contains("switch together"))
     }
