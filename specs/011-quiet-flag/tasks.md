@@ -103,6 +103,7 @@ target changes; `DesktopNameCore` is untouched.
     is fixed (the scan also catches `write(STDERR_FILENO` and `write(2,`); control characters in a display name are
     not escaped in the seeded JSON (accepted: display names do not contain them).
 - [ ] T027 Quickstart by-hand scenarios 1 to 10 (no wallpaper change; scenario 10 is Tab completion in bash and zsh at the keyboard) and a live run of `Tests/live/live-syntax.sh` on the maintainer's Mac under the live-test rules (back up `Index.plist`, private `DNM_STORE_DIR`, restore with `dnm remove`), quoting `dnm --version`; record the results in this file
+  - Results so far: scenarios 1 to 9 pass on `0.3.0 build 22 (c0d7d09+)`. The live run of `Tests/live/live-syntax.sh` on `0.3.0 build 23 (33e2423)`, with two displays, passes all 71 checks, the quiet-mode section included; labels were removed afterwards and `Index.plist` did not need restoring. A first run failed 16 checks for the second display only, all outside quiet mode: its wallpaper was a stamped image left by an earlier run's private store, which dnm rightly refused to stamp over; after a normal wallpaper was chosen, the rerun passed. Open: scenario 10 (Tab completion at the keyboard).
 
 ## Dependencies
 
