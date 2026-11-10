@@ -132,8 +132,9 @@ extension DesktopLabeler {
             """)
     }
 
-    /// The image file name a display's current Desktop shows, once three reads a moment apart agree (research R2),
-    /// or the last read after about 1.5 s. nil when it shows no image file. A read that fails (the display was
+    /// The image file name a display's current Desktop shows, once three reads a moment apart agree (research R2).
+    /// Fifteen reads (about 1.5 s) without three in a row agreeing stop the scan, with nothing deleted. nil when it
+    /// shows no image file. A read that fails (the display was
     /// disconnected) stops the scan: a Desktop that could not be read must never count as showing nothing.
     @MainActor
     func stableRead(_ display: Display, walking walked: Display? = nil, switcher: DesktopSwitching) throws -> String? {

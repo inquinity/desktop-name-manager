@@ -27,7 +27,9 @@ Carries over spec 009 research R7 and settles what it left open.
 
 - **Decision**: after each confirmed step, read `currentWallpaper(on:)` for the display every 100 ms while pumping
   the application's events, and accept the value once three consecutive reads agree (amended from two after review,
-  2026-11-09), bounded by about 1.5 s. A read that fails (a display disconnected) stops the scan instead of counting
+  2026-11-09); fifteen reads (about 1.5 s) without that stop the scan with nothing deleted (amended after the release
+  review: a stale value would offer a label in use; a wallpaper set to change every few seconds may then stop a
+  scan now and then). A read that fails (a display disconnected) stops the scan instead of counting
   as "no image". A display with one Desktop is read the same way, without stepping.
 - **Late notices** (added after review): before comparing the announced changes with the confirmed steps, the walk
   waits 0.5 s while delivering events, so a step that timed out but moved after all is counted and stops the scan,

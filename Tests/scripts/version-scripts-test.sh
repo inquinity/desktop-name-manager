@@ -139,6 +139,12 @@ bump_status=0
 "${scratch_repository}/scripts/bump-version.sh" current >/dev/null 2>&1 || bump_status=$?
 expect_equal "an unknown segment is refused" "2" "$bump_status"
 
+# --- The release-notes stub is a fixed text, whatever UNRELEASED.md holds (0.3.0 release review) ---
+stub="$("${repository_root}/scripts/compose-release-notes.sh" --stub)"
+expect_equal "the stub starts with its heading" "# Unreleased" "$(head -n 1 <<<"$stub")"
+expect_equal "the stub ends with the empty marker" "_(nothing yet)_" "$(tail -n 1 <<<"$stub")"
+expect_equal "the stub carries no bullet" "0" "$(grep -c '^- ' <<<"$stub" || true)"
+
 if ((failures > 0)); then
     print_colored "$COLOR_RED" "${failures} version-script test(s) failed."
     exit 1
