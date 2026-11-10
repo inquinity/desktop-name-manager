@@ -26,11 +26,16 @@ enum CLI {
         FileManager.default.temporaryDirectory.appendingPathComponent("dnm-cli-test-\(UUID().uuidString)", isDirectory: true).path
     }
 
-    static func run(_ arguments: [String], executable: URL? = nil, store: String = scratchStore()) throws -> Result {
+    /// `extraEnvironment` is added to (or overrides) the test process's environment; `DNM_QUIET` is always removed first,
+    /// so a quiet shell running the tests does not change what they see.
+    static func run(_ arguments: [String], executable: URL? = nil, store: String = scratchStore(),
+                    extraEnvironment: [String: String] = [:]) throws -> Result {
         let process = Process()
         process.executableURL = executable ?? binary
         process.arguments = arguments
         var environment = ProcessInfo.processInfo.environment
+        environment["DNM_QUIET"] = nil
+        environment.merge(extraEnvironment) { _, new in new }
         environment["DNM_STORE_DIR"] = store
         process.environment = environment
         let out = Pipe(), err = Pipe()

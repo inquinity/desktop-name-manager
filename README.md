@@ -124,10 +124,27 @@ An alias is 1 to 30 letters, digits, hyphens or underscores (not only digits, an
 in full, ignoring case, never partially. A display is looked up, in order, as `main`, a display's exact name,
 an alias, then the beginning of a name (case-insensitive) that only one display's name starts with. So a connected display's own name wins over an alias of the same
 name (say you alias `DP1` to the LG and then plug in a monitor called `DP1`): `DP1` reaches the
-monitor, with a warning, and `"LG Ultra"` still reaches the LG. `dnm alias` and `dnm check` flag
-such an alias. `dnm` refuses to alias a display that macOS gives no stable identity, or two displays that
+monitor, with a warning (hide it with `-q`, see [Quiet mode](#quiet-mode)), and `"LG Ultra"` still reaches the
+LG. `dnm alias` and `dnm check` flag such an alias. `dnm` refuses to alias a display that macOS gives no stable identity, or two displays that
 share one. Aliases are kept in the store, so they follow the display, not its name. They make the stored
 data format 2, which 0.1.0 cannot read.
+
+## Quiet mode
+
+`-q` (or `--quiet`) hides warnings and notes: the lines that start `dnm: warning:` or `dnm: note:`, such as the
+warning for an alias that a display's name overrides, or the cleanup reminder. Results and errors are always shown,
+so unlike `2>/dev/null` it never hides a real problem. It goes before or after the command name, and works with every
+command:
+
+```sh
+dnm -q set DP1 "Mail"
+dnm show DP1 --quiet
+export DNM_QUIET=1                 # quiet for every command in this shell or script
+```
+
+`DNM_QUIET` must be exactly `1`; any other value leaves quiet mode off. A cleanup reminder held back by quiet mode is
+not used up: the next run without it shows the reminder if it is still due. `dnm alias` still marks an overridden
+alias in its list, and `dnm check` still reports it.
 
 ## Shell completions
 
@@ -165,7 +182,7 @@ Deleting a Desktop in Mission Control is something `dnm` is never told about, so
   no terminal it only describes, unless you pass `--yes`. `--json` prints the list. A change made moments ago can no
   longer be undone once cleanup has deleted the image it would bring back. Nothing is ever deleted unless you
   agree: no command cleans up by itself. After a label is set or removed, on a terminal, `dnm` may add one line
-  (at most weekly) when 50 MB or more could be freed.
+  (at most weekly) when 50 MB or more could be freed; quiet mode (`-q`) holds it back.
 
 "Seen" means a label's image was showing on a Desktop when a command that changes labels (`set`, `remove`, `undo`,
 `cleanup`) looked; commands that only read, like `list` and `show`, change nothing. `dnm check` says how much

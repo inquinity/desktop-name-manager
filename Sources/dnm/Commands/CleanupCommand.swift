@@ -2,7 +2,7 @@ import ArgumentParser
 import DesktopNameCore
 import Foundation
 
-struct CleanupCommand: ParsableCommand {
+struct CleanupCommand: ParsableCommand, HasGlobalOptions {
     static let configuration = CommandConfiguration(
         commandName: "cleanup",
         abstract: "List, and when you agree delete, old labeled images that no Desktop is known to show.",
@@ -22,6 +22,8 @@ struct CleanupCommand: ParsableCommand {
 
     @Flag(name: .long, help: "Print one JSON document instead of text (nothing is asked; add --yes to delete).")
     var json = false
+
+    @OptionGroup var global: GlobalOptions
 
     func run() throws {
         try Self.guarded {

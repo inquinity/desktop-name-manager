@@ -1,7 +1,7 @@
 import ArgumentParser
 import DesktopNameCore
 
-struct RemoveCommand: ParsableCommand {
+struct RemoveCommand: ParsableCommand, HasGlobalOptions {
     static let configuration = CommandConfiguration(
         commandName: "remove",
         abstract: "Remove the label and restore the original wallpaper.",
@@ -14,6 +14,8 @@ struct RemoveCommand: ParsableCommand {
     @OptionGroup var words: DisplayWords
     @OptionGroup var target: DisplayOption
     @OptionGroup var place: DesktopOption
+
+    @OptionGroup var global: GlobalOptions
 
     func run() throws {
         try Self.guarded {

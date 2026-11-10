@@ -9,5 +9,5 @@
 // Local settings that are never committed (signing identity, notary profile): see Secrets.xcconfig.
 #include? "Secrets.xcconfig"
 
-MARKETING_VERSION = 0.2.3
-CURRENT_PROJECT_VERSION = 12
+MARKETING_VERSION = 0.3.0
+CURRENT_PROJECT_VERSION = 23

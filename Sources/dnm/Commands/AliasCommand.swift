@@ -1,7 +1,7 @@
 import ArgumentParser
 import DesktopNameCore
 
-struct AliasCommand: ParsableCommand {
+struct AliasCommand: ParsableCommand, HasGlobalOptions {
     static let configuration = CommandConfiguration(
         commandName: "alias",
         abstract: "Give a display a short name for --display, list the aliases, or remove one.",
@@ -29,6 +29,8 @@ struct AliasCommand: ParsableCommand {
 
     @Flag(name: .long, help: "Print the list as one JSON document instead of text.")
     var json = false
+
+    @OptionGroup var global: GlobalOptions
 
     func run() throws {
         try Self.guarded {
@@ -77,7 +79,7 @@ struct AliasCommand: ParsableCommand {
         }
         for entry in entries {
             if let by = entry.overriddenBy {
-                Output.err("dnm: warning: alias \(entry.name) is not used while a display named \(by) is connected.")
+                Output.warning("alias \(entry.name) is not used while a display named \(by) is connected.")
             }
         }
     }

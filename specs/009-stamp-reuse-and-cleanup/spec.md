@@ -119,6 +119,7 @@ As a user who wants to be sure, I want `dnm cleanup --scan` to look at every Des
 - **Displays not connected**: their labels qualify by age as any other, but `--scan` leaves them alone and names them (public interfaces cannot see them; KI-2).
 - **Unreadable, damaged or newer store**: an error, nothing deleted; `check` and the nudge say nothing rather than guess.
 - **Standard error closed or redirected**: no nudge.
+- **Quiet mode** (`-q`, `--quiet`, `DNM_QUIET=1`; spec 011): no nudge, and the throttle does not move, so the next run that is not quiet shows it if it is still due.
 - **A missing image file** with a record: listed (size 0), and its record is removed.
 - **`--days` not a whole number, or negative**: exit 2.
 - **A very large store**: the housekeeping estimate looks at every label; the cost is the file-size lookups and is tested.
@@ -139,7 +140,7 @@ As a user who wants to be sure, I want `dnm cleanup --scan` to look at every Des
 - **FR-005**: Each label MUST record when it was last seen; `set`, `remove` and `undo` (and `cleanup` when it deletes) MUST record the images showing on all displays' current Desktops; read-only commands, and a `cleanup` that only describes, MUST NOT write.
 - **FR-006**: `set` MUST reuse an existing image of the same key (FR-007) when its file exists, reactivating a retired label, instead of rendering; otherwise it MUST render as today. The key MUST be recorded on each new label.
 - **FR-007**: The key MUST cover: the original file (path, size, modification time) and its placement, the label text, the requested options (automatic stays automatic), the display's identity and pixel size, scale and insets, and a version number of the renderer that MUST change whenever rendering output changes.
-- **FR-008**: After `set` or `remove` (never after `undo`), when stderr is a terminal and cleanup (default days) could free at least 50 MB, `dnm` MUST print the nudge, subject to the throttle (at most weekly unless the amount doubled; reset by `cleanup`); it MUST NOT print for any other command or for `--json`.
+- **FR-008**: After `set` or `remove` (never after `undo`), when stderr is a terminal and cleanup (default days) could free at least 50 MB, `dnm` MUST print the nudge, subject to the throttle (at most weekly unless the amount doubled; reset by `cleanup`); it MUST NOT print for any other command or for `--json`. In quiet mode (spec 011, amended 2026-11-09) it MUST NOT print, and MUST NOT count as shown: the store is not asked, as when standard error is not a terminal.
 - **FR-009**: The housekeeping pass MUST NOT delete any applied labeled image, MUST add no more than 50 ms for 1,000 labels (tested), and MUST NOT call the display system beyond what its command already does.
 - **FR-010**: `dnm check`'s stored-labels row MUST report what `cleanup` could free.
 - **FR-011** (stage 2): `dnm cleanup --scan` MUST check Accessibility first (never prompting, no output before the check), describe, ask, then visit every Desktop of every connected display with the same stepping as `--desktop`, restoring each display's Desktop; MUST find labels of connected displays whose image shows on no Desktop; MUST leave labels of absent displays alone and name them; MUST ask again before deleting; MUST reject `--days`.

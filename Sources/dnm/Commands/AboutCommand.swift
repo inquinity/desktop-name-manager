@@ -2,10 +2,12 @@ import ArgumentParser
 import DesktopNameCore
 import Foundation
 
-struct AboutCommand: ParsableCommand {
+struct AboutCommand: ParsableCommand, HasGlobalOptions {
     static let configuration = CommandConfiguration(
         commandName: "about",
         abstract: "Show the version, license and acknowledgements, where data is kept, and what permissions the tool uses and why.")
+
+    @OptionGroup var global: GlobalOptions
 
     func run() throws {
         try Self.guarded {

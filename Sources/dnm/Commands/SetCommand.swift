@@ -1,7 +1,7 @@
 import ArgumentParser
 import DesktopNameCore
 
-struct SetCommand: ParsableCommand {
+struct SetCommand: ParsableCommand, HasGlobalOptions {
     static let configuration = CommandConfiguration(
         commandName: "set",
         abstract: "Set the Desktop label (the current Desktop, or pick displays and --desktop).",
@@ -44,6 +44,8 @@ struct SetCommand: ParsableCommand {
 
     @Option(name: .long, help: "small, medium (default) or large.", completion: Completions.values(of: Size.self))
     var size: String?
+
+    @OptionGroup var global: GlobalOptions
 
     func run() throws {
         try Self.guarded {

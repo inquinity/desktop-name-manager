@@ -88,6 +88,16 @@ import Testing
         #expect(script.contains("---completion alias -- positional@1"), "\(shell)")
     }
 
+    /// Spec 011 FR-009: `-q` and `--quiet` before the command name and for every shown command (dnm itself and the ten
+    /// commands in help; `prune` is hidden).
+    @Test(.enabled(if: CLI.binary != nil), arguments: ["zsh", "bash"])
+    func quietIsOfferedAtTheTopAndForEveryCommand(_ shell: String) throws {
+        let script = try CLI.run(["--generate-completion-script", shell]).output
+        let offers = script.components(separatedBy: "--quiet").count - 1
+        #expect(offers >= 11, "\(shell): --quiet offered \(offers) times")
+        #expect(script.contains(shell == "zsh" ? "{--quiet,-q}" : "--quiet -q"), "\(shell)")
+    }
+
     @Test(.enabled(if: CLI.binary != nil))
     func theScriptsRegisterTheBinary() throws {
         #expect(try CLI.run(["--generate-completion-script", "zsh"]).output.hasPrefix("#compdef dnm\n"))

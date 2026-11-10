@@ -4,7 +4,7 @@ import Foundation
 
 /// `dnm`, also installed as `desktop-name`. Both names run this same code.
 @main
-struct Dnm: ParsableCommand {
+struct Dnm: ParsableCommand, HasGlobalOptions {
     static let configuration = CommandConfiguration(
         commandName: "dnm",
         abstract: "Label each macOS Desktop by stamping a name into its wallpaper.",
@@ -16,10 +16,15 @@ struct Dnm: ParsableCommand {
         subcommands: [SetCommand.self, RemoveCommand.self, UndoCommand.self, ShowCommand.self, ListCommand.self, DisplaysCommand.self,
                       AliasCommand.self, CleanupCommand.self, PruneCommand.self, AboutCommand.self, CheckCommand.self])
 
+    @OptionGroup var global: GlobalOptions
+
     /// Parsing failures exit 2 (invalid input), as documented, instead of ArgumentParser's default.
     static func main() {
         do {
             var command = try parseAsRoot()
+            // Quiet mode is decided once, before anything runs (spec 011). Every command includes the option group,
+            // so the parsed command (the subcommand, or `dnm` itself) holds the merged value.
+            Output.quiet = GlobalOptions.quiet(flag: (command as? HasGlobalOptions)?.global.quiet ?? false)
             try command.run()
         } catch let exit as ExitCode {
             Foundation.exit(exit.rawValue)

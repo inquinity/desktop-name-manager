@@ -6,6 +6,8 @@ import Foundation
 struct PruneCommand: ParsableCommand {
     static let configuration = CommandConfiguration(commandName: "prune", abstract: "Replaced by cleanup.", shouldDisplay: false)
 
+    /// Everything after `prune`, `-q` included (spec 011): the command only says what replaced it, so it needs no
+    /// options of its own, and `dnm -q prune` is read by `dnm` itself.
     @Argument(parsing: .captureForPassthrough, help: .private)
     var arguments: [String] = []
 

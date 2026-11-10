@@ -29,16 +29,18 @@ Several displays for `set`, `remove` and `undo`: `specs/010-several-displays/con
   order of `specs/006-display-aliases/contracts/cli.md` §4. No match or
   more than one match exits `2`, prints the candidates, and changes nothing. Numbers and
   position keywords are not accepted.
-- **Short options** (decided 2026-10-09, spec 008): the only short options are `-h` (help, from the parser) and, when
-  quiet mode exists, `-q`. A short option is allowed only if its letter is the near-universal convention, means the
+- **Short options** (decided 2026-10-09, spec 008): the only short options are `-h` (help, from the parser) and `-q`
+  (quiet mode, decided in spec 011, 0.3.0; accepted before or after the command name). A short option is allowed only if its letter is the near-universal convention, means the
   same thing in every command that has it, and is typed often at the keyboard rather than in scripts. Options that
   delete or confirm (`--yes`, `--remove`), `--json`, `--display`, `--desktop`, `--label` and the look options have
   none. A new short option needs a decision recorded in a spec. (`alias -d` of 0.1.1 was removed in 0.2.0.)
 - **Housekeeping**: every command first drops undo records older than the undo window (60 seconds) and deletes
   our own unreferenced files older than 30 minutes; it never deletes an applied labeled image (FR-018, FR-026;
   amended 2026-10-13). It prints nothing about this unless it fails.
-- **Streams**: results on standard output; messages, warnings and errors on standard
-  error. With `--json`, standard output holds exactly one JSON document and nothing else.
+- **Streams**: results on standard output; messages, warnings, notes and errors on standard
+  error. With `--json`, standard output holds exactly one JSON document and nothing else. In quiet mode (`-q`,
+  `--quiet` or `DNM_QUIET=1`; spec 011, amended 2026-11-09) warnings (`dnm: warning: `) and notes (`dnm: note: `)
+  are not printed; errors and messages always are.
 - **No change on failure**: any command that exits non-zero leaves the wallpaper as it
   found it.
 

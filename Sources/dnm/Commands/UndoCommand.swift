@@ -1,7 +1,7 @@
 import ArgumentParser
 import DesktopNameCore
 
-struct UndoCommand: ParsableCommand {
+struct UndoCommand: ParsableCommand, HasGlobalOptions {
     static let configuration = CommandConfiguration(
         commandName: "undo",
         abstract: "Undo the last label change on a display (one level, within 60 seconds).",
@@ -14,6 +14,8 @@ struct UndoCommand: ParsableCommand {
     @OptionGroup var words: DisplayWords
     @OptionGroup var target: DisplayOption
     @OptionGroup var place: DesktopOption
+
+    @OptionGroup var global: GlobalOptions
 
     func run() throws {
         try Self.guarded {
