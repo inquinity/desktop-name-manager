@@ -6,7 +6,7 @@
 
 ```text
 dnm cleanup [--days <n>] [--yes] [--json]
-dnm cleanup --scan [--yes] [--json]          (stage 2)
+dnm cleanup --scan [--yes] [--json]          (stage 2: specs/012-cleanup-scan/contracts/cli.md)
 ```
 
 `prune` no longer exists. `dnm prune` prints `dnm: prune was replaced by cleanup: run dnm cleanup (see dnm cleanup --help).` and exits 2.
@@ -26,7 +26,7 @@ A Desktop that is not on screen now (including one on a display that is not conn
 these; it would fall back to the Mac's default wallpaper until you choose another or label it again.
 ```
 
-(From stage 2, 0.3.0, a further sentence offers `dnm cleanup --scan` to check every Desktop first.)
+(From stage 2, 0.3.0, a further sentence offers `dnm cleanup --scan` to check every Desktop first: `To check every Desktop of the connected displays first, run dnm cleanup --scan.`)
 
 ```text
 Delete these 2 labeled images (5.0 MB)? [y/N]
@@ -50,9 +50,9 @@ Delete these 2 labeled images (5.0 MB)? [y/N]
 }
 ```
 
-`why` is one of `removed`, `replaced`, `undone`, `not seen`. `deleted` is true only when `--yes` deleted at least one image (amended 2026-11-03). Exit codes: `0` success or nothing deleted by choice; `1` store failure (not writable, damaged, newer); `2` invalid input.
+`why` is one of `removed`, `replaced`, `undone`, `not seen`, and, from `cleanup --scan` (spec 012), `not on any Desktop`. `deleted` is true only when `--yes` deleted at least one image (amended 2026-11-03). Exit codes: `0` success or nothing deleted by choice; `1` store failure (not writable, damaged, newer); `2` invalid input.
 
-## 3. `dnm cleanup --scan` (stage 2)
+## 3. `dnm cleanup --scan` (stage 2; replaced by `specs/012-cleanup-scan/contracts/cli.md`, which governs)
 
 Order: (1) check Accessibility for the app running `dnm`; if not granted, print the `--desktop` explanation (System Settings path for the macOS version) and exit 1, before anything else; (2) describe and ask:
 

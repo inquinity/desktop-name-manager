@@ -40,6 +40,11 @@ three-monitor arrangement were still used by two Desktops of the two-monitor arr
 README should advise running them only after checking every arrangement in use. A full fix needs
 information macOS does not offer publicly.
 
+**`cleanup --scan` (spec 012, 0.3.0).** The scan visits every Desktop of the arrangement connected now, so it is
+exact for that arrangement only. It leaves the labels of displays that are not connected alone and names them
+(`Not checked: <display> is not connected (N labels).`), and the README says that a label it offers to delete may
+still be used by a Desktop of another arrangement.
+
 
 ## KI-3: A new Desktop that inherited a label reports "no label" once the left-most label is removed
 
@@ -69,3 +74,18 @@ fall back to that default and report the original, while the screen still draws 
 clean), delete the Desktop `dnm` misreads, and label the new one; shell history makes the `dnm set` easy to
 repeat. Keeping the left-most Desktop unlabeled avoids the problem altogether, because new Desktops then
 never inherit a label.
+
+## KI-4: Ctrl-C during `cleanup --scan` reaches `dnm` only while its terminal window is in front
+
+**Status:** open, documented (found live 2026-11-10, macOS 27.2, 0.3.0 build 30).
+
+**What happens.** A keyboard Ctrl-C goes to the front window. While the scan walks, macOS brings forward an app with a
+window on the Desktop shown; once that is not the terminal window running `dnm`, Ctrl-C goes there (seen live: to
+another terminal app) and the scan runs to the end. When Ctrl-C does reach `dnm`, the stop works as specified (spec
+012 FR-015): the display returns, nothing is deleted, exit 130.
+
+**Workaround.** Answer no when the scan asks before deleting (not possible with `--yes`). Assigning the terminal to
+all Desktops (its Dock menu > Options > All Desktops) is expected to keep its window in front; not yet checked live.
+
+**Direction.** A way to stop that works from any app, for example stopping when the person switches Desktops during
+the walk (the walk already notices that), is on the backlog.

@@ -10,7 +10,7 @@ struct Dnm: ParsableCommand, HasGlobalOptions {
         abstract: "Label each macOS Desktop by stamping a name into its wallpaper.",
         discussion: """
         Exit codes: 0 success; 1 failure (access denied, file missing, undo not possible, …);
-        2 invalid input (bad label, option or display); 3 unsupported wallpaper.
+        2 invalid input (bad label, option or display); 3 unsupported wallpaper; 130 a cleanup --scan stopped with Ctrl-C.
         """,
         version: DesktopNameCoreInfo.displayVersion,
         subcommands: [SetCommand.self, RemoveCommand.self, UndoCommand.self, ShowCommand.self, ListCommand.self, DisplaysCommand.self,

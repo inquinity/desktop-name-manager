@@ -151,6 +151,8 @@ cleanup() {
         return
     fi
     if "$labels_applied"; then
+        # The quiet-mode section points DNM_STORE_DIR at its own store; the main labels are in the main store.
+        if [[ -n "${main_store:-}" ]]; then export DNM_STORE_DIR="$main_store"; fi
         print_colored "$COLOR_YELLOW" "Cleaning up: removing any label this run left..."
         local name
         for name in "${display_names[@]}"; do

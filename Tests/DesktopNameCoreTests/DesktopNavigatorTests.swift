@@ -3,55 +3,6 @@ import Foundation
 import Testing
 @testable import DesktopNameCore
 
-/// A display's Desktops as positions, moved by the fake shortcuts.
-@MainActor
-final class FakeSwitcher: DesktopSwitching {
-    var desktops: Int
-    var position: Int
-    var isTrusted = true
-    var shortcutsOn = true
-    /// Steps (counted from 1) whose confirmation never arrives, to simulate a lost step.
-    var unconfirmedSteps: Set<Int> = []
-    private(set) var steps = 0
-    private(set) var pointedAt: String?
-    private(set) var pointerRestored = false
-    private(set) var visitedPositions: [Int] = []
-    private(set) var announcedChanges = 0
-    /// A step (counted from 1) during which the person also switches one Desktop right.
-    var personSwitchesAtStep: Int?
-
-    init(desktops: Int, position: Int) {
-        self.desktops = desktops
-        self.position = position
-    }
-
-    func pointAt(_ display: Display) throws -> CGPoint {
-        pointedAt = display.name
-        return CGPoint(x: 1, y: 2)
-    }
-
-    func restorePointer(_ location: CGPoint) { pointerRestored = location == CGPoint(x: 1, y: 2) }
-
-    func step(_ direction: StepDirection) -> Bool {
-        steps += 1
-        guard shortcutsOn else { return false }
-        let next = direction == .left ? position - 1 : position + 1
-        guard (1...desktops).contains(next) else { return false }
-        position = next
-        visitedPositions.append(next)
-        if personSwitchesAtStep == steps { personSwitches() }
-        guard !unconfirmedSteps.contains(steps) else { return false }
-        announcedChanges += 1
-        return true
-    }
-
-    /// The person moves one Desktop right (or left at the last one), and macOS announces it.
-    func personSwitches() {
-        position = position < desktops ? position + 1 : position - 1
-        announcedChanges += 1
-    }
-}
-
 @MainActor
 @Suite struct DesktopNavigatorTests {
     let display = FakeWallpaperSystem.makeDisplay(name: "DP", uuid: "DISPLAY-B", isMain: false)
@@ -120,8 +71,8 @@ final class FakeSwitcher: DesktopSwitching {
         } catch let error as DnmError {
             #expect(error.exitCode == 1)
             let text = error.errorDescription ?? ""
-            #expect(text.contains("Accessibility") && text.contains("Move left a space") && text.contains("Privacy & Security") && text.contains("Device Control and Data Access"))
-            #expect(text.contains("every program run in that app"))
+            // One sentence (maintainer, 2026-11-10); `dnm check` says where to grant it and what it allows.
+            #expect(text == "--desktop needs the Accessibility permission to switch Desktops.")
         }
         #expect(fake.steps == 0)
         #expect(fake.pointedAt == nil)
@@ -279,6 +230,109 @@ final class FakeSwitcher: DesktopSwitching {
             Issue.record("expected an error")
         } catch let error as DnmError {
             if case .failure(let message) = error { #expect(message.contains("returning DP")) } else { Issue.record("\(error)") }
+        }
+    }
+
+    // MARK: - walk (spec 012)
+
+    @Test(arguments: [1, 2, 4])
+    func aWalkReadsEveryDesktopInOrderAndReturns(_ start: Int) throws {
+        let fake = FakeSwitcher(desktops: 4, position: start)
+        var read: [Int] = []
+        let outcome = try DesktopNavigator(switcher: fake).walk(on: display) { read.append(fake.position) }
+        #expect(read == [1, 2, 3, 4])
+        #expect(fake.position == start && fake.pointedAt == "DP" && fake.pointerRestored)
+        #expect(outcome == .walked(steps: (start - 1) + 3 + (4 - start)))
+        #expect(fake.steps == 8, "two presses per Desktop, the edges included")
+    }
+
+    @Test func oneDesktopAndShortcutsOffBothReportNothingMovedAfterOneRead() throws {
+        for fake in [FakeSwitcher(desktops: 1, position: 1), FakeSwitcher(desktops: 3, position: 2)] {
+            if fake.desktops == 3 { fake.shortcutsOn = false }
+            var reads = 0
+            #expect(try DesktopNavigator(switcher: fake).walk(on: display) { reads += 1 } == .nothingMoved)
+            #expect(reads == 1 && fake.pointerRestored)
+        }
+    }
+
+    @Test func aSwitchByThePersonDuringAWalkStopsWithoutSwitchingBack() throws {
+        let fake = FakeSwitcher(desktops: 4, position: 2)
+        fake.personSwitchesAtStep = 4
+        do {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display) {}
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").contains("changed while dnm was scanning"))
+        }
+        #expect(fake.pointerRestored)
+    }
+
+    @Test func aReadThatFailsStillReturns() throws {
+        struct Boom: Error {}
+        let fake = FakeSwitcher(desktops: 3, position: 3)
+        var reads = 0
+        #expect(throws: Boom.self) {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display) { reads += 1; if reads == 2 { throw Boom() } }
+        }
+        #expect(fake.position == 3 && fake.pointerRestored)
+    }
+
+    @Test func anInterruptStopsTheWalkAndReturns() throws {
+        let fake = FakeSwitcher(desktops: 5, position: 4)
+        var reads = 0
+        do {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display, isInterrupted: { reads == 2 }) { reads += 1 }
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect(error == .interrupted(scanned: []))
+        }
+        #expect(reads == 2 && fake.position == 4 && fake.pointerRestored)
+    }
+
+    @Test func aWalkThatReachesTheStepLimitFailsInsteadOfStoppingShort() throws {
+        let fake = FakeSwitcher(desktops: 40, position: 40)
+        do {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display) {}
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").contains("more than 32 Desktops"))
+        }
+        #expect(fake.position == 40, "it went back")
+    }
+
+    @Test func aSwitchByThePersonBeforeCtrlCIsReportedNotStepppedBackFrom() throws {
+        let fake = FakeSwitcher(desktops: 4, position: 2)
+        fake.personSwitchesAtStep = 3
+        do {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display, isInterrupted: { fake.steps >= 4 }) {}
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").contains("did not switch back"), "\(error)")
+        }
+    }
+
+    @Test func aStepLimitWhoseWayBackFailsSaysSo() throws {
+        let fake = FakeSwitcher(desktops: 40, position: 40)
+        fake.unconfirmedSteps = [33]   // 32 lefts reach the limit; the first step back is not confirmed
+        do {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display) {}
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            let text = error.errorDescription ?? ""
+            #expect(text.contains("more than 32 Desktops") && text.contains("could not return DP"), "\(text)")
+        }
+    }
+
+    @Test func aReadErrorWhoseWayBackFailsSaysSo() throws {
+        struct Boom: LocalizedError { var errorDescription: String? { "Boom." } }
+        let fake = FakeSwitcher(desktops: 3, position: 3)
+        fake.unconfirmedSteps = [5]   // left, left, edge, read, right: the read fails at Desktop 2; back right is lost
+        var reads = 0
+        do {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display) { reads += 1; if reads == 2 { throw Boom() } }
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").hasPrefix("Boom. dnm could not return DP"), "\(error)")
         }
     }
 }

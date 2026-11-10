@@ -7,6 +7,8 @@ public enum CleanupReason: String, Codable, Sendable {
     /// The label is still active, but no Desktop has been seen showing it for long enough (for example the Desktop
     /// was deleted, which `dnm` is never told).
     case notSeen = "not seen"
+    /// `cleanup --scan` visited every Desktop of its display and none showed it (spec 012).
+    case notOnAnyDesktop = "not on any Desktop"
 }
 
 /// A labeled image that `dnm cleanup` may delete (spec 009).
@@ -17,6 +19,8 @@ public struct CleanupCandidate: Equatable, Sendable {
     /// When it was retired, or when it was last seen.
     public var since: Date
     public var bytes: Int64
+    /// When a Desktop was last seen showing it; nil if never.
+    public var lastSeen: Date?
     /// The stamp and its file in the store; never printed.
     var stampID: UUID
     var fileName: String
@@ -24,9 +28,12 @@ public struct CleanupCandidate: Equatable, Sendable {
 
 /// What `cleanup` would delete, as shown to the person before they agree.
 public struct CleanupPlan: Equatable, Sendable {
-    public var days: Int
+    /// The age asked for; nil for a scan (spec 012), which looks at every Desktop instead.
+    public var days: Int?
     public var candidates: [CleanupCandidate]
     public var totalBytes: Int64 { candidates.reduce(0) { $0 + $1.bytes } }
+    /// A scan's plan before it has found anything.
+    public static let emptyScan = CleanupPlan(days: nil, candidates: [])
 }
 
 /// A reminder that old labeled images have piled up (spec 009).
@@ -55,16 +62,23 @@ extension DesktopLabeler {
     /// Deletes the images and records of `plan` that are still candidates now (something may have changed since the
     /// person was shown the plan), as one locked change; returns what was deleted. Never deletes anything the plan did
     /// not list.
+    ///
+    /// For a scan's plan, `seen` is what the scan saw: those labels are recorded as seen, and are never deleted.
     @discardableResult
-    public func carryOut(_ plan: CleanupPlan) throws -> CleanupPlan {
+    public func carryOut(_ plan: CleanupPlan, seen: Set<String> = []) throws -> CleanupPlan {
         guard store.hasManifest, !plan.candidates.isEmpty else { return CleanupPlan(days: plan.days, candidates: []) }
         return try store.exclusive {
             try housekeeping()
             let now = time.now
-            let shown = try shownFileNames()
+            let shown = try shownFileNames().union(seen)
             let planned = Set(plan.candidates.map(\.stampID))
-            let candidates = cleanupCandidates(in: try store.readManifest(), days: plan.days, now: now, shown: shown)
-                .filter { planned.contains($0.stampID) }
+            let manifest = try store.readManifest()
+            let current = if let days = plan.days {
+                cleanupCandidates(in: manifest, days: days, now: now, shown: shown)
+            } else {
+                scanCandidates(in: manifest, scanned: Set(manifest.stamps.filter { planned.contains($0.id) }.map(\.displayUUID)), seen: shown)
+            }
+            let candidates = current.filter { planned.contains($0.stampID) }
             let ids = Set(candidates.map(\.stampID))
             try store.transaction { manifest in
                 manifest.stamps.removeAll { ids.contains($0.id) }
@@ -74,6 +88,24 @@ extension DesktopLabeler {
             for name in Set(candidates.map(\.fileName)) { store.removeFile(named: name) }
             return CleanupPlan(days: plan.days, candidates: candidates)
         }
+    }
+
+    /// What `cleanup --scan` would delete (spec 012 FR-004): the labels of the scanned displays, active or retired,
+    /// whose image no Desktop showed. Labels of displays that were not scanned (not connected) are never candidates.
+    /// Reads only (apart from housekeeping).
+    public func scanPlan(from result: ScanResult) throws -> CleanupPlan {
+        guard store.hasManifest else { return CleanupPlan(days: nil, candidates: []) }
+        try housekeeping()
+        return CleanupPlan(days: nil, candidates: scanCandidates(in: try store.readManifest(), scanned: Set(result.scanned.map(\.uuid)), seen: result.seen))
+    }
+
+    func scanCandidates(in manifest: Manifest, scanned: Set<String>, seen: Set<String>) -> [CleanupCandidate] {
+        manifest.stamps.compactMap { stamp -> CleanupCandidate? in
+            guard scanned.contains(stamp.displayUUID), !seen.contains(stamp.fileName) else { return nil }
+            return CleanupCandidate(label: stamp.label.text.value, displayName: stamp.displayName.isEmpty ? "Unknown display" : stamp.displayName,
+                                    reason: .notOnAnyDesktop, since: stamp.lastSeen ?? stamp.createdAt, bytes: fileSize(stamp.fileName),
+                                    lastSeen: stamp.lastSeen, stampID: stamp.id, fileName: stamp.fileName)
+        }.sorted { $0.since < $1.since }
     }
 
     /// The reminder, if one is due: at least the threshold could be freed (at the default days), and it was not shown
@@ -118,7 +150,8 @@ extension DesktopLabeler {
                 since = seen
             }
             return CleanupCandidate(label: stamp.label.text.value, displayName: stamp.displayName.isEmpty ? "Unknown display" : stamp.displayName,
-                                    reason: reason, since: since, bytes: fileSize(stamp.fileName), stampID: stamp.id, fileName: stamp.fileName)
+                                    reason: reason, since: since, bytes: fileSize(stamp.fileName), lastSeen: stamp.lastSeen,
+                                    stampID: stamp.id, fileName: stamp.fileName)
         }.sorted { $0.since < $1.since }
     }
 

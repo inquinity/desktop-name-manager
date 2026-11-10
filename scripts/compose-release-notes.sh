@@ -46,8 +46,19 @@ die() {
 }
 
 print_stub() {
-    # The comment is kept in the stub, so the next change knows where its bullet goes.
-    awk '/^-->/ { print; exit } { print }' "$UNRELEASED_FILE"
+    # A fixed text, never copied from UNRELEASED.md: a file that lost its comment would otherwise carry the released
+    # bullets into the next version (found in the 0.3.0 release review). The comment tells the next change where its
+    # bullet goes.
+    cat <<'STUB'
+# Unreleased
+
+<!--
+Add a bullet below in the same commit as any change a dnm user would notice or want: the test for every
+line is whether a reader cares. Known limitations go under a "## Known gaps" heading. At release,
+scripts/compose-release-notes.sh builds <version>.md from this file; this comment and the heading above are
+dropped (the same process as the sibling project).
+-->
+STUB
     printf '\n%s\n' "$EMPTY_MARKER"
 }
 

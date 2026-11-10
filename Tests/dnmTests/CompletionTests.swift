@@ -98,6 +98,12 @@ import Testing
         #expect(script.contains(shell == "zsh" ? "{--quiet,-q}" : "--quiet -q"), "\(shell)")
     }
 
+    /// Spec 012 FR-012: `--scan` is offered for `cleanup`.
+    @Test(.enabled(if: CLI.binary != nil), arguments: ["zsh", "bash"])
+    func scanIsOfferedForCleanup(_ shell: String) throws {
+        #expect(try CLI.run(["--generate-completion-script", shell]).output.contains("--scan"), "\(shell)")
+    }
+
     @Test(.enabled(if: CLI.binary != nil))
     func theScriptsRegisterTheBinary() throws {
         #expect(try CLI.run(["--generate-completion-script", "zsh"]).output.hasPrefix("#compdef dnm\n"))

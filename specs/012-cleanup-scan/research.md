@@ -25,9 +25,15 @@ Carries over spec 009 research R7 and settles what it left open.
 
 ## R2. Reading a Desktop's wallpaper after a step
 
-- **Decision**: after each confirmed step, read `currentWallpaper(on:)` for the display; read again about 100 ms
-  later while pumping the application's events, and accept the value once two reads agree, bounded by the step
-  confirmation timeout (1.5 s). A display with one Desktop is read once, without stepping.
+- **Decision**: after each confirmed step, read `currentWallpaper(on:)` for the display every 100 ms while pumping
+  the application's events, and accept the value once three consecutive reads agree (amended from two after review,
+  2026-11-09); fifteen reads (about 1.5 s) without that stop the scan with nothing deleted (amended after the release
+  review: a stale value would offer a label in use; a wallpaper set to change every few seconds may then stop a
+  scan now and then). A read that fails (a display disconnected) stops the scan instead of counting
+  as "no image". A display with one Desktop is read the same way, without stepping.
+- **Late notices** (added after review): before comparing the announced changes with the confirmed steps, the walk
+  waits 0.5 s while delivering events, so a step that timed out but moved after all is counted and stops the scan,
+  instead of being taken for the last Desktop.
 - **Rationale**: `docs/research/findings.md` found that `desktopImageURL(for:)` follows Space switches immediately
   in a long-running process (the scan is one, pumping events). The second read is a cheap guard against a missed
   update, which would report a label in use as unseen (the worst error here). Live-checked by SC-001.

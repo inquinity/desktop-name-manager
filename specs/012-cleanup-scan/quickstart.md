@@ -41,8 +41,8 @@ reconciling the two is a separate constitution change.)
    time from the first `Scanning` line to the report is under 20 s for 3 Desktops on each (SC-004).
 3. **Display not connected**: with a label stored for a display that is unplugged, the report names it under
    `Not checked` and does not list its labels.
-4. **Ctrl-C**: start a scan on a display with five or more Desktops, press Ctrl-C mid-walk: the display returns,
-   `Stopped. Scanned: ...`, exit 130, nothing deleted.
+4. **Ctrl-C**: start a scan on a display with five or more Desktops, press Ctrl-C mid-walk (with the terminal window
+   in front; KI-4): the display returns, `Stopped. Scanned: ...`, exit 130, nothing deleted.
 5. **"Displays have separate Spaces" off** (optional; needs a log-out): the description says the displays switch
    together; one walk; the result is correct on both displays.
 

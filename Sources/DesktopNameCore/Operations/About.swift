@@ -33,7 +33,7 @@ public enum About {
     ]
 
     /// What the Accessibility permission covers for a command-line tool (security plan S1).
-    public static let accessibilityScope = "macOS grants it to the whole app you run dnm from (your terminal), so every program run in that app can then send keystrokes and clicks too; turn it off when you no longer need --desktop."
+    public static let accessibilityScope = "macOS grants it to the whole app you run dnm from (your terminal), so every program run in that app can then send keystrokes and clicks too; turn it off when you no longer need --desktop or cleanup --scan."
 
     /// Where the Accessibility permission is granted; macOS 27 renamed the panel.
     /// Where the "Move left/right a space" shortcuts are turned on. They are only in the Keyboard pane.
@@ -44,7 +44,7 @@ public enum About {
     /// The permissions statement, shared with the app's About window.
     public static let permissions = [
         "Labeling the current Desktop needs no permissions.",
-        "Accessibility is used only by --desktop, to press macOS's own \"Move left a space\" and \"Move right a space\" shortcuts, because macOS gives apps no public way to switch Desktops. Nothing else is typed or read. " + accessibilityScope,
+        "Accessibility is used only by --desktop and cleanup --scan, to press macOS's own \"Move left a space\" and \"Move right a space\" shortcuts, because macOS gives apps no public way to switch Desktops. Nothing else is typed or read. " + accessibilityScope,
         "No network access and no telemetry.",
     ]
 

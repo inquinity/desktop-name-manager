@@ -64,7 +64,8 @@ release: _require-clean _require-notes
     notes="docs/release-notes/$v.md"
     scripts/compose-release-notes.sh --version "$v" > "$notes.tmp"
     mv "$notes.tmp" "$notes"
-    scripts/compose-release-notes.sh --stub > docs/release-notes/UNRELEASED.md
+    scripts/compose-release-notes.sh --stub > docs/release-notes/UNRELEASED.md.tmp
+    mv docs/release-notes/UNRELEASED.md.tmp docs/release-notes/UNRELEASED.md
     git add Version.xcconfig "$notes" docs/release-notes/UNRELEASED.md
     git commit -m "Release $v build $n"
     git tag -s "v$v" -m "Desktop Name Manager $v"

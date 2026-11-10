@@ -44,7 +44,7 @@ import Testing
         let access = try item("Accessibility", in: report)
         #expect(access.state == .attention && access.fix?.contains("Privacy & Security > Accessibility (macOS 26)") == true
             && access.fix?.contains("Device Control and Data Access (macOS 27)") == true)
-        #expect(access.detail.contains("Only --desktop needs it"))
+        #expect(access.detail.contains("Only --desktop and cleanup --scan need it"))
         #expect(access.detail.contains("every program run in that app"))
     }
 

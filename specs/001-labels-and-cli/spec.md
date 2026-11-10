@@ -253,7 +253,8 @@ the expected labels; the other Desktops are unchanged.
 2. **Given** the display has three Desktops, **When** the user asks for `--desktop 5`, **Then** nothing is
    labeled, the display is back where it started, and the tool says the display has three Desktops.
 3. **Given** Accessibility is not granted, **When** the user passes `--desktop`, **Then** nothing changes
-   and the tool explains how to grant the permission and why it is needed; it never prompts on its own.
+   and the tool says in one sentence why the permission is needed (`dnm check` says how to grant it; amended
+   2026-11-10); it never prompts on its own.
 4. **Given** `--desktop` is left out, **When** the command runs, **Then** it acts on the current Desktop with
    no switching and no permission. (With `--desktop`, the tool always finds its position by switching, because
    public interfaces cannot tell which Desktop is showing.)
@@ -405,7 +406,7 @@ the expected labels; the other Desktops are unchanged.
   interfaces: it moves the pointer to that display (and back), uses the "Move left a space" and
   "Move right a space" shortcuts, and confirms each step with the system's public notification that the
   active Desktop changed. It MUST end on the Desktop it started on, also when it fails. Without `--desktop`
-  there is no switching and no permission; with it, the tool needs the Accessibility permission: when it is missing, the tool MUST change nothing, say why it is needed and how to grant it,
+  there is no switching and no permission; with it, the tool needs the Accessibility permission: when it is missing, the tool MUST change nothing, say in one sentence why it is needed (`dnm check` says how to grant it; amended 2026-11-10),
   and MUST NOT trigger a permission prompt on its own. A Desktop number that does not exist, shortcuts
   that are off, or a step that cannot be confirmed MUST stop the command with a message, return to the
   starting Desktop and label nothing. A Desktop change made by the person during the command (more
