@@ -27,7 +27,7 @@ dnm cleanup --scan [--yes] [--json]
 
    ```text
    dnm will visit every Desktop of these displays, one display at a time: Built-in Display, DP1.
-   It takes about 2 seconds per Desktop. The Desktops slide by and the pointer moves; do not type until it is done.
+   It takes about 2 seconds per Desktop. The Desktops slide by and the pointer moves; do not type until it is done. Ctrl-C stops it only while your terminal is the active app.
    Each display returns to the Desktop it started on.
    Scan every Desktop now? [y/N]
    ```

@@ -206,8 +206,10 @@ each one shows, and lists the labels that no Desktop shows, whatever their age.
 - Whatever their age: a label you removed or replaced moments ago is listed too, and once the scan deletes its image
   that change can no longer be undone. A display where no step moved is counted as having one Desktop, and the
   report says so before asking.
-- Ctrl-C during the scan returns the display to its Desktop, deletes nothing and exits 130; a second Ctrl-C stops
-  at once.
+- Ctrl-C during the scan returns the display to its Desktop, deletes nothing and exits 130; a second Ctrl-C stops at
+  once. It works only while your terminal is the active app: once the scan shows a Desktop without a terminal window,
+  macOS sends the keys to the app active there instead (known issue KI-4). Assigning the terminal to all Desktops (its
+  Dock menu, Options) should keep Ctrl-C working; not yet checked live.
 - On a Mac with one display and one Desktop, or with the "Move left a space" and "Move right a space" shortcuts
   off, nothing moves and the scan cannot tell the two apart; it stops and deletes nothing. `dnm cleanup` still works.
 

@@ -17,8 +17,8 @@ struct CleanupCommand: ParsableCommand, HasGlobalOptions {
         With --scan, dnm instead visits every Desktop of every connected display, as --desktop does (it needs the \
         Accessibility permission; the Desktops slide by and the pointer moves), notes which labeled image each shows, and \
         lists the labels that no Desktop shows, whatever their age. It asks before scanning and again before deleting. \
-        Labels of displays that are not connected are left alone and named. Ctrl-C during the scan returns the display \
-        to its Desktop and deletes nothing (exit 130). The scan sees the Desktops of the displays connected now; if you \
+        Labels of displays that are not connected are left alone and named. Ctrl-C stops the scan, returns the display to \
+        its Desktop and deletes nothing (exit 130), but only while your terminal is the active app. The scan sees the Desktops of the displays connected now; if you \
         move between display arrangements, a Desktop of another arrangement may still use a label it lists.
         """)
 

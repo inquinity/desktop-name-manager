@@ -121,7 +121,7 @@ control"`).
   - Open questions for the maintainer: with "Displays have separate Spaces" off, does one step post one change notice or one per display (if one per display, every shared-Spaces scan stops safely with "changed while scanning")? Do the shortcuts move the display under the pointer (as `--desktop` assumes, checked live in spec 010)? SIGTERM or SIGHUP during a walk leave the display where it is (not handled).
 - [X] T031 `just test` and `just periphery` pass (a native build first, so periphery reads a fresh index); `CommandsStayThinTests` still passes; scan the diff for personal paths, names and UUIDs
   - `just test` (364 core, 82 CLI) and `just periphery` pass after a native build; no personal paths, names or UUIDs in the diff (2026-11-09).
-- [ ] T032 Quickstart by-hand scenarios 1-6, then the live scenarios 1-4 (and 5 if the maintainer can switch "Displays have separate Spaces") on the maintainer's Mac under the live-test rules and approved live control, quoting `dnm --version`; record the results in this file (SC-001, SC-004)
+- [X] T032 Quickstart by-hand scenarios 1-6, then the live scenarios 1-4 (and 5 if the maintainer can switch "Displays have separate Spaces") on the maintainer's Mac under the live-test rules and approved live control, quoting `dnm --version`; record the results in this file (SC-001, SC-004)
   - 2026-11-10, `0.3.0 build 30 (7d4952f)`, macOS 27.2, two displays (separate Spaces on), private store, `Index.plist`
     backed up. By hand 1-5 passed on 2026-11-09 (read-only).
   - Live 2 (two displays): `Tests/live/live-scan.sh` passed all 7 checks: one candidate, the deleted Desktop's label,
@@ -135,8 +135,16 @@ control"`).
   - By hand 6 (Accessibility off for the app running dnm, empty private store): the `--desktop`-style explanation,
     `Nothing was deleted.`, exit 1, no switching and no prompt. Passed. The maintainer found the text too long; it is
     now one sentence (`1675a90`, reviewed: two stale spec lines fixed), checked by the unit and command tests.
-  - Still open: Live 1 (one display), Live 3 (a display not connected), Live 5
-    (optional).
+  - 2026-11-10, maintainer: Live 1 (one display) passed; Live 3 (a display not connected) passed.
+  - Ctrl-C from the keyboard (a real key event posted through System Events, the scan run in macOS Terminal, which
+    was frontmost when the scan started): 3 s into the walk the frontmost app was another terminal app, iTerm2,
+    which had a window on the Desktop shown, so the key went there; the scan ran to the end (exit 0). The same key
+    event with nothing switching reached Terminal (SIGINT). Finding: once the walk shows a Desktop without the
+    terminal's window, macOS makes another app active and Ctrl-C from the keyboard does not reach dnm; it reaches
+    whatever app is active. Ctrl-C works only while the terminal stays active (for example, its window on every
+    Desktop). The help, README and release notes promise more than this; decision pending.
+  - Decision (maintainer, 2026-11-10): correct the docs and ship; KI-4 recorded, a stop from any app on the backlog.
+    Live 5 (shared Spaces) not run (optional).
 
 ## Dependencies
 
