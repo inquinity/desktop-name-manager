@@ -28,6 +28,11 @@ final class FakeSwitcher: DesktopSwitching {
     var shortcutsOn = true
     /// Steps (counted from 1) whose confirmation never arrives, to simulate a lost step.
     var unconfirmedSteps: Set<Int> = []
+    /// Steps (counted from 1) that move but are announced late: after the step gave up, at the next pause.
+    var lateAnnouncedSteps: Set<Int> = []
+    private var lateAnnouncements = 0
+    /// Makes `currentWallpaper` throw for this display from the next step on, as for one disconnected meanwhile.
+    var disconnectAtStep: (step: Int, display: Display)?
     private(set) var steps = 0
     private(set) var pointedAt: String?
     private(set) var pointedAtNames: [String] = []
@@ -72,7 +77,11 @@ final class FakeSwitcher: DesktopSwitching {
 
     func restorePointer(_ location: CGPoint) { pointerRestored = location == CGPoint(x: 1, y: 2) }
 
-    func pause(_ seconds: TimeInterval) { pauses += 1 }
+    func pause(_ seconds: TimeInterval) {
+        pauses += 1
+        announcedChanges += lateAnnouncements
+        lateAnnouncements = 0
+    }
 
     func step(_ direction: StepDirection) -> Bool {
         steps += 1
@@ -83,7 +92,9 @@ final class FakeSwitcher: DesktopSwitching {
         for key in separateSpaces ? [pointedKey] : Array(screens.keys) { move(key, to: next) }
         visitedPositions.append(next)
         if personSwitchesAtStep == steps { personSwitches() }
+        if let disconnect = disconnectAtStep, disconnect.step == steps { system?.unreadable.insert(disconnect.display.uuid) }
         guard !unconfirmedSteps.contains(steps) else { return false }
+        if lateAnnouncedSteps.contains(steps) { lateAnnouncements += 1; return false }
         announcedChanges += 1
         return true
     }

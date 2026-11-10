@@ -38,6 +38,8 @@ extension DesktopLabeler {
     /// Pauses between two reads of a Desktop's wallpaper, and how many reads at most (about 1.5 s, the step timeout).
     static let stableReadPause: TimeInterval = 0.1
     static let stableReadLimit = 15
+    /// Consecutive reads that must agree before a Desktop's wallpaper is taken as read.
+    static let stableReadsNeeded = 3
 
     /// The displays a scan would visit and what it cannot check. Reads only.
     public func scanPreview() throws -> ScanPreview {
@@ -87,7 +89,7 @@ extension DesktopLabeler {
             do {
                 let outcome = try navigator.walk(on: walk.walked, isInterrupted: isInterrupted) {
                     for display in walk.reads {
-                        if let name = stableRead(display, switcher: switcher) { seen[display.uuid, default: []].insert(name) }
+                        if let name = try stableRead(display, switcher: switcher) { seen[display.uuid, default: []].insert(name) }
                     }
                 }
                 switch outcome {
@@ -100,6 +102,12 @@ extension DesktopLabeler {
                 throw DnmError.failure("\(error.errorDescription ?? "\(error)") Scanned and returned: \(finished.joined(separator: ", ")).")
             }
             finished += walk.reads.map(\.name)
+        }
+        // A Ctrl-C during the last walk's final step or its way back is seen here, so it still deletes nothing.
+        if isInterrupted() { throw DnmError.interrupted(scanned: finished) }
+        // A display connected or disconnected meanwhile makes the result incomplete: stop rather than guess.
+        guard try system.displays().map(\.uuid).sorted() == displays.map(\.uuid).sorted() else {
+            throw DnmError.failure("A display was connected or disconnected during the scan, so its Desktops were not all seen. Nothing was deleted; run the scan again.")
         }
         // A display where nothing moved has one Desktop only if the shortcuts work, which a confirmed step anywhere
         // in this run shows; otherwise its one read may have missed Desktops in use (spec 012 FR-017).
@@ -118,18 +126,25 @@ extension DesktopLabeler {
             """)
     }
 
-    /// The image file name a display's current Desktop shows, once two reads a moment apart agree (research R2),
-    /// or the last read after about 1.5 s. nil when it shows no image file.
+    /// The image file name a display's current Desktop shows, once three reads a moment apart agree (research R2),
+    /// or the last read after about 1.5 s. nil when it shows no image file. A read that fails (the display was
+    /// disconnected) stops the scan: a Desktop that could not be read must never count as showing nothing.
     @MainActor
-    func stableRead(_ display: Display, switcher: DesktopSwitching) -> String? {
-        func read() -> String? { (try? system.currentWallpaper(on: display))?.url?.lastPathComponent }
+    func stableRead(_ display: Display, switcher: DesktopSwitching) throws -> String? {
+        func read() throws -> String? {
+            do { return try system.currentWallpaper(on: display).url?.lastPathComponent } catch {
+                throw DnmError.failure("dnm could not read the wallpaper of \(display.name) during the scan (\(error.localizedDescription)). Nothing was deleted.")
+            }
+        }
         switcher.pause(Self.stableReadPause)
-        var last = read()
+        var last = try read()
+        var agreeing = 1
         for _ in 1..<Self.stableReadLimit {
             switcher.pause(Self.stableReadPause)
-            let next = read()
-            if next == last { return next }
+            let next = try read()
+            agreeing = next == last ? agreeing + 1 : 1
             last = next
+            if agreeing >= Self.stableReadsNeeded { break }
         }
         return last
     }

@@ -20,6 +20,9 @@ public enum Interrupt {
 
     /// Starts catching Ctrl-C; call `restore` afterwards.
     public static func install() {
+        // Set up every static the handler reads now, so the handler never runs their one-time initialization.
+        messageLength.store(0, ordering: .releasing)
+        message.initialize(repeating: 0, count: maximumMessage)
         requested.store(false, ordering: .releasing)
         var action = sigaction()
         action.__sigaction_u.__sa_handler = { _ in

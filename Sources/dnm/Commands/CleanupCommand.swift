@@ -175,9 +175,10 @@ struct CleanupCommand: ParsableCommand, HasGlobalOptions {
                 Output.out(ScanText.nothingToDelete)
                 ScanText.notChecked(result.notConnected).forEach(Output.out)
             case .delete:
+                // The list comes before the deletion (FR-005), as when asking.
+                if !json { ScanText.report(plan, notConnected: result.notConnected, now: Date()).forEach(Output.out) }
                 let deleted = try labeler.carryOut(plan, seen: result.seen)
                 if json { return Output.out(try Reports.json(Reports.scan(deleted, scanned: scanned, notConnected: result.notConnected, deleted: !deleted.candidates.isEmpty))) }
-                ScanText.report(plan, notConnected: result.notConnected, now: Date()).forEach(Output.out)
                 Output.out(ScanText.deleted(deleted))
             case .askToDelete:
                 ScanText.report(plan, notConnected: result.notConnected, now: Date()).forEach(Output.out)

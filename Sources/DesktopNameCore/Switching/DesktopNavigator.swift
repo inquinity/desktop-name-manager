@@ -32,6 +32,10 @@ public struct DesktopNavigator {
     let switcher: DesktopSwitching
     /// Guards against a runaway loop; macOS allows at most 16 Desktops per display.
     static let maximumSteps = 32
+    /// How long a walk waits for a late notice of a Desktop change before comparing the counts (spec 012). A step
+    /// that timed out (1.5 s) but moved after all is announced late; counting it stops the scan instead of skipping
+    /// a Desktop.
+    static let lateNoticePause: TimeInterval = 0.5
 
     public init(switcher: DesktopSwitching) {
         self.switcher = switcher
@@ -133,38 +137,49 @@ public struct DesktopNavigator {
                 offset += 1; confirmed += 1
             }
         }
+        // More changes than confirmed steps means the person (or another app) switched meanwhile, or a step that
+        // timed out moved after all: a Desktop may have been skipped or read twice, and the position is unknown.
+        // A late notice is counted only once the events are delivered, so wait a moment first.
+        func checkCount() throws {
+            switcher.pause(Self.lateNoticePause)
+            guard switcher.announcedChanges - baseline == confirmed else { throw changedWhileScanning(display) }
+        }
         func stopIfInterrupted() throws {
             guard isInterrupted() else { return }
+            try checkCount()
             try back()
             throw DnmError.interrupted(scanned: [])
         }
         func readHere() throws {
             do { try read() } catch { try? back(); throw error }
         }
+        func tooMany() throws -> Never {
+            try? back()
+            throw DnmError.failure("\(display.name) has more than \(Self.maximumSteps) Desktops and full-screen apps, more than dnm can scan. Nothing was deleted.")
+        }
 
         // Step left to Desktop 1.
         var lefts = 0
-        while lefts < Self.maximumSteps {
+        while true {
             try stopIfInterrupted()
             guard switcher.step(.left) else { break }
             lefts += 1; offset -= 1; confirmed += 1
+            if lefts >= Self.maximumSteps { try tooMany() }
         }
         try readHere()
         // Then right, reading each Desktop, until a step does not move: the last Desktop.
         var rights = 0
-        while rights < Self.maximumSteps {
+        while true {
             try stopIfInterrupted()
             guard switcher.step(.right) else { break }
             rights += 1; offset += 1; confirmed += 1
+            if rights >= Self.maximumSteps { try tooMany() }
             try readHere()
         }
+        try checkCount()
         guard lefts + rights > 0 else { return .nothingMoved }
-
-        // More changes than steps means the person (or another app) switched meanwhile: a Desktop may have been
-        // skipped or read twice, and the position is no longer known.
-        guard switcher.announcedChanges - baseline == confirmed else { throw changedWhileScanning(display) }
         try back()
-        guard switcher.announcedChanges - baseline == confirmed else { throw changedWhileScanning(display) }
+        try checkCount()
         return .walked(steps: confirmed)
     }
 

@@ -50,7 +50,7 @@ Delete these 2 labeled images (5.0 MB)? [y/N]
 }
 ```
 
-`why` is one of `removed`, `replaced`, `undone`, `not seen`. `deleted` is true only when `--yes` deleted at least one image (amended 2026-11-03). Exit codes: `0` success or nothing deleted by choice; `1` store failure (not writable, damaged, newer); `2` invalid input.
+`why` is one of `removed`, `replaced`, `undone`, `not seen`, and, from `cleanup --scan` (spec 012), `not on any Desktop`. `deleted` is true only when `--yes` deleted at least one image (amended 2026-11-03). Exit codes: `0` success or nothing deleted by choice; `1` store failure (not writable, damaged, newer); `2` invalid input.
 
 ## 3. `dnm cleanup --scan` (stage 2; replaced by `specs/012-cleanup-scan/contracts/cli.md`, which governs)
 

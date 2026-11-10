@@ -92,10 +92,15 @@ cleanup() {
         print_colored "$COLOR_YELLOW" "Cleaning up: removing the labels this run made (this switches Desktops)..."
         local name desktop
         for name in "${display_names[@]}"; do
+            # On the display that lost Desktop 2, Desktop 3 is now a Desktop this run did not label: `remove` finds
+            # nothing there (or no Desktop 3) and changes nothing.
             for desktop in 1 2 3; do
-                "$dnm_binary" remove "$name" --desktop "$desktop" >/dev/null 2>&1 || true
+                if ! "$dnm_binary" remove "$name" --desktop "$desktop" >/dev/null 2>"${work_directory}/remove.err"; then
+                    print_colored "$COLOR_YELLOW" "remove on ${name}, Desktop ${desktop}: $(cat "${work_directory}/remove.err")"
+                fi
             done
         done
+        print_colored "$COLOR_YELLOW" "If a label is left on screen: DNM_STORE_DIR='${DNM_STORE_DIR:-}' dnm remove <display> --desktop N"
     fi
     if [[ -n "$work_directory" && -f "${work_directory}/Index.plist.backup" ]]; then
         if ! cmp -s "${work_directory}/Index.plist.backup" "$wallpaper_store_plist"; then
@@ -132,11 +137,15 @@ else
     command -v plutil >/dev/null || { print_colored "$COLOR_RED" "plutil is needed to read the JSON report."; exit 1; }
     # The private store first: even `dnm displays` runs housekeeping on the store it is pointed at.
     work_directory="$(mktemp -d "${TMPDIR:-/tmp}/dnm-live-scan.XXXXXX")"
+    trap cleanup EXIT   # from here on, every exit reports where the backup is
     cp "$wallpaper_store_plist" "${work_directory}/Index.plist.backup"
     export DNM_STORE_DIR="${work_directory}/store"
-    while IFS= read -r line; do
-        display_names+=("$line")
-    done < <("$dnm_binary" displays --json | sed -n 's/^ *"name" : "\(.*\)",\{0,1\}$/\1/p')
+    # Display names through plutil, so a name with a quote or a backslash arrives intact.
+    "$dnm_binary" displays --json >"${work_directory}/displays.json"
+    display_count="$(plutil -extract displays raw -o - "${work_directory}/displays.json")"
+    for ((display_index = 0; display_index < display_count; display_index++)); do
+        display_names+=("$(plutil -extract "displays.${display_index}.name" raw -o - "${work_directory}/displays.json")")
+    done
     ((${#display_names[@]} > 0)) || { print_colored "$COLOR_RED" "dnm reports no displays."; exit 1; }
     print_colored "$COLOR_BRIGHTYELLOW" "Backed up the wallpaper store to ${work_directory}"
     print_colored "$COLOR_BRIGHTYELLOW" "Using a private store: ${DNM_STORE_DIR}"
@@ -147,7 +156,6 @@ else
     fi
     print_colored "$COLOR_YELLOW" "Run on: macOS $(sw_vers -productVersion) ($(sw_vers -buildVersion)), $(uname -m), dnm $("$dnm_binary" --version), $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 fi
-trap cleanup EXIT
 
 # The display whose Desktop 2 is deleted: the one named, or the last.
 target_index=${#display_names[@]}
@@ -183,10 +191,15 @@ done
 
 # --- The person deletes one labeled Desktop ---------------------------------------------------------
 print_colored "$COLOR_BRIGHTYELLOW" "Now, in Mission Control, delete Desktop 2 of ${target_name} (its wallpaper says \"${deleted_label}\")."
-print_colored "$COLOR_BRIGHTYELLOW" "Then go to any Desktop you like on each display, and press Enter here."
+print_colored "$COLOR_BRIGHTYELLOW" "Then, on each display, go to a Desktop this run labeled (\"Scan ...\") and press Enter here."
 if ! "$dry_run"; then
     read -r -p "Press Enter when Desktop 2 of ${target_name} is deleted... " _
-    for name in "${display_names[@]}"; do before_scan+=("$(current_label "$name")"); done
+    for name in "${display_names[@]}"; do
+        label_now="$(current_label "$name")"
+        before_scan+=("$label_now")
+        [[ "$label_now" == *'"Scan '* ]] \
+            || print_colored "$COLOR_YELLOW" "${name} is on a Desktop this run did not label; the return check there proves little."
+    done
 fi
 
 # --- The scan ---------------------------------------------------------------------------------------

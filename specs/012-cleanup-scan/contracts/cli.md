@@ -67,7 +67,13 @@ dnm cleanup --scan [--yes] [--json]
 - The `--desktop` messages for a missing permission and for shortcuts that are off, ending `Nothing was deleted.`
   The "nothing moved" message is given only when no step moved on any display in the run (spec FR-017); a display
   where nothing moved, beside one where steps were confirmed, is counted as having one Desktop.
-- Someone else switched: `The Desktop on <display> changed while dnm was scanning. Nothing was deleted. dnm no longer
+- A display that cannot be read (disconnected): `dnm could not read the wallpaper of <display> during the scan
+  (<reason>). Nothing was deleted.`; a display connected or disconnected between the start and the end:
+  `A display was connected or disconnected during the scan, so its Desktops were not all seen. Nothing was deleted;
+  run the scan again.` (added 2026-11-09 after review)
+- More than 32 steps one way: `<display> has more than 32 Desktops and full-screen apps, more than dnm can scan.
+  Nothing was deleted.`
+- Someone else switched, or a step that timed out moved after all: `The Desktop on <display> changed while dnm was scanning. Nothing was deleted. dnm no longer
   knows where <display> is, so it did not switch back; return to your Desktop yourself.`
 - Other displays already scanned are back where they started and are named: `Scanned and returned: <displays>.`
 
@@ -76,13 +82,16 @@ dnm cleanup --scan [--yes] [--json]
 - First: the walk stops stepping forward, the display returns to its starting Desktop and the pointer to where it
   was, then `Stopped. Scanned: <displays>. Nothing was deleted.` on standard error, exit 130; before the first
   display is finished, `Stopped before any display was scanned. Nothing was deleted.`
-- Second, while returning: `Stopped; <display> may be on another Desktop.`, exit 130 at once.
+- Second, while returning: `Stopped; <display> may be on another Desktop. Nothing was deleted.`, exit 130 at once.
+- A Ctrl-C during the last display's final step or its way back is seen after the walk: the same first-Ctrl-C
+  result. If the Desktop changed by other means before the Ctrl-C, the "changed while dnm was scanning" failure is
+  given instead (exit 1), since dnm cannot step back from an unknown place.
 - Outside the walk (at a question), Ctrl-C ends the command as for any command; nothing is deleted.
 
 ## 6. JSON (`--json --yes`)
 
 The spec 009 cleanup document (`days`, `candidates`, `totalBytes`, `deleted`), with `"days": null`, each
-candidate's `reason` `"notOnAnyDesktop"`, and a new `"mode"` field, `"scan"` here and `"age"` in the age-based
+candidate's `why` `"not on any Desktop"` (the key and style of spec 009; corrected 2026-11-09 after review), and a new `"mode"` field, `"scan"` here and `"age"` in the age-based
 document (an added field; nothing existing changes for `cleanup` without `--scan`), plus:
 
 ```json

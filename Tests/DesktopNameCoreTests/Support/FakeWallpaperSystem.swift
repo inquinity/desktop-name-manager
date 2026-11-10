@@ -46,7 +46,11 @@ final class FakeWallpaperSystem: WallpaperSystem {
 
     func displays() throws -> [Display] { connectedDisplays }
 
+    /// Displays whose wallpaper cannot be read (as for one disconnected while a command runs).
+    var unreadable: Set<String> = []
+
     func currentWallpaper(on display: Display) throws -> CurrentWallpaper {
+        if unreadable.contains(display.uuid) { throw DnmError.failure("\(display.name) is no longer connected") }
         if var waiting = pending[display.uuid] {
             if waiting.readsLeft <= 0 {
                 current[display.uuid] = waiting.wallpaper

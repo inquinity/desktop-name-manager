@@ -126,8 +126,10 @@ import Testing
         let rig = try Rig(); defer { rig.h.cleanUp() }
         let stamps = try (1...3).map { try rig.label("D\($0)") }
         rig.switcher.attach(rig.main, wallpapers: stamps.map(rig.url), position: 1)
-        rig.switcher.lateReads = 1
-        #expect(try rig.h.labeler.scanPlan(from: try rig.scan()).candidates.isEmpty)
+        for late in [1, 2] {
+            rig.switcher.lateReads = late
+            #expect(try rig.h.labeler.scanPlan(from: try rig.scan()).candidates.isEmpty, "\(late) late reads")
+        }
     }
 
     // MARK: - One Desktop or shortcuts off (FR-017)
@@ -272,6 +274,77 @@ import Testing
             #expect(error.errorDescription == "Stopped before any display was scanned. Nothing was deleted.")
         }
         #expect(rig.switcher.position(of: rig.main) == 3)
+    }
+
+    // MARK: - Review findings (2026-11-09)
+
+    /// A Ctrl-C while the last display returns is still an interrupt: nothing is deleted, exit 130.
+    @Test func anInterruptOnTheWayBackOfTheLastWalkStillStops() throws {
+        let rig = try Rig(); defer { rig.h.cleanUp() }
+        try rig.label("A")
+        rig.switcher.attach(rig.main, wallpapers: [nil, nil, nil], position: 1)
+        // Edge (1), right (2), right (3), edge (4), then back: left (5), left (6). Ctrl-C during press 5.
+        var interrupted = false
+        rig.switcher.interruptAtStep = 5
+        rig.switcher.onInterruptStep = { interrupted = true }
+        let before = try rig.manifestBytes()
+        #expect(throws: DnmError.interrupted(scanned: ["Built-in Display"])) { _ = try rig.scan(isInterrupted: { interrupted }) }
+        #expect(rig.switcher.position(of: rig.main) == 1)
+        #expect(try rig.manifestBytes() == before)
+    }
+
+    /// A display that cannot be read during its walk (disconnected) stops the scan; its labels are never candidates.
+    @Test(arguments: [true, false])
+    func aDisplayThatCannotBeReadStopsTheScan(_ separateSpaces: Bool) throws {
+        let rig = try Rig(twoDisplays: true); defer { rig.h.cleanUp() }
+        rig.switcher.separateSpaces = separateSpaces
+        try rig.label("B", on: Self.second)
+        rig.switcher.attach(rig.main, wallpapers: [nil, nil], position: 1)
+        rig.switcher.attach(Self.second, wallpapers: [nil, nil], position: 1)
+        // Separate: main takes presses 1-4 (edge, right, edge, back); DP1's first move is press 6. Shared: press 2.
+        rig.switcher.disconnectAtStep = (separateSpaces ? 6 : 2, Self.second)
+        let before = try rig.manifestBytes()
+        do {
+            _ = try rig.scan(separateSpaces: separateSpaces)
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            let text = error.errorDescription ?? ""
+            #expect(text.contains("could not read the wallpaper of DP1") && text.contains("Nothing was deleted."), "\(text)")
+            if separateSpaces { #expect(text.hasSuffix("Scanned and returned: Built-in Display."), "\(text)") }
+        }
+        #expect(try rig.manifestBytes() == before)
+    }
+
+    @Test func aDisplayConnectedOrDisconnectedDuringTheScanStopsIt() throws {
+        let rig = try Rig(twoDisplays: true); defer { rig.h.cleanUp() }
+        try rig.label("A")
+        rig.switcher.attach(rig.main, wallpapers: [nil, nil], position: 1)
+        rig.switcher.attach(Self.second, wallpapers: [nil, nil], position: 1)
+        var walks = 0
+        do {
+            _ = try rig.h.labeler.scan(switcher: rig.switcher, separateSpaces: true, progress: { _ in
+                walks += 1
+                if walks == 2 { rig.h.system.connectedDisplays.removeLast() }
+            })
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").contains("connected or disconnected during the scan"))
+        }
+    }
+
+    /// A step that gave up but moved after all is announced late; the walk counts it and stops instead of taking
+    /// the Desktop before it for the last one.
+    @Test func aLateNoticeAtTheEndOfAWalkStopsTheScan() throws {
+        let rig = try Rig(); defer { rig.h.cleanUp() }
+        let a = try (1...3).map { try rig.label("D\($0)") }
+        rig.switcher.attach(rig.main, wallpapers: a.map(rig.url), position: 1)
+        rig.switcher.lateAnnouncedSteps = [3]   // edge (1), right (2), right (3): moves to Desktop 3, noticed late
+        do {
+            _ = try rig.scan()
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").contains("changed while dnm was scanning"))
+        }
     }
 
     // MARK: - Writes (FR-006, FR-007)

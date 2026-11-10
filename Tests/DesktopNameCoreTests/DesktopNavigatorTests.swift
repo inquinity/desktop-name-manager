@@ -288,4 +288,26 @@ import Testing
         }
         #expect(reads == 2 && fake.position == 4 && fake.pointerRestored)
     }
+
+    @Test func aWalkThatReachesTheStepLimitFailsInsteadOfStoppingShort() throws {
+        let fake = FakeSwitcher(desktops: 40, position: 40)
+        do {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display) {}
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").contains("more than 32 Desktops"))
+        }
+        #expect(fake.position == 40, "it went back")
+    }
+
+    @Test func aSwitchByThePersonBeforeCtrlCIsReportedNotStepppedBackFrom() throws {
+        let fake = FakeSwitcher(desktops: 4, position: 2)
+        fake.personSwitchesAtStep = 3
+        do {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display, isInterrupted: { fake.steps >= 4 }) {}
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").contains("did not switch back"), "\(error)")
+        }
+    }
 }
