@@ -3,11 +3,10 @@
 Ideas recorded for later. None is part of a current spec.
 
 - **Stop a scan from any app** (2026-11-10; known issue KI-4). Ctrl-C reaches `dnm cleanup --scan` only while the
-  terminal window running it is in front, which it usually is not once the walk leaves that window's Desktop. Options: treat a
-  Desktop switch made by the person during the walk as a stop (the walk already detects it, but then cannot know
-  where the display is), or watch for a key with Input Monitoring (a second permission; least-permission review
+  terminal window running it is in front, which it usually is not once the walk leaves that window's Desktop. Options:
+  treat a Desktop switch made by the person during the walk as a stop (the walk already detects it, but then cannot
+  know where the display is), or watch for a key with Input Monitoring (a second permission; least-permission review
   needed). Needs its own spec.
-
 - **Full-featured build with optional private interfaces** (2026-10-05). The product is public-only and
   aims to stay App Store compatible (constitution I). A second, separately built and distributed edition
   could add features that need private interfaces, for example: checking whether the "Move left/right a

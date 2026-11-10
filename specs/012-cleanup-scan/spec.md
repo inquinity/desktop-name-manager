@@ -212,8 +212,9 @@ As a user, I want options that do not apply to the scan to be refused, not ignor
   the Desktop it started on and restore the pointer, report the displays already scanned, delete nothing, and exit
   130. A second Ctrl-C MUST stop at once, saying the display may be on another Desktop. `--desktop` is unchanged.
   Found live 2026-11-10 (known issue KI-4): a Ctrl-C from the keyboard reaches `dnm` only while the terminal window
-  running it is in front; once the walk shows a Desktop without that window, macOS brings another window forward. The help,
-  README and the walk's description say so; a way to stop from any app is on the backlog (maintainer, 2026-11-10).
+  running it is in front; once the walk shows a Desktop without that window, macOS brings another window forward. The
+  help, README and the walk's description say so; a way to stop from any app is on the backlog (maintainer,
+  2026-11-10).
 - **FR-016**: As the walk reaches each display, `dnm` MUST print one progress line to standard error,
   `Scanning <display>…`, only when standard error is a terminal and never with `--json`. It is a progress message
   (spec 011's kinds: neither a warning nor a note), so quiet mode MUST NOT hide it.
