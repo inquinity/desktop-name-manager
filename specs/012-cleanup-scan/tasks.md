@@ -122,6 +122,18 @@ control"`).
 - [X] T031 `just test` and `just periphery` pass (a native build first, so periphery reads a fresh index); `CommandsStayThinTests` still passes; scan the diff for personal paths, names and UUIDs
   - `just test` (364 core, 82 CLI) and `just periphery` pass after a native build; no personal paths, names or UUIDs in the diff (2026-11-09).
 - [ ] T032 Quickstart by-hand scenarios 1-6, then the live scenarios 1-4 (and 5 if the maintainer can switch "Displays have separate Spaces") on the maintainer's Mac under the live-test rules and approved live control, quoting `dnm --version`; record the results in this file (SC-001, SC-004)
+  - 2026-11-10, `0.3.0 build 30 (7d4952f)`, macOS 27.2, two displays (separate Spaces on), private store, `Index.plist`
+    backed up. By hand 1-5 passed on 2026-11-09 (read-only).
+  - Live 2 (two displays): `Tests/live/live-scan.sh` passed all 7 checks: one candidate, the deleted Desktop's label,
+    deleted, both displays scanned and back on their starting Desktops. The scan took 19 s for 3 Desktops on each
+    display (SC-004: under 20 s; little margin). A first attempt stopped before scanning because one Desktop of the
+    second display still showed a labeled image from another store; `set` refused it and changed nothing, as designed.
+  - Live 4 (Ctrl-C): a scan with one label on each display, interrupted by Ctrl-C sent to the terminal while it walked
+    the first display: `Stopped before any display was scanned. Nothing was deleted.`, exit 130, both labels kept,
+    both displays back on the Desktop they started on. The Ctrl-C was delivered to the terminal tab directly; a key
+    press while the Desktops switch away from the terminal is still to be checked by hand.
+  - Still open: by hand 6 (Accessibility off), Live 1 (one display), Live 3 (a display not connected), Live 5
+    (optional).
 
 ## Dependencies
 
