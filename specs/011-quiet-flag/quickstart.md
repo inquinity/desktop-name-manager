@@ -21,7 +21,7 @@ display's name as `dnm displays` shows it (not recorded anywhere).
 
 `dnm alias` refuses a name a connected display already has, so an overridden alias only arises when that display
 connects later. To get one without a second monitor, seed the throwaway store with an alias of that name bound to a
-made-up display (loading does not re-check names):
+made-up display (loading does not re-check names; if the name contains `"` or `\`, put a `\` before each):
 
 ```bash
 printf '{"schemaVersion":3,"stamps":[],"changes":[],"aliases":[{"name":"%s","displayUUID":"ELSEWHERE","displayName":"Elsewhere"}]}' '<name>' >"$DNM_STORE_DIR/manifest.json"

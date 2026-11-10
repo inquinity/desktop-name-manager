@@ -47,6 +47,7 @@ alias_name="zzsyntax"
 assume_yes=false
 dry_run=false
 work_directory=""
+quiet_store=""
 failures=0
 labels_applied=false
 display_names=()
@@ -155,6 +156,10 @@ cleanup() {
         for name in "${display_names[@]}"; do
             "$dnm_binary" remove --display "$name" >/dev/null 2>&1 || true
         done
+    fi
+    # The quiet-mode section labels through its own store; a label it left is known only there.
+    if [[ -n "$quiet_store" && -d "$quiet_store" ]]; then
+        DNM_STORE_DIR="$quiet_store" "$dnm_binary" remove --display "${display_names[0]}" >/dev/null 2>&1 || true
     fi
     if [[ -n "$work_directory" && -f "${work_directory}/Index.plist.backup" ]]; then
         if ! cmp -s "${work_directory}/Index.plist.backup" "$wallpaper_store_plist"; then
@@ -336,10 +341,14 @@ print_colored "$COLOR_BRIGHTYELLOW" "Quiet mode"
 quiet_display="${display_names[0]}"
 if ! "$dry_run"; then
     main_store="$DNM_STORE_DIR"
-    export DNM_STORE_DIR="${work_directory}/quiet-store"
+    quiet_store="${work_directory}/quiet-store"
+    export DNM_STORE_DIR="$quiet_store"
     mkdir -p "$DNM_STORE_DIR"
+    # The name goes into JSON: escape backslashes, then quotes.
+    quiet_json_name="${quiet_display//\\/\\\\}"
+    quiet_json_name="${quiet_json_name//\"/\\\"}"
     printf '{"schemaVersion":3,"stamps":[],"changes":[],"aliases":[{"name":"%s","displayUUID":"ELSEWHERE","displayName":"Elsewhere"}]}' \
-        "$quiet_display" >"${DNM_STORE_DIR}/manifest.json"
+        "$quiet_json_name" >"${DNM_STORE_DIR}/manifest.json"
 fi
 check "set on the overridden alias's name warns without quiet mode" warns set "$quiet_display" "Loud"
 check "...and labels the display" shows_label "$quiet_display" "Loud"
@@ -353,6 +362,8 @@ check "remove ... --quiet prints nothing on standard error" succeeds_silently re
 check "...and restores the original" shows_no_label "$quiet_display"
 check "a refusal is still printed in quiet mode (exit 2)" fails_loudly 2 set "$quiet_display" -q
 if ! "$dry_run"; then
+    # Whatever the checks found, leave no label behind before going back to the main store.
+    "$dnm_binary" remove --display "$quiet_display" >/dev/null 2>&1 || true
     export DNM_STORE_DIR="$main_store"
 fi
 labels_applied=false

@@ -83,8 +83,21 @@ target changes; `DesktopNameCore` is untouched.
 - [X] T022 [P] `docs/release-notes/UNRELEASED.md` (bullets only): quiet mode and `DNM_QUIET=1`
 - [X] T023 [P] Amend `specs/001-labels-and-cli/contracts/cli.md` (the streams rule, as in `specs/011-quiet-flag/contracts/cli.md` §5; the short-options rule: `-q` decided by spec 011), `specs/006-display-aliases/spec.md` FR-012 ("unless quiet mode is on, spec 011"), and `specs/009-stamp-reuse-and-cleanup/spec.md` (the nudge Q&A: not in quiet mode, and a quiet run does not count) (FR-011)
 - [X] T024 `Tests/live/live-syntax.sh` (with the shell-script-expert skill, small changes only): seed the private store with an overridden alias for the main display (as T011); `set`, `remove` and `undo` on it print the warning without quiet mode and an empty standard error with `-q`, `dnm -q ...` and `DNM_QUIET=1`; labels applied and removed as without quiet mode, with `dnm list` and `dnm show` reporting the same state after a quiet run as after one without (this is the check of FR-005 for commands that change wallpapers, which the automated tests cannot run); every wallpaper restored with `dnm remove`
-- [ ] T025 `just test` and `just periphery` pass (a native build first, so periphery reads a fresh index); `CommandsStayThinTests` still passes; scan the diff for personal paths, names and UUIDs (the alias in the seeded store uses the made-up identity `ELSEWHERE`, not a UUID, so the hygiene scan stays clean)
-- [ ] T026 Independent review before merge (constitution VII): a code review and a security review, each by a separate agent with fresh context given only the branch's diff against `main`; findings fixed (with a fresh re-review of the fixes) or accepted by the maintainer, and recorded in this file
+- [X] T025 `just test` and `just periphery` pass (a native build first, so periphery reads a fresh index); `CommandsStayThinTests` still passes; scan the diff for personal paths, names and UUIDs (the alias in the seeded store uses the made-up identity `ELSEWHERE`, not a UUID, so the hygiene scan stays clean)
+- [X] T026 Independent review before merge (constitution VII): a code review and a security review, each by a separate agent with fresh context given only the branch's diff against `main`; findings fixed (with a fresh re-review of the fixes) or accepted by the maintainer, and recorded in this file
+  - Code review (Opus, fresh context, `main..` the branch, 2026-11-09): no high finding; the gate, parsing (including
+    `-q` with `--help`, `--version`, `--`, repeated, and in `prune`), the reminder throttle and the docs checked correct.
+    1 medium and 3 low, all fixed: the live script's quiet section could leave a label nothing removed after a failed
+    check (it now removes it before switching stores, and `cleanup` also removes through the quiet store); the
+    display name is escaped before it goes into the seeded JSON (also in the quickstart); the source scan also fails
+    on any standard-error writer outside `Output.swift`; the unchanged-output test says what it can and cannot show.
+  - Security review (Opus, fresh context, same range): no high or medium finding; quiet mode hides only the two
+    advisory messages, `DNM_QUIET` is strict, no new dependency, network use or private interface, no personal data.
+    Its 2 low findings were the live-script ones above. Its open question on test stores is fixed (they are deleted).
+  - Open questions answered: hiding the override warning in `set` is the spec's design (the confirmation names the
+    display labeled); completion after a leading `-q` is checked by hand (quickstart scenario 10), as
+    `CompletionTests` reads script text only; the seeded alias relies on loading not re-checking alias names, which
+    the tests would catch if it changed.
 - [ ] T027 Quickstart by-hand scenarios 1 to 10 (no wallpaper change; scenario 10 is Tab completion in bash and zsh at the keyboard) and a live run of `Tests/live/live-syntax.sh` on the maintainer's Mac under the live-test rules (back up `Index.plist`, private `DNM_STORE_DIR`, restore with `dnm remove`), quoting `dnm --version`; record the results in this file
 
 ## Dependencies

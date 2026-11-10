@@ -66,7 +66,9 @@ import Testing
         #expect(!Output.shouldPrint(kind, quiet: true))
     }
 
-    /// Every warning and note goes through the gate: none is written as an error, which quiet mode never holds back.
+    /// Every warning and note goes through the gate: none is written as an error, which quiet mode never holds back,
+    /// and nothing but `Output` writes to standard error at all. (A line scan: a call split across lines, or a prefix
+    /// built elsewhere, would still need review; the second check keeps any such writer inside `Output.swift`.)
     @Test func noWarningOrNoteIsWrittenAsAnError() throws {
         let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .appendingPathComponent("../../Sources/dnm").standardizedFileURL
@@ -77,6 +79,11 @@ import Testing
             let text = try String(contentsOf: sources.appendingPathComponent(file), encoding: .utf8)
             for line in text.split(separator: "\n") where line.contains("Output.err(") {
                 #expect(!line.contains("warning:") && !line.contains("note:"), "\(file): \(line)")
+            }
+            if file != "Output.swift" {
+                for writer in ["FileHandle.standardError", "fileDescriptor: 2", "fputs(", "stderr"] {
+                    #expect(!text.contains(writer), "\(file) writes to standard error without Output (\(writer))")
+                }
             }
         }
     }
@@ -152,21 +159,26 @@ import Testing
         ["cleanup", "--days", "-1"], ["undo", "--desktop", "0"],
     ])
     func errorsAreUnchanged(_ arguments: [String]) throws {
-        let plain = try CLI.run(arguments)
+        let store = CLI.scratchStore()
+        defer { try? FileManager.default.removeItem(atPath: store) }
+        let plain = try CLI.run(arguments, store: store)
         #expect(plain.status != 0, "\(arguments) is an error case")
         for quiet in [arguments + ["-q"], ["-q"] + arguments] {
-            let run = try CLI.run(quiet)
+            let run = try CLI.run(quiet, store: store)
             #expect(run.errors == plain.errors && run.status == plain.status && run.output == plain.output, "\(quiet)")
         }
     }
 
     /// SC-003: standard output of the read-only commands is the same, byte for byte, with and without quiet mode.
+    /// The store is empty, so nothing is held back here: this shows `-q` leaves results alone. Output with a warning
+    /// held back is compared for `show` and `alias` above, and for `set`, `remove` and `undo` by the live script.
     @Test(.enabled(if: CLI.connectedDisplayCount() > 0), arguments: [
         ["list"], ["list", "--json"], ["displays"], ["displays", "--json"], ["show"], ["show", "--json"],
         ["check"], ["check", "--json"], ["about"], ["alias"], ["alias", "--json"],
     ])
     func readOnlyOutputIsUnchanged(_ arguments: [String]) throws {
         let store = CLI.scratchStore()
+        defer { try? FileManager.default.removeItem(atPath: store) }
         let plain = try CLI.run(arguments, store: store)
         let quiet = try CLI.run(arguments + ["-q"], store: store)
         #expect(quiet.output == plain.output && quiet.status == plain.status, "\(arguments)")
