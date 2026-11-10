@@ -2,7 +2,7 @@ import ArgumentParser
 import DesktopNameCore
 import Foundation
 
-struct CheckCommand: ParsableCommand {
+struct CheckCommand: ParsableCommand, HasGlobalOptions {
     static let configuration = CommandConfiguration(
         commandName: "check",
         abstract: "Report display, label and setup information; check for issues.",
@@ -10,6 +10,8 @@ struct CheckCommand: ParsableCommand {
 
     @Flag(name: .long, help: "Print one JSON document instead of text.")
     var json = false
+
+    @OptionGroup var global: GlobalOptions
 
     func run() throws {
         try Self.guarded {

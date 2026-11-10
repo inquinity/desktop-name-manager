@@ -2,7 +2,7 @@ import ArgumentParser
 import DesktopNameCore
 import Foundation
 
-struct ShowCommand: ParsableCommand {
+struct ShowCommand: ParsableCommand, HasGlobalOptions {
     static let configuration = CommandConfiguration(
         commandName: "show",
         abstract: "Show the label details (the current Desktop, or pick one with a display and --desktop).",
@@ -14,6 +14,8 @@ struct ShowCommand: ParsableCommand {
 
     @Flag(name: .long, help: "Print one JSON document instead of text.")
     var json = false
+
+    @OptionGroup var global: GlobalOptions
 
     func run() throws {
         try Self.guarded {

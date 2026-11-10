@@ -37,9 +37,9 @@ struct Context {
 
     /// An alias of the same name that the display overrode is reported on standard error, once, before the first
     /// change. `set` calls it after it has validated the label and options, so a warning never comes before an input
-    /// error.
+    /// error. Held back in quiet mode (spec 011).
     func warn(_ notice: String?) {
-        if let notice { Output.err("dnm: warning: \(notice)") }
+        if let notice { Output.warning(notice) }
     }
 
     /// The options a suggested `dnm undo` needs to reach the same Desktop.
