@@ -79,7 +79,8 @@ import Testing
     func theJSONDocumentListsCandidatesAndDeletesOnlyWithYes() throws {
         let c = try Self.craft(); defer { try? FileManager.default.removeItem(atPath: c.path) }
         let listing = try json(try CLI.run(["cleanup", "--json"], store: c.path))
-        #expect(Set(listing.keys) == ["days", "candidates", "totalBytes", "deleted"])
+        #expect(Set(listing.keys) == ["mode", "days", "candidates", "totalBytes", "deleted"])
+        #expect(listing["mode"] as? String == "age", "spec 012: the age-based document says its mode")
         #expect(listing["deleted"] as? Bool == false && listing["days"] as? Int == 30 && listing["totalBytes"] as? Int == 5_000_000)
         let entries = try #require(listing["candidates"] as? [[String: Any]])
         #expect(entries.map { $0["why"] as? String } == ["removed", "not seen"] || entries.map { $0["why"] as? String } == ["not seen", "removed"])
@@ -140,5 +141,83 @@ import Testing
             #expect(!result.errors.contains("could be freed"), "\(arguments)")
         }
         #expect(try c.store.readManifest().maintenance == nil, "nothing was recorded")
+    }
+
+    // MARK: - --scan (spec 012). No test here passes --yes with --scan: nothing may switch a real Desktop.
+
+    /// Whether this test process may use Accessibility, as `dnm check --json` reports it.
+    static let accessibilityGranted: Bool? = {
+        guard let result = try? CLI.run(["check", "--json"]), result.status == 0,
+              let root = try? JSONSerialization.jsonObject(with: Data(result.output.utf8)) as? [String: Any],
+              let items = root["items"] as? [[String: Any]],
+              let item = items.first(where: { $0["name"] as? String == "Accessibility" }) else { return nil }
+        return item["state"] as? String == "ok"
+    }()
+
+    @Test(.enabled(if: CLI.binary != nil), arguments: [["--days", "7"], ["--days", "30"], ["--days=0"]])
+    func daysWithScanIsRefusedFirst(_ days: [String]) throws {
+        let store = CLI.scratchStore()
+        let result = try CLI.run(["cleanup", "--scan"] + days, store: store)
+        #expect(result.status == 2 && result.output.isEmpty)
+        #expect(result.errors.hasPrefix("dnm: --scan looks at every Desktop, so --days does not apply.\n"), "\(result.errors)")
+        #expect(!FileManager.default.fileExists(atPath: store))
+    }
+
+    @Test(.enabled(if: CLI.binary != nil), arguments: [["DP1"], ["--display", "DP1"], ["--desktop", "2"]])
+    func scanTakesNoDisplayOrDesktop(_ extra: [String]) throws {
+        let store = CLI.scratchStore()
+        let result = try CLI.run(["cleanup", "--scan"] + extra, store: store)
+        #expect(result.status == 2 && result.output.isEmpty && result.errors.contains("Run `dnm --help` for usage."), "\(extra): \(result.errors)")
+        #expect(!FileManager.default.fileExists(atPath: store))
+    }
+
+    @Test(.enabled(if: CLI.binary != nil))
+    func daysAloneStillWorks() throws {
+        let store = CLI.scratchStore()
+        #expect(try CLI.run(["cleanup", "--days", "7"], store: store).output == "Nothing to clean up (no labeled image is older than 7 days).\n")
+    }
+
+    /// FR-001: the permission comes first. With it (this process's terminal app has it), a store whose labels are all
+    /// of a display that is not connected has nothing to scan: it says so, names the display, and switches nothing.
+    @Test(.enabled(if: CLI.connectedDisplayCount() > 0 && accessibilityGranted != nil))
+    func withoutATerminalTheScanSwitchesNothing() throws {
+        let c = try Self.craft(); defer { try? FileManager.default.removeItem(atPath: c.path) }
+        let before = try Data(contentsOf: c.store.manifestURL)
+        let text = try CLI.run(["cleanup", "--scan"], store: c.path)
+        let json = try CLI.run(["cleanup", "--scan", "--json"], store: c.path)
+        if Self.accessibilityGranted == true {
+            #expect(text.status == 0 && text.errors.isEmpty, "\(text.errors)")
+            #expect(text.output == "No label of a connected display is stored, so there is nothing to scan.\nNot checked: Test Display is not connected (3 labels).\n")
+            #expect(json.status == 0 && json.errors.isEmpty)
+            let root = try self.json(json)
+            #expect(root["mode"] as? String == "scan" && root["days"] is NSNull && root["deleted"] as? Bool == false)
+            #expect(root["scanned"] as? [String] == [] && root["wouldScan"] as? [String] == [])
+            #expect((root["notChecked"] as? [[String: Any]])?.first?["display"] as? String == "Test Display")
+        } else {
+            for result in [text, json] {
+                #expect(result.status == 1 && result.output.isEmpty)
+                #expect(result.errors.hasPrefix("dnm: cleanup --scan needs the Accessibility permission") && result.errors.hasSuffix("Nothing was deleted.\n"))
+            }
+        }
+        #expect(try Data(contentsOf: c.store.manifestURL) == before, "nothing was written")
+        #expect(c.files.count == 3)
+    }
+
+    @Test(.enabled(if: CLI.connectedDisplayCount() > 0 && accessibilityGranted == true))
+    func anEmptyStoreHasNothingToScanAndIsNotCreated() throws {
+        let store = CLI.scratchStore()
+        let result = try CLI.run(["cleanup", "--scan"], store: store)
+        #expect(result.status == 0 && result.output == "No label of a connected display is stored, so there is nothing to scan.\n")
+        #expect(!FileManager.default.fileExists(atPath: store))
+    }
+
+    @Test(.enabled(if: CLI.binary != nil))
+    func theHelpDescribesTheScan() throws {
+        let text = try CLI.run(["cleanup", "--help"]).output.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        for needle in ["--scan Visit every Desktop of every connected display (needs Accessibility; the Desktops slide by), then list the labels that no Desktop shows and ask before deleting them.",
+                       "Labels of displays that are not connected are left alone and named.", "(exit 130)"] {
+            #expect(text.contains(needle), "\(needle)")
+        }
+        #expect(try CLI.run(["--help"]).output.contains("130"))
     }
 }

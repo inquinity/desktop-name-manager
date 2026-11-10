@@ -35,7 +35,13 @@ final class FakeWallpaperSystem: WallpaperSystem {
     }
 
     func show(_ url: URL?, placement: WallpaperPlacement = FakeWallpaperSystem.defaultPlacement, on display: Display) {
+        pending[display.uuid] = nil
         current[display.uuid] = CurrentWallpaper(url: url, placement: placement)
+    }
+
+    /// Like a Desktop switch whose wallpaper the system reports late: the old one for `reads` more reads.
+    func showLater(_ url: URL, placement: WallpaperPlacement = FakeWallpaperSystem.defaultPlacement, on display: Display, afterReads reads: Int) {
+        pending[display.uuid] = (CurrentWallpaper(url: url, placement: placement), reads)
     }
 
     func displays() throws -> [Display] { connectedDisplays }

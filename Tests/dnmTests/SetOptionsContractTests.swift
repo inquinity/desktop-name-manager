@@ -76,7 +76,7 @@ import Testing
     func aboutStatesThePermissions() throws {
         let about = try CLI.run(["about"])
         #expect(about.status == 0)
-        #expect(about.output.contains("Accessibility is used only by --desktop"))
+        #expect(about.output.contains("Accessibility is used only by --desktop and cleanup --scan"))
         #expect(about.output.contains("Acknowledgements:"))
         #expect(about.output.contains("swift-argument-parser 1.8.2 - Apache License 2.0 with Runtime Library Exception"))
         #expect(about.output.contains("Full license texts are in Licenses/."))

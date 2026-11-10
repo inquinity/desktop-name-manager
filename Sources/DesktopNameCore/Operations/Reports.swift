@@ -80,17 +80,42 @@ public enum Reports {
     public struct CleanupEntry: Codable, Equatable, Sendable {
         public var label: String
         public var display: String
-        /// `removed`, `replaced`, `undone` or `not seen`.
+        /// `removed`, `replaced`, `undone`, `not seen` or `not on any Desktop`.
         public var why: String
         public var since: Date
         public var bytes: Int64
     }
 
+    public struct NotChecked: Codable, Equatable, Sendable {
+        public var display: String
+        public var labels: Int
+    }
+
+    /// The `cleanup` document (spec 009), with `mode` (`age` or `scan`) and, for a scan, its fields (spec 012 §6).
     public struct Cleanup: Codable, Equatable, Sendable {
-        public var days: Int
+        public var mode: String
+        /// nil for a scan, printed as an explicit null.
+        public var days: Int?
         public var candidates: [CleanupEntry]
         public var totalBytes: Int64
         public var deleted: Bool
+        public var scanned: [String]?
+        public var notChecked: [NotChecked]?
+        public var wouldScan: [String]?
+
+        enum CodingKeys: String, CodingKey { case mode, days, candidates, totalBytes, deleted, scanned, notChecked, wouldScan }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(mode, forKey: .mode)
+            try container.encode(days, forKey: .days)
+            try container.encode(candidates, forKey: .candidates)
+            try container.encode(totalBytes, forKey: .totalBytes)
+            try container.encode(deleted, forKey: .deleted)
+            try container.encodeIfPresent(scanned, forKey: .scanned)
+            try container.encodeIfPresent(notChecked, forKey: .notChecked)
+            try container.encodeIfPresent(wouldScan, forKey: .wouldScan)
+        }
     }
 
     // MARK: - Builders
@@ -123,9 +148,17 @@ public enum Reports {
     public static func aliases(_ entries: [AliasEntry]) -> Aliases { Aliases(aliases: entries) }
 
     public static func cleanup(_ plan: CleanupPlan, deleted: Bool) -> Cleanup {
-        Cleanup(days: plan.days,
-                candidates: plan.candidates.map { CleanupEntry(label: $0.label, display: $0.displayName, why: $0.reason.rawValue, since: $0.since, bytes: $0.bytes) },
-                totalBytes: plan.totalBytes, deleted: deleted)
+        Cleanup(mode: "age", days: plan.days, candidates: entries(plan), totalBytes: plan.totalBytes, deleted: deleted)
+    }
+
+    /// A scan's document: what it found and did, or (without `--yes`) what it would visit.
+    public static func scan(_ plan: CleanupPlan, scanned: [String], notConnected: [NotConnectedDisplay], deleted: Bool, wouldScan: [String]? = nil) -> Cleanup {
+        Cleanup(mode: "scan", days: nil, candidates: entries(plan), totalBytes: plan.totalBytes, deleted: deleted, scanned: scanned,
+                notChecked: notConnected.map { NotChecked(display: $0.name, labels: $0.labels) }, wouldScan: wouldScan)
+    }
+
+    static func entries(_ plan: CleanupPlan) -> [CleanupEntry] {
+        plan.candidates.map { CleanupEntry(label: $0.label, display: $0.displayName, why: $0.reason.rawValue, since: $0.since, bytes: $0.bytes) }
     }
 
     /// One JSON document, sorted keys, ISO 8601 dates.

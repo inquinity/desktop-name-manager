@@ -14,6 +14,8 @@ public protocol DesktopSwitching {
     func step(_ direction: StepDirection) -> Bool
     /// Every Desktop change macOS has announced so far, the person's included.
     var announcedChanges: Int { get }
+    /// Waits about `seconds` while delivering the application's events, so a wallpaper read afterwards is current.
+    func pause(_ seconds: TimeInterval)
 }
 
 public enum StepDirection: Sendable {
@@ -37,14 +39,7 @@ public struct DesktopNavigator {
 
     public func visit<T>(desktop target: Int, on display: Display, _ body: () throws -> T) throws -> T {
         guard target >= 1 else { throw DnmError.invalidInput("--desktop takes a Desktop number, 1 or more.") }
-        guard switcher.isTrusted else {
-            throw DnmError.failure("""
-                --desktop needs the Accessibility permission, to press macOS's own "Move left a space" and "Move right a space" \
-                shortcuts (macOS offers apps no public way to switch Desktops). Nothing else is typed or read. Grant it to the app \
-                you run dnm from in \(About.accessibilitySettings), then run the command again. Note: \(About.accessibilityScope) \
-                Nothing was changed.
-                """)
-        }
+        guard switcher.isTrusted else { throw Self.permissionMissing(for: "--desktop", outcome: "Nothing was changed.") }
         let savedPointer = try switcher.pointAt(display)
         defer { switcher.restorePointer(savedPointer) }
         let baseline = switcher.announcedChanges
@@ -94,6 +89,91 @@ public struct DesktopNavigator {
         }
         try returnTo(origin, from: at, on: display)
         return result
+    }
+
+    /// The explanation when the Accessibility permission is missing, for `--desktop` and `cleanup --scan`.
+    public static func permissionMissing(for feature: String, outcome: String) -> DnmError {
+        .failure("""
+            \(feature) needs the Accessibility permission, to press macOS's own "Move left a space" and "Move right a space" \
+            shortcuts (macOS offers apps no public way to switch Desktops). Nothing else is typed or read. Grant it to the app \
+            you run dnm from in \(About.accessibilitySettings), then run the command again. Note: \(About.accessibilityScope) \
+            \(outcome)
+            """)
+    }
+
+    // MARK: - Walking every Desktop (spec 012, research R1)
+
+    /// How a walk of one display ended.
+    public enum WalkOutcome: Equatable, Sendable {
+        /// Every Desktop was read, in order; `steps` confirmed steps were taken, the way back included.
+        case walked(steps: Int)
+        /// No step moved: the display has one Desktop, or the shortcuts are off. Public interfaces cannot tell which,
+        /// so the caller decides (spec 012 FR-017). The current Desktop was read once.
+        case nothingMoved
+    }
+
+    /// Visits every Desktop of `display` and calls `read` on each, from Desktop 1 to the last, then returns the display
+    /// to the Desktop it started on and the pointer to where it was. Before each step it asks `isInterrupted`; when
+    /// true it stops reading, returns, and throws `DnmError.interrupted` (the caller names what was finished).
+    /// The permission is checked by the caller, before anything is printed.
+    public func walk(on display: Display, isInterrupted: () -> Bool = { false }, read: () throws -> Void) throws -> WalkOutcome {
+        let savedPointer = try switcher.pointAt(display)
+        defer { switcher.restorePointer(savedPointer) }
+        let baseline = switcher.announcedChanges
+        var offset = 0   // from the starting Desktop: negative is left of it
+        var confirmed = 0
+
+        func back() throws {
+            while offset > 0 {
+                guard switcher.step(.left) else { throw lostWayScanning(display) }
+                offset -= 1; confirmed += 1
+            }
+            while offset < 0 {
+                guard switcher.step(.right) else { throw lostWayScanning(display) }
+                offset += 1; confirmed += 1
+            }
+        }
+        func stopIfInterrupted() throws {
+            guard isInterrupted() else { return }
+            try back()
+            throw DnmError.interrupted(scanned: [])
+        }
+        func readHere() throws {
+            do { try read() } catch { try? back(); throw error }
+        }
+
+        // Step left to Desktop 1.
+        var lefts = 0
+        while lefts < Self.maximumSteps {
+            try stopIfInterrupted()
+            guard switcher.step(.left) else { break }
+            lefts += 1; offset -= 1; confirmed += 1
+        }
+        try readHere()
+        // Then right, reading each Desktop, until a step does not move: the last Desktop.
+        var rights = 0
+        while rights < Self.maximumSteps {
+            try stopIfInterrupted()
+            guard switcher.step(.right) else { break }
+            rights += 1; offset += 1; confirmed += 1
+            try readHere()
+        }
+        guard lefts + rights > 0 else { return .nothingMoved }
+
+        // More changes than steps means the person (or another app) switched meanwhile: a Desktop may have been
+        // skipped or read twice, and the position is no longer known.
+        guard switcher.announcedChanges - baseline == confirmed else { throw changedWhileScanning(display) }
+        try back()
+        guard switcher.announcedChanges - baseline == confirmed else { throw changedWhileScanning(display) }
+        return .walked(steps: confirmed)
+    }
+
+    func changedWhileScanning(_ display: Display) -> DnmError {
+        .failure("The Desktop on \(display.name) changed while dnm was scanning. Nothing was deleted. dnm no longer knows where \(display.name) is, so it did not switch back; return to your Desktop yourself.")
+    }
+
+    func lostWayScanning(_ display: Display) -> DnmError {
+        .failure("macOS did not confirm a step while returning \(display.name) to the Desktop it started on. Nothing was deleted; switch back yourself if needed.")
     }
 
     private func returnTo(_ origin: Int, from start: Int, on display: Display) throws {
@@ -173,6 +253,8 @@ public final class SystemDesktopSwitcher: DesktopSwitching {
     public func restorePointer(_ location: CGPoint) {
         CGWarpMouseCursorPosition(location)
     }
+
+    public func pause(_ seconds: TimeInterval) { pump(for: seconds) }
 
     public func step(_ direction: StepDirection) -> Bool {
         let before = changes.value

@@ -194,7 +194,8 @@ import Testing
         let json = try Reports.json(Reports.cleanup(try h.labeler.cleanupPlan(days: 30), deleted: false))
         #expect(!json.contains(".dnm.") && !json.contains("DISPLAY-A"))
         let root = try #require(try JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any])
-        #expect(Set(root.keys) == ["days", "candidates", "totalBytes", "deleted"])
+        #expect(Set(root.keys) == ["mode", "days", "candidates", "totalBytes", "deleted"])
+        #expect(root["mode"] as? String == "age", "spec 012: the age-based document says its mode")
         let entry = try #require((root["candidates"] as? [[String: Any]])?.first)
         #expect(Set(entry.keys) == ["label", "display", "why", "since", "bytes"])
     }

@@ -21,12 +21,15 @@ public enum DnmError: Error, Equatable, Sendable {
     /// A command on several displays failed after changing some (spec 010 FR-006): the full message, which names the
     /// displays already changed, and the exit status of the error that stopped it.
     case partWay(String, exitCode: Int32)
+    /// A scan stopped by Ctrl-C (spec 012 FR-015): the displays finished before it, in order (exit 130).
+    case interrupted(scanned: [String])
 
     public var exitCode: Int32 {
         switch self {
         case .invalidInput: 2
         case .unsupportedWallpaper: 3
         case .partWay(_, let exitCode): exitCode
+        case .interrupted: 130
         default: 1
         }
     }
@@ -44,6 +47,9 @@ extension DnmError: LocalizedError {
         case .storeNotWritable(let message): "Cannot write the tool's storage: \(message). Nothing was changed."
         case .failure(let message): message
         case .partWay(let message, _): message
+        case .interrupted(let scanned):
+            scanned.isEmpty ? "Stopped before any display was scanned. Nothing was deleted."
+                : "Stopped. Scanned: \(scanned.joined(separator: ", ")). Nothing was deleted."
         }
     }
 }

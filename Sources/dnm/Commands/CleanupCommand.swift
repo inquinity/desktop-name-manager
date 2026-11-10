@@ -1,3 +1,4 @@
+import AppKit
 import ArgumentParser
 import DesktopNameCore
 import Foundation
@@ -12,12 +13,21 @@ struct CleanupCommand: ParsableCommand, HasGlobalOptions {
         It describes what it found and asks before deleting; with no terminal it only describes, unless you pass --yes. \
         A Desktop that is not on screen now (including one on a display that is not connected) might still show one of \
         these images, and would then fall back to the Mac's default wallpaper until you choose another or label it again.
+
+        With --scan, dnm instead visits every Desktop of every connected display, as --desktop does (it needs the \
+        Accessibility permission; the Desktops slide by and the pointer moves), notes which labeled image each shows, and \
+        lists the labels that no Desktop shows, whatever their age. It asks before scanning and again before deleting. \
+        Labels of displays that are not connected are left alone and named. Ctrl-C during the scan returns the display \
+        to its Desktop and deletes nothing (exit 130).
         """)
 
-    @Option(name: .long, help: ArgumentHelp("How old, in days, counted from when the label was removed or last seen.", valueName: "n"))
-    var days: Int = DesktopLabeler.defaultCleanupDays
+    @Option(name: .long, help: ArgumentHelp("How old, in days, counted from when the label was removed or last seen (default: \(DesktopLabeler.defaultCleanupDays)).", valueName: "n"))
+    var days: Int?
 
-    @Flag(name: .long, help: "Delete without asking.")
+    @Flag(name: .long, help: "Visit every Desktop of every connected display (needs Accessibility; the Desktops slide by), then list the labels that no Desktop shows and ask before deleting them.")
+    var scan = false
+
+    @Flag(name: .long, help: "Delete without asking (with --scan, also scan without asking).")
     var yes = false
 
     @Flag(name: .long, help: "Print one JSON document instead of text (nothing is asked; add --yes to delete).")
@@ -25,8 +35,14 @@ struct CleanupCommand: ParsableCommand, HasGlobalOptions {
 
     @OptionGroup var global: GlobalOptions
 
+    func validate() throws {
+        if scan && days != nil { throw ValidationError("--scan looks at every Desktop, so --days does not apply.") }
+    }
+
     func run() throws {
+        if scan { return try Self.guarded { try runScan() } }
         try Self.guarded {
+            let days = days ?? DesktopLabeler.defaultCleanupDays
             guard days >= 0 else { throw DnmError.invalidInput("--days takes a whole number of days, 0 or more.") }
             let labeler = Context().labeler
             let plan = try labeler.cleanupPlan(days: days)
@@ -62,7 +78,8 @@ struct CleanupCommand: ParsableCommand, HasGlobalOptions {
     /// The list, the total and the plain warning (spec 009: say plainly what might go wrong).
     static func describe(_ plan: CleanupPlan, now: Date = Date()) {
         let size = ByteCountFormatter()
-        Output.out("Old labeled images that no Desktop is known to show (\(plan.days) day\(plan.days == 1 ? "" : "s")):")
+        let days = plan.days ?? DesktopLabeler.defaultCleanupDays
+        Output.out("Old labeled images that no Desktop is known to show (\(days) day\(days == 1 ? "" : "s")):")
         let rows = plan.candidates.map { candidate in
             (label: "\"\(candidate.label)\"", display: candidate.displayName, why: why(candidate, now: now), size: size.string(fromByteCount: candidate.bytes))
         }
@@ -84,6 +101,7 @@ struct CleanupCommand: ParsableCommand, HasGlobalOptions {
         switch candidate.reason {
         case .removed, .replaced, .undone: return "\(candidate.reason.rawValue) \(ago)"
         case .notSeen: return days == 0 ? "last seen today" : "not seen for \(days) day\(days == 1 ? "" : "s")"
+        case .notOnAnyDesktop: return candidate.reason.rawValue
         }
     }
 
@@ -94,5 +112,93 @@ struct CleanupCommand: ParsableCommand, HasGlobalOptions {
         }
         let size = ByteCountFormatter().string(fromByteCount: deleted.totalBytes)
         Output.out("Deleted \(images(deleted.candidates.count)), freeing \(size).")
+    }
+
+    // MARK: - --scan (spec 012)
+
+    /// Follows `ScanFlow`; the text comes from `ScanText`. Nothing switches or is deleted without an answer or --yes.
+    func runScan() throws {
+        try MainActor.assumeIsolated {
+            // The permission comes first, before anything is printed (FR-001), and never prompts.
+            guard AXIsProcessTrusted() else { throw DesktopNavigator.permissionMissing(for: "cleanup --scan", outcome: "Nothing was deleted.") }
+            let labeler = Context().labeler
+            let preview = try labeler.scanPreview()
+            let terminal = isatty(STDIN_FILENO) != 0 && isatty(STDOUT_FILENO) != 0
+            let names = preview.displays.map(\.name)
+            guard preview.hasLabelsToCheck else {
+                if json {
+                    Output.out(try Reports.json(Reports.scan(CleanupPlan.emptyScan, scanned: [], notConnected: preview.notConnected, deleted: false, wouldScan: [])))
+                } else {
+                    Output.out(ScanText.nothingToScan)
+                    ScanText.notChecked(preview.notConnected).forEach(Output.out)
+                }
+                return
+            }
+            // screensHaveSeparateSpaces is read once the process has an application, which the switcher creates.
+            let switcher = SystemDesktopSwitcher()
+            defer { switcher.stop() }
+            let separateSpaces = NSScreen.screensHaveSeparateSpaces
+
+            if !json { ScanText.description(preview, separateSpaces: separateSpaces).forEach(Output.out) }
+            switch ScanFlow.start(yes: yes, terminal: terminal, json: json) {
+            case .describeOnly:
+                if json {
+                    Output.out(try Reports.json(Reports.scan(CleanupPlan.emptyScan, scanned: [], notConnected: preview.notConnected, deleted: false, wouldScan: names)))
+                } else {
+                    Output.out(ScanText.nothingScanned)
+                }
+                return
+            case .askToScan:
+                guard Self.ask("Scan every Desktop now? [y/N] ") else { return Output.out("Nothing was scanned.") }
+            case .scan:
+                break
+            }
+
+            let showProgress = !json && isatty(STDERR_FILENO) != 0
+            Interrupt.install()
+            let result: ScanResult
+            do {
+                defer { Interrupt.restore() }
+                result = try labeler.scan(switcher: switcher, separateSpaces: separateSpaces, isInterrupted: { Interrupt.isRequested }) { displays in
+                    Interrupt.prepare(display: displays.map(\.name).joined(separator: ", "))
+                    if showProgress { Output.err("Scanning \(displays.map(\.name).joined(separator: ", "))…") }
+                }
+            }
+
+            let plan = try labeler.scanPlan(from: result)
+            let scanned = result.scanned.map(\.name)
+            switch ScanFlow.finish(candidates: plan.candidates.count, yes: yes, terminal: terminal, json: json) {
+            case .nothingToDelete:
+                try labeler.recordSeen(result)
+                if json { return Output.out(try Reports.json(Reports.scan(plan, scanned: scanned, notConnected: result.notConnected, deleted: false))) }
+                Output.out(ScanText.nothingToDelete)
+                ScanText.notChecked(result.notConnected).forEach(Output.out)
+            case .delete:
+                let deleted = try labeler.carryOut(plan, seen: result.seen)
+                if json { return Output.out(try Reports.json(Reports.scan(deleted, scanned: scanned, notConnected: result.notConnected, deleted: !deleted.candidates.isEmpty))) }
+                ScanText.report(plan, notConnected: result.notConnected, now: Date()).forEach(Output.out)
+                Output.out(ScanText.deleted(deleted))
+            case .askToDelete:
+                ScanText.report(plan, notConnected: result.notConnected, now: Date()).forEach(Output.out)
+                if Self.ask(ScanText.question(plan)) {
+                    Output.out(ScanText.deleted(try labeler.carryOut(plan, seen: result.seen)))
+                } else {
+                    try labeler.recordSeen(result)
+                    Output.out("Nothing was deleted.")
+                }
+            case .keep:
+                // Unreachable today: a scan without --yes needs a terminal and no --json. Kept for completeness.
+                try labeler.recordSeen(result)
+                if json { return Output.out(try Reports.json(Reports.scan(plan, scanned: scanned, notConnected: result.notConnected, deleted: false))) }
+                ScanText.report(plan, notConnected: result.notConnected, now: Date()).forEach(Output.out)
+                Output.out("Nothing was deleted: add --yes to delete these.")
+            }
+        }
+    }
+
+    /// Asks on the terminal; only y or yes is a yes.
+    static func ask(_ question: String) -> Bool {
+        FileHandle.standardOutput.write(Data(question.utf8))
+        return ScanFlow.isYes(readLine())
     }
 }
