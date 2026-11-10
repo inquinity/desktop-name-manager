@@ -310,8 +310,11 @@ import Testing
         } catch let error as DnmError {
             let text = error.errorDescription ?? ""
             #expect(text.contains("could not read the wallpaper of DP1") && text.contains("Nothing was deleted."), "\(text)")
+            #expect(text.contains("did not switch back"), "\(text)")
             if separateSpaces { #expect(text.hasSuffix("Scanned and returned: Built-in Display."), "\(text)") }
         }
+        // No key is pressed once the display is gone: the shortcuts would switch another display.
+        #expect(rig.switcher.steps == (separateSpaces ? 6 : 2))
         #expect(try rig.manifestBytes() == before)
     }
 

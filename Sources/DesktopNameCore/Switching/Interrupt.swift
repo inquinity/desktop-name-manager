@@ -37,10 +37,12 @@ public enum Interrupt {
         sigaction(SIGINT, &action, &previous)
     }
 
-    /// Puts back what Ctrl-C did before `install`.
-    public static func restore() {
+    /// Puts back what Ctrl-C did before `install`, and says whether Ctrl-C was pressed since: one pressed after the
+    /// walk's last check is still reported, so it deletes nothing.
+    @discardableResult
+    public static func restore() -> Bool {
         sigaction(SIGINT, &previous, nil)
-        requested.store(false, ordering: .releasing)
+        return requested.exchange(false, ordering: .acquiringAndReleasing)
     }
 
     /// Names the display being walked in the line a second Ctrl-C prints.

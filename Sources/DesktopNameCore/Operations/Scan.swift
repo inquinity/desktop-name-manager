@@ -133,7 +133,7 @@ extension DesktopLabeler {
     func stableRead(_ display: Display, switcher: DesktopSwitching) throws -> String? {
         func read() throws -> String? {
             do { return try system.currentWallpaper(on: display).url?.lastPathComponent } catch {
-                throw DnmError.failure("dnm could not read the wallpaper of \(display.name) during the scan (\(error.localizedDescription)). Nothing was deleted.")
+                throw DesktopNavigator.StopWithoutReturning("dnm could not read the wallpaper of \(display.name) during the scan (\(error.localizedDescription)). Nothing was deleted. dnm did not switch back, since \(display.name) may be disconnected; check that each display is on the Desktop you want.")
             }
         }
         switcher.pause(Self.stableReadPause)

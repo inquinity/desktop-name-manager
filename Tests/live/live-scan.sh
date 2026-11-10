@@ -100,7 +100,7 @@ cleanup() {
                 fi
             done
         done
-        print_colored "$COLOR_YELLOW" "If a label is left on screen: DNM_STORE_DIR='${DNM_STORE_DIR:-}' dnm remove <display> --desktop N"
+        print_colored "$COLOR_YELLOW" "If a label is left on screen: DNM_STORE_DIR='${DNM_STORE_DIR:-}' '${dnm_binary}' remove <display> --desktop N"
     fi
     if [[ -n "$work_directory" && -f "${work_directory}/Index.plist.backup" ]]; then
         if ! cmp -s "${work_directory}/Index.plist.backup" "$wallpaper_store_plist"; then
@@ -137,7 +137,7 @@ else
     command -v plutil >/dev/null || { print_colored "$COLOR_RED" "plutil is needed to read the JSON report."; exit 1; }
     # The private store first: even `dnm displays` runs housekeeping on the store it is pointed at.
     work_directory="$(mktemp -d "${TMPDIR:-/tmp}/dnm-live-scan.XXXXXX")"
-    trap cleanup EXIT   # from here on, every exit reports where the backup is
+    trap cleanup EXIT   # from here on, every exit compares the wallpaper store with the backup
     cp "$wallpaper_store_plist" "${work_directory}/Index.plist.backup"
     export DNM_STORE_DIR="${work_directory}/store"
     # Display names through plutil, so a name with a quote or a backslash arrives intact.

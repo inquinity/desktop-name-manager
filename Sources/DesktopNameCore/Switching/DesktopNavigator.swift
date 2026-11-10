@@ -107,6 +107,13 @@ public struct DesktopNavigator {
 
     // MARK: - Walking every Desktop (spec 012, research R1)
 
+    /// Thrown by a walk's `read` when the display can no longer be used (disconnected): the walk then stops without
+    /// stepping back, since the shortcuts would act on another display.
+    public struct StopWithoutReturning: Error {
+        public var message: String
+        public init(_ message: String) { self.message = message }
+    }
+
     /// How a walk of one display ended.
     public enum WalkOutcome: Equatable, Sendable {
         /// Every Desktop was read, in order; `steps` confirmed steps were taken, the way back included.
@@ -151,11 +158,17 @@ public struct DesktopNavigator {
             throw DnmError.interrupted(scanned: [])
         }
         func readHere() throws {
-            do { try read() } catch { try? back(); throw error }
+            do { try read() } catch let stop as StopWithoutReturning {
+                // The display may be gone: its shortcuts would now switch another display, so press nothing.
+                throw DnmError.failure(stop.message)
+            } catch {
+                try? back(); throw error
+            }
         }
         func tooMany() throws -> Never {
-            try? back()
-            throw DnmError.failure("\(display.name) has more than \(Self.maximumSteps) Desktops and full-screen apps, more than dnm can scan. Nothing was deleted.")
+            let message = "\(display.name) has more than \(Self.maximumSteps) Desktops and full-screen apps, more than dnm can scan. Nothing was deleted."
+            do { try back() } catch { throw DnmError.failure(message + " dnm could not return \(display.name) to the Desktop it started on; switch back yourself if needed.") }
+            throw DnmError.failure(message)
         }
 
         // Step left to Desktop 1.

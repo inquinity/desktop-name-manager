@@ -159,12 +159,16 @@ struct CleanupCommand: ParsableCommand, HasGlobalOptions {
             Interrupt.install()
             let result: ScanResult
             do {
-                defer { Interrupt.restore() }
                 result = try labeler.scan(switcher: switcher, separateSpaces: separateSpaces, isInterrupted: { Interrupt.isRequested }) { displays in
                     Interrupt.prepare(display: displays.map(\.name).joined(separator: ", "))
                     if showProgress { Output.err("Scanning \(displays.map(\.name).joined(separator: ", "))…") }
                 }
+            } catch {
+                Interrupt.restore()
+                throw error
             }
+            // A Ctrl-C after the walk's last check, before the default handling is back, still deletes nothing.
+            if Interrupt.restore() { throw DnmError.interrupted(scanned: result.scanned.map(\.name)) }
 
             let plan = try labeler.scanPlan(from: result)
             let scanned = result.scanned.map(\.name)
