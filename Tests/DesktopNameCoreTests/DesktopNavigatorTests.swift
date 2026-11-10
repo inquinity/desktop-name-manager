@@ -310,4 +310,29 @@ import Testing
             #expect((error.errorDescription ?? "").contains("did not switch back"), "\(error)")
         }
     }
+
+    @Test func aStepLimitWhoseWayBackFailsSaysSo() throws {
+        let fake = FakeSwitcher(desktops: 40, position: 40)
+        fake.unconfirmedSteps = [33]   // 32 lefts reach the limit; the first step back is not confirmed
+        do {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display) {}
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            let text = error.errorDescription ?? ""
+            #expect(text.contains("more than 32 Desktops") && text.contains("could not return DP"), "\(text)")
+        }
+    }
+
+    @Test func aReadErrorWhoseWayBackFailsSaysSo() throws {
+        struct Boom: LocalizedError { var errorDescription: String? { "Boom." } }
+        let fake = FakeSwitcher(desktops: 3, position: 3)
+        fake.unconfirmedSteps = [5]   // left, left, edge, read, right: the read fails at Desktop 2; back right is lost
+        var reads = 0
+        do {
+            _ = try DesktopNavigator(switcher: fake).walk(on: display) { reads += 1; if reads == 2 { throw Boom() } }
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").hasPrefix("Boom. dnm could not return DP"), "\(error)")
+        }
+    }
 }

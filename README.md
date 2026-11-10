@@ -203,6 +203,9 @@ each one shows, and lists the labels that no Desktop shows, whatever their age.
   prints one document (with `--yes`, after scanning and deleting).
 - Labels of displays that are not connected are left alone and named (`Not checked: …`), because their Desktops
   cannot be seen.
+- Whatever their age: a label you removed or replaced moments ago is listed too, and once the scan deletes its image
+  that change can no longer be undone. A display where no step moved is counted as having one Desktop, and the
+  report says so before asking.
 - Ctrl-C during the scan returns the display to its Desktop, deletes nothing and exits 130; a second Ctrl-C stops
   at once.
 - On a Mac with one display and one Desktop, or with the "Move left a space" and "Move right a space" shortcuts

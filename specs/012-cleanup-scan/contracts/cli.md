@@ -41,12 +41,16 @@ dnm cleanup --scan [--yes] [--json]
 
    ```text
    Not on any Desktop (3 labels, 12.4 MB):
-     DP1         Mail      4.1 MB  last seen 41 days ago
-     DP1         Notes     4.0 MB  last seen 3 days ago
-     Built-in    Old       4.3 MB  never seen
+     DP1               "Mail"   4.1 MB  last seen 41 days ago
+     DP1               "Notes"  4.0 MB  last seen 3 days ago
+     Built-in Display  "Old"    4.3 MB  never seen
    Not checked: Studio Display is not connected (2 labels).
    Delete these 3 labeled images (12.4 MB)? [y/N]
    ```
+
+   A display where no step moved, beside one where steps were confirmed, is counted as having one Desktop
+   (FR-017) and named after the list: `Only one Desktop was found on <display> (no step moved there); if it has more,
+   do not delete its labels: run the scan again.` (added after the release review, 2026-11-09)
 
    Nothing to delete: `Every label of the connected displays shows on a Desktop; nothing to clean up.` and no
    question.
@@ -95,8 +99,10 @@ candidate's `why` `"not on any Desktop"` (the key and style of spec 009; correct
 document (an added field; nothing existing changes for `cleanup` without `--scan`), plus:
 
 ```json
-{ "scanned": ["Built-in Display", "DP1"], "notChecked": [{ "display": "Studio Display", "labels": 2 }] }
+{ "scanned": ["Built-in Display", "DP1"], "notChecked": [{ "display": "Studio Display", "labels": 2 }], "oneDesktop": [] }
 ```
+
+`oneDesktop` (added after the release review) names the displays counted as having one Desktop.
 
 Without `--yes`: `"scanned": []` and `"deleted": false`, with the displays that would be visited in `"wouldScan"`.
 

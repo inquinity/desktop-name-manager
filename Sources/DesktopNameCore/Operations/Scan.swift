@@ -30,6 +30,9 @@ public struct ScanResult: Equatable, Sendable {
     public var notConnected: [NotConnectedDisplay]
     /// Whether "Displays have separate Spaces" was on (one walk per display) or off (one walk for all).
     public var separateSpaces: Bool
+    /// Displays where no step moved, counted as having one Desktop because steps moved elsewhere (spec 012 FR-017).
+    /// Shown in the report, so a wrong guess can be seen before deleting.
+    public var oneDesktop: [String] = []
     /// Every image file name some Desktop showed: what "shown by some Desktop" means.
     public var seen: Set<String> { scanned.reduce(into: Set<String>()) { $0.formUnion($1.seen) } }
 }
@@ -84,22 +87,25 @@ extension DesktopLabeler {
         var finished: [String] = []
         var anyStepConfirmed = false
         var nothingMovedOn: Display?
+        var oneDesktop: [String] = []
         for walk in walks {
             progress(walk.reads)
             do {
                 let outcome = try navigator.walk(on: walk.walked, isInterrupted: isInterrupted) {
                     for display in walk.reads {
-                        if let name = try stableRead(display, switcher: switcher) { seen[display.uuid, default: []].insert(name) }
+                        if let name = try stableRead(display, walking: walk.walked, switcher: switcher) { seen[display.uuid, default: []].insert(name) }
                     }
                 }
                 switch outcome {
                 case .walked: anyStepConfirmed = true
-                case .nothingMoved: nothingMovedOn = nothingMovedOn ?? walk.walked
+                case .nothingMoved:
+                    nothingMovedOn = nothingMovedOn ?? walk.walked
+                    oneDesktop.append(walk.walked.name)
                 }
             } catch DnmError.interrupted {
                 throw DnmError.interrupted(scanned: finished)
-            } catch let error as DnmError where !finished.isEmpty {
-                throw DnmError.failure("\(error.errorDescription ?? "\(error)") Scanned and returned: \(finished.joined(separator: ", ")).")
+            } catch where !finished.isEmpty {
+                throw DnmError.failure("\((error as? LocalizedError)?.errorDescription ?? "\(error)") Scanned and returned: \(finished.joined(separator: ", ")).")
             }
             finished += walk.reads.map(\.name)
         }
@@ -114,7 +120,7 @@ extension DesktopLabeler {
         if let display = nothingMovedOn, !anyStepConfirmed { throw Self.nothingMovedScanning(display) }
 
         return ScanResult(scanned: displays.map { ScanResult.Scanned(name: $0.name, uuid: $0.uuid, seen: seen[$0.uuid] ?? []) },
-                          notConnected: preview.notConnected, separateSpaces: separateSpaces)
+                          notConnected: preview.notConnected, separateSpaces: separateSpaces, oneDesktop: oneDesktop)
     }
 
     static func nothingMovedScanning(_ display: Display) -> DnmError {
@@ -130,10 +136,11 @@ extension DesktopLabeler {
     /// or the last read after about 1.5 s. nil when it shows no image file. A read that fails (the display was
     /// disconnected) stops the scan: a Desktop that could not be read must never count as showing nothing.
     @MainActor
-    func stableRead(_ display: Display, switcher: DesktopSwitching) throws -> String? {
+    func stableRead(_ display: Display, walking walked: Display? = nil, switcher: DesktopSwitching) throws -> String? {
         func read() throws -> String? {
             do { return try system.currentWallpaper(on: display).url?.lastPathComponent } catch {
-                throw DesktopNavigator.StopWithoutReturning("dnm could not read the wallpaper of \(display.name) during the scan (\(error.localizedDescription)). Nothing was deleted. dnm did not switch back, since \(display.name) may be disconnected; check that each display is on the Desktop you want.")
+                let away = walked.map { $0.uuid == display.uuid ? "" : " \($0.name) may be on another Desktop." } ?? ""
+                throw DesktopNavigator.StopWithoutReturning("dnm could not read the wallpaper of \(display.name) during the scan (\(error.localizedDescription)). Nothing was deleted. dnm did not switch back, since \(display.name) may be disconnected; check that each display is on the Desktop you want.\(away)")
             }
         }
         switcher.pause(Self.stableReadPause)
@@ -144,9 +151,10 @@ extension DesktopLabeler {
             let next = try read()
             agreeing = next == last ? agreeing + 1 : 1
             last = next
-            if agreeing >= Self.stableReadsNeeded { break }
+            if agreeing >= Self.stableReadsNeeded { return last }
         }
-        return last
+        // A wallpaper that never settles is not read: taking a stale value would offer a label in use.
+        throw DnmError.failure("The wallpaper of \(display.name) kept changing while dnm read it, so a Desktop could not be read. Nothing was deleted.")
     }
 
     /// Records that every label the scan saw was seen now (spec 012 FR-006), as one locked change. For a scan whose
@@ -241,6 +249,11 @@ public enum ScanText {
                 + String(repeating: " ", count: sizeWidth - row.size.count) + row.size + "  " + row.seen)
         }
         return lines + notChecked(notConnected)
+    }
+
+    /// Displays counted as having one Desktop (FR-017), said plainly before the question.
+    public static func oneDesktop(_ names: [String]) -> [String] {
+        names.map { "Only one Desktop was found on \($0) (no step moved there); if it has more, do not delete its labels: run the scan again." }
     }
 
     public static func question(_ plan: CleanupPlan) -> String {

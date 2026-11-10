@@ -161,8 +161,11 @@ import Testing
         rig.switcher.attach(rig.main, wallpapers: [rig.url(only)], position: 1)
         rig.switcher.attach(Self.second, wallpapers: b.map(rig.url), position: 3)
         if !oneDesktopFirst { rig.h.system.connectedDisplays.reverse() }
-        let plan = try rig.h.labeler.scanPlan(from: try rig.scan())
+        let result = try rig.scan()
+        let plan = try rig.h.labeler.scanPlan(from: result)
         #expect(plan.candidates.isEmpty, "the one-Desktop display's label is seen")
+        #expect(result.oneDesktop == ["Built-in Display"], "and the guess is reported")
+        #expect(ScanText.oneDesktop(result.oneDesktop) == ["Only one Desktop was found on Built-in Display (no step moved there); if it has more, do not delete its labels: run the scan again."])
     }
 
     // MARK: - User Story 2: displays that are not connected
@@ -312,6 +315,7 @@ import Testing
             #expect(text.contains("could not read the wallpaper of DP1") && text.contains("Nothing was deleted."), "\(text)")
             #expect(text.contains("did not switch back"), "\(text)")
             if separateSpaces { #expect(text.hasSuffix("Scanned and returned: Built-in Display."), "\(text)") }
+            else { #expect(text.contains("Built-in Display may be on another Desktop."), "the walked display is named: \(text)") }
         }
         // No key is pressed once the display is gone: the shortcuts would switch another display.
         #expect(rig.switcher.steps == (separateSpaces ? 6 : 2))
@@ -348,6 +352,23 @@ import Testing
         } catch let error as DnmError {
             #expect((error.errorDescription ?? "").contains("changed while dnm was scanning"))
         }
+    }
+
+    /// Release review: a wallpaper that never gives three agreeing reads is not taken as read.
+    @Test func aWallpaperThatNeverSettlesStopsTheScan() throws {
+        let rig = try Rig(); defer { rig.h.cleanUp() }
+        try rig.label("A")
+        rig.switcher.attach(rig.main, wallpapers: [nil, nil], position: 1)
+        rig.h.system.flickering = [rig.main.uuid]
+        let before = try rig.manifestBytes()
+        do {
+            _ = try rig.scan()
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect((error.errorDescription ?? "").contains("kept changing while dnm read it"))
+        }
+        #expect(rig.switcher.position(of: rig.main) == 1 && rig.switcher.pointerRestored)
+        #expect(try rig.manifestBytes() == before)
     }
 
     // MARK: - Writes (FR-006, FR-007)

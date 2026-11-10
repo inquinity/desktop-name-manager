@@ -161,8 +161,11 @@ public struct DesktopNavigator {
             do { try read() } catch let stop as StopWithoutReturning {
                 // The display may be gone: its shortcuts would now switch another display, so press nothing.
                 throw DnmError.failure(stop.message)
-            } catch {
-                try? back(); throw error
+            } catch let failure {
+                do { try back() } catch {
+                    throw DnmError.failure("\((failure as? LocalizedError)?.errorDescription ?? "\(failure)") dnm could not return \(display.name) to the Desktop it started on; switch back yourself if needed.")
+                }
+                throw failure
             }
         }
         func tooMany() throws -> Never {

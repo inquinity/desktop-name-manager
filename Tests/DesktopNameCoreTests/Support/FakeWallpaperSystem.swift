@@ -48,9 +48,16 @@ final class FakeWallpaperSystem: WallpaperSystem {
 
     /// Displays whose wallpaper cannot be read (as for one disconnected while a command runs).
     var unreadable: Set<String> = []
+    /// Displays whose reported wallpaper changes on every read, as one that never settles.
+    var flickering: Set<String> = []
+    private var flickerCount = 0
 
     func currentWallpaper(on display: Display) throws -> CurrentWallpaper {
         if unreadable.contains(display.uuid) { throw DnmError.failure("\(display.name) is no longer connected") }
+        if flickering.contains(display.uuid) {
+            flickerCount += 1
+            return CurrentWallpaper(url: URL(fileURLWithPath: "/tmp/flicker-\(flickerCount).jpg"), placement: Self.defaultPlacement)
+        }
         if var waiting = pending[display.uuid] {
             if waiting.readsLeft <= 0 {
                 current[display.uuid] = waiting.wallpaper

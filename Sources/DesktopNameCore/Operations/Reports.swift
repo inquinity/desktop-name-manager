@@ -102,8 +102,10 @@ public enum Reports {
         public var scanned: [String]?
         public var notChecked: [NotChecked]?
         public var wouldScan: [String]?
+        /// Displays counted as having one Desktop because no step moved there (spec 012 FR-017).
+        public var oneDesktop: [String]?
 
-        enum CodingKeys: String, CodingKey { case mode, days, candidates, totalBytes, deleted, scanned, notChecked, wouldScan }
+        enum CodingKeys: String, CodingKey { case mode, days, candidates, totalBytes, deleted, scanned, notChecked, wouldScan, oneDesktop }
 
         public func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
@@ -115,6 +117,7 @@ public enum Reports {
             try container.encodeIfPresent(scanned, forKey: .scanned)
             try container.encodeIfPresent(notChecked, forKey: .notChecked)
             try container.encodeIfPresent(wouldScan, forKey: .wouldScan)
+            try container.encodeIfPresent(oneDesktop, forKey: .oneDesktop)
         }
     }
 
@@ -152,9 +155,10 @@ public enum Reports {
     }
 
     /// A scan's document: what it found and did, or (without `--yes`) what it would visit.
-    public static func scan(_ plan: CleanupPlan, scanned: [String], notConnected: [NotConnectedDisplay], deleted: Bool, wouldScan: [String]? = nil) -> Cleanup {
+    public static func scan(_ plan: CleanupPlan, scanned: [String], notConnected: [NotConnectedDisplay], deleted: Bool,
+                            wouldScan: [String]? = nil, oneDesktop: [String]? = nil) -> Cleanup {
         Cleanup(mode: "scan", days: nil, candidates: entries(plan), totalBytes: plan.totalBytes, deleted: deleted, scanned: scanned,
-                notChecked: notConnected.map { NotChecked(display: $0.name, labels: $0.labels) }, wouldScan: wouldScan)
+                notChecked: notConnected.map { NotChecked(display: $0.name, labels: $0.labels) }, wouldScan: wouldScan, oneDesktop: oneDesktop)
     }
 
     static func entries(_ plan: CleanupPlan) -> [CleanupEntry] {
