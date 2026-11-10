@@ -154,7 +154,7 @@ Run `dnm displays` and verify aliases appear inline; run `dnm check` to inspect 
   3. Exact connected display name → Physical display (overriding any alias of that name; more than one display of that name is ambiguous, exit 2).
   4. Exact alias (case-insensitive; aliases are never matched partially) → Its display (or exit 2 if not connected).
   5. The beginning of a display name (from the start of the name) that exactly one display's name starts with → Matched display (or exit 2 if ambiguous / no match).
-- **FR-012**: If an alias is overridden by a connected display, `dnm alias` and commands resolving `--display` with that name MUST emit a warning to stderr.
+- **FR-012**: If an alias is overridden by a connected display, `dnm alias` and commands resolving `--display` with that name MUST emit a warning to stderr, unless quiet mode is on (spec 011, amended 2026-11-09: the warning is held back; `dnm alias` still marks the alias in its list).
 - **FR-013**: `dnm displays` MUST show each display's active aliases after its name and include an `aliases` array for every display in JSON output.
 - **FR-014**: Messages added or changed by this feature MUST print display and alias names without quotes.
 - **FR-015**: Aliases MUST be stored in `manifest.json`, changed only under the store's lock, and never change a wallpaper or need a permission.

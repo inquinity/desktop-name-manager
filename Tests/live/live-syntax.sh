@@ -7,7 +7,9 @@
 # --display, with --label, through an alias and as "main"; checks that each display gets its own label; and
 # checks that the mistakes (two different displays for `show`, a lone word that is a display) are refused and change
 # nothing, and that naming the same display twice works as for one display. With two or more displays it then labels,
-# removes and undoes on every display in one command each; with one display those checks are skipped.
+# removes and undoes on every display in one command each; with one display those checks are skipped. Last, with an
+# alias that the first display's name overrides, it checks that quiet mode (spec 011: -q, --quiet, DNM_QUIET=1) hides
+# the warning and changes nothing else.
 # It never switches Desktops: it acts on the Desktop showing on each display.
 #
 # This changes the wallpaper of the Desktop you are on, on every display. Run it only while you are idle, on
@@ -103,6 +105,35 @@ shows_the_same_both_ways() {
 # succeeds <dnm arguments...>: dnm exits 0 (whatever it prints).
 succeeds() {
     "$dnm_binary" "$@" >/dev/null 2>&1
+}
+
+# warns <dnm arguments...>: dnm prints a warning on standard error.
+warns() {
+    local errors
+    errors="$("$dnm_binary" "$@" 2>&1 >/dev/null)" || true
+    [[ "$errors" == *"dnm: warning: "* ]]
+}
+
+# succeeds_silently <dnm arguments...>: dnm exits 0 with nothing on standard error (quiet mode, spec 011).
+succeeds_silently() {
+    local errors status=0
+    errors="$("$dnm_binary" "$@" 2>&1 >/dev/null)" || status=$?
+    [[ "$status" -eq 0 && -z "$errors" ]]
+}
+
+# succeeds_silently_with_env <dnm arguments...>: the same, quiet through DNM_QUIET=1 instead of -q.
+succeeds_silently_with_env() {
+    local errors status=0
+    errors="$(DNM_QUIET=1 "$dnm_binary" "$@" 2>&1 >/dev/null)" || status=$?
+    [[ "$status" -eq 0 && -z "$errors" ]]
+}
+
+# fails_loudly <status> <dnm arguments...>: dnm exits with that status and says why on standard error.
+fails_loudly() {
+    local expected=$1 errors status=0
+    shift
+    errors="$("$dnm_binary" "$@" 2>&1 >/dev/null)" || status=$?
+    [[ "$status" -eq "$expected" && -n "$errors" ]]
 }
 
 # exits_with <status> <dnm arguments...>: dnm exits with that status and prints nothing on standard output.
@@ -295,6 +326,34 @@ else
         dnm remove "$name"
         check "${name}: removed" shows_no_label "$name"
     done
+fi
+
+# --- Quiet mode (spec 011) ---------------------------------------------------------------------------
+# A second private store holds an alias named like the first display, bound to a made-up display: `dnm alias`
+# refuses that name while the display is connected, so the store is written directly. Every command naming the
+# display then warns, unless quiet mode is on; what the commands do must be the same either way (FR-005).
+print_colored "$COLOR_BRIGHTYELLOW" "Quiet mode"
+quiet_display="${display_names[0]}"
+if ! "$dry_run"; then
+    main_store="$DNM_STORE_DIR"
+    export DNM_STORE_DIR="${work_directory}/quiet-store"
+    mkdir -p "$DNM_STORE_DIR"
+    printf '{"schemaVersion":3,"stamps":[],"changes":[],"aliases":[{"name":"%s","displayUUID":"ELSEWHERE","displayName":"Elsewhere"}]}' \
+        "$quiet_display" >"${DNM_STORE_DIR}/manifest.json"
+fi
+check "set on the overridden alias's name warns without quiet mode" warns set "$quiet_display" "Loud"
+check "...and labels the display" shows_label "$quiet_display" "Loud"
+check "set ... -q prints nothing on standard error" succeeds_silently set "$quiet_display" "Quiet after" -q
+check "...and labels the display the same way" shows_label "$quiet_display" "Quiet after"
+check "dnm -q set ... prints nothing on standard error" succeeds_silently -q set "$quiet_display" "Quiet before"
+check "...and labels the display the same way" shows_label "$quiet_display" "Quiet before"
+check "DNM_QUIET=1 dnm undo prints nothing on standard error" succeeds_silently_with_env undo "$quiet_display"
+check "...and undoes the same way" shows_label "$quiet_display" "Quiet after"
+check "remove ... --quiet prints nothing on standard error" succeeds_silently remove "$quiet_display" --quiet
+check "...and restores the original" shows_no_label "$quiet_display"
+check "a refusal is still printed in quiet mode (exit 2)" fails_loudly 2 set "$quiet_display" -q
+if ! "$dry_run"; then
+    export DNM_STORE_DIR="$main_store"
 fi
 labels_applied=false
 
