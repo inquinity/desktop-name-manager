@@ -21,7 +21,7 @@ dnm cleanup --scan [--yes] [--json]
 ## 2. Order
 
 1. Options checked (§1).
-2. Accessibility checked, without prompting and with no output before it. Missing: the `--desktop` explanation,
+2. Accessibility checked, without prompting and with no output before it. Missing: the one-sentence message (section 4),
    exit 1.
 3. Description on standard output, for example:
 
@@ -68,7 +68,9 @@ dnm cleanup --scan [--yes] [--json]
 
 ## 4. Failures during the walk (standard error)
 
-- The `--desktop` messages for a missing permission and for shortcuts that are off, ending `Nothing was deleted.`
+- A missing permission: `cleanup --scan needs the Accessibility permission to scan Desktops.` (amended 2026-11-10;
+  `dnm check` says how to grant it).
+- The `--desktop` message for shortcuts that are off, ending `Nothing was deleted.`
   The "nothing moved" message is given only when no step moved on any display in the run (spec FR-017); a display
   where nothing moved, beside one where steps were confirmed, is counted as having one Desktop.
 - A display that cannot be read (disconnected): `dnm could not read the wallpaper of <display> during the scan

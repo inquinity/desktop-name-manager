@@ -133,8 +133,8 @@ control"`).
     both displays back on the Desktop they started on. The Ctrl-C was delivered to the terminal tab directly; a key
     press while the Desktops switch away from the terminal is still to be checked by hand.
   - By hand 6 (Accessibility off for the app running dnm, empty private store): the `--desktop`-style explanation,
-    `Nothing was deleted.`, exit 1, no switching and no prompt. Passed. The maintainer found the text too long; a
-    shorter one is proposed.
+    `Nothing was deleted.`, exit 1, no switching and no prompt. Passed. The maintainer found the text too long; it is
+    now one sentence (`1675a90`, reviewed: two stale spec lines fixed), checked by the unit and command tests.
   - Still open: Live 1 (one display), Live 3 (a display not connected), Live 5
     (optional).
 

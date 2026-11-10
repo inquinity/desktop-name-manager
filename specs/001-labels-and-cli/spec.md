@@ -253,7 +253,8 @@ the expected labels; the other Desktops are unchanged.
 2. **Given** the display has three Desktops, **When** the user asks for `--desktop 5`, **Then** nothing is
    labeled, the display is back where it started, and the tool says the display has three Desktops.
 3. **Given** Accessibility is not granted, **When** the user passes `--desktop`, **Then** nothing changes
-   and the tool explains how to grant the permission and why it is needed; it never prompts on its own.
+   and the tool says in one sentence why the permission is needed (`dnm check` says how to grant it; amended
+   2026-11-10); it never prompts on its own.
 4. **Given** `--desktop` is left out, **When** the command runs, **Then** it acts on the current Desktop with
    no switching and no permission. (With `--desktop`, the tool always finds its position by switching, because
    public interfaces cannot tell which Desktop is showing.)
