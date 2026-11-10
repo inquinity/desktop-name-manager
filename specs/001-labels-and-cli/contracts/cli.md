@@ -223,6 +223,7 @@ Exit `0`. `--json`: `{ "items": [ { "name", "state": "ok" | "attention" | "unkno
 | `1` | Failure: file access denied (the system's error is shown), file missing, disk error, undo not possible, a newer manifest format. |
 | `2` | Invalid input: bad label, bad option value, unknown or ambiguous `--display`. |
 | `3` | Unsupported wallpaper (dynamic, catalog, video, shuffle, or none reported). |
+| `130` | `cleanup --scan` stopped with Ctrl-C; nothing was deleted (spec 012). |
 
 ## Stability
 

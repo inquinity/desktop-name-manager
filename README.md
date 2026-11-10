@@ -58,6 +58,7 @@ Desktop for you (see below).
 | `dnm displays` | List the connected displays, as `--display` accepts them, with their aliases. |
 | `dnm alias` | Give a display a short name for `--display`: `dnm alias <name> [<display>]`. Without arguments it lists the aliases; `--remove <name>` deletes one. |
 | `dnm cleanup` | Find old labeled images no Desktop is known to show, describe them, and delete them when you agree (`--days N`, `--yes`). |
+| `dnm cleanup --scan` | Visit every Desktop of every connected display, then list the labels no Desktop shows and delete them when you agree (needs Accessibility). |
 | `dnm about` | Version, where data is kept, and what permissions the tool uses and why. |
 | `dnm check` | How this Mac is set up for labels and `--desktop`, and how to fix what is missing. |
 
@@ -187,6 +188,30 @@ Deleting a Desktop in Mission Control is something `dnm` is never told about, so
 "Seen" means a label's image was showing on a Desktop when a command that changes labels (`set`, `remove`, `undo`,
 `cleanup`) looked; commands that only read, like `list` and `show`, change nothing. `dnm check` says how much
 `cleanup` could free.
+
+### Scanning every Desktop
+
+`dnm cleanup` guesses by age because it can see only the Desktop showing on each display. **`dnm cleanup --scan`**
+looks instead: it visits every Desktop of every connected display, as `--desktop` does, notes which labeled image
+each one shows, and lists the labels that no Desktop shows, whatever their age.
+
+- It needs the Accessibility permission, like `--desktop` (see `dnm check`), and asks before it starts. The Desktops
+  slide by and the pointer moves, about 2 seconds per Desktop; do not type until it is done. Each display returns to
+  the Desktop it started on, and the pointer to where it was.
+- It lists each label no Desktop showed (display, text, size, when it was last seen) and asks again before deleting.
+  `--yes` answers both questions; with no terminal and no `--yes` it only describes what it would do. `--json`
+  prints one document (with `--yes`, after scanning and deleting).
+- Labels of displays that are not connected are left alone and named (`Not checked: …`), because their Desktops
+  cannot be seen.
+- Ctrl-C during the scan returns the display to its Desktop, deletes nothing and exits 130; a second Ctrl-C stops
+  at once.
+- On a Mac with one display and one Desktop, or with the "Move left a space" and "Move right a space" shortcuts
+  off, nothing moves and the scan cannot tell the two apart; it stops and deletes nothing. `dnm cleanup` still works.
+
+Prefer the scan when you have deleted Desktops recently and want an exact answer; the age-based `cleanup` needs no
+permission and does not move anything. If you move your Mac between display arrangements (for example two and three
+monitors), each arrangement keeps its own Desktops, and the scan sees only the one connected now: a label it offers
+to delete may still be used by a Desktop of another arrangement (known issue KI-2).
 
 ## Label sets of Desktops
 

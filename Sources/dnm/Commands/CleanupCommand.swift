@@ -93,6 +93,7 @@ struct CleanupCommand: ParsableCommand, HasGlobalOptions {
         }
         Output.out("\(images(plan.candidates.count)), \(size.string(fromByteCount: plan.totalBytes)) in all.")
         Output.out("A Desktop that is not on screen now (including one on a display that is not connected) might still show one of these; it would fall back to the Mac's default wallpaper until you choose another or label it again.")
+        Output.out("To check every Desktop of the connected displays first, run dnm cleanup --scan.")
     }
 
     static func why(_ candidate: CleanupCandidate, now: Date) -> String {

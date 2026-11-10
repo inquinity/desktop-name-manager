@@ -40,6 +40,11 @@ three-monitor arrangement were still used by two Desktops of the two-monitor arr
 README should advise running them only after checking every arrangement in use. A full fix needs
 information macOS does not offer publicly.
 
+**`cleanup --scan` (spec 012, 0.3.0).** The scan visits every Desktop of the arrangement connected now, so it is
+exact for that arrangement only. It leaves the labels of displays that are not connected alone and names them
+(`Not checked: <display> is not connected (N labels).`), and the README says that a label it offers to delete may
+still be used by a Desktop of another arrangement.
+
 
 ## KI-3: A new Desktop that inherited a label reports "no label" once the left-most label is removed
 

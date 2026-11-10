@@ -50,7 +50,7 @@ import Testing
         let result = try CLI.run(["cleanup"], store: c.path)
         #expect(result.status == 0 && result.errors.isEmpty)
         for needle in ["Old labeled images that no Desktop is known to show (30 days):", "\"Mail\"", "removed 40 days ago", "\"Projects\"",
-                       "not seen for 40 days", "2 labeled images, 5 MB in all.", "might still show one of these", "Nothing was deleted: add --yes"] {
+                       "not seen for 40 days", "2 labeled images, 5 MB in all.", "might still show one of these", "run dnm cleanup --scan.", "Nothing was deleted: add --yes"] {
             #expect(result.output.contains(needle), "\(needle)")
         }
         #expect(!result.output.contains("\"Current\""), "seen today")
