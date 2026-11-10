@@ -122,7 +122,7 @@ struct CleanupCommand: ParsableCommand, HasGlobalOptions {
     func runScan() throws {
         try MainActor.assumeIsolated {
             // The permission comes first, before anything is printed (FR-001), and never prompts.
-            guard AXIsProcessTrusted() else { throw DesktopNavigator.permissionMissing(for: "cleanup --scan", outcome: "Nothing was deleted.") }
+            guard AXIsProcessTrusted() else { throw DesktopNavigator.permissionMissing(for: "cleanup --scan", to: "scan Desktops") }
             let labeler = Context().labeler
             let preview = try labeler.scanPreview()
             let terminal = isatty(STDIN_FILENO) != 0 && isatty(STDOUT_FILENO) != 0

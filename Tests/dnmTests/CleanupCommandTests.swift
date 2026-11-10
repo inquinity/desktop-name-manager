@@ -196,7 +196,7 @@ import Testing
         } else {
             for result in [text, json] {
                 #expect(result.status == 1 && result.output.isEmpty)
-                #expect(result.errors.hasPrefix("dnm: cleanup --scan needs the Accessibility permission") && result.errors.hasSuffix("Nothing was deleted.\n"))
+                #expect(result.errors == "dnm: cleanup --scan needs the Accessibility permission to scan Desktops.\n")
             }
         }
         #expect(try Data(contentsOf: c.store.manifestURL) == before, "nothing was written")

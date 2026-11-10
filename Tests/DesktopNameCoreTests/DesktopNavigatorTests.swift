@@ -71,8 +71,8 @@ import Testing
         } catch let error as DnmError {
             #expect(error.exitCode == 1)
             let text = error.errorDescription ?? ""
-            #expect(text.contains("Accessibility") && text.contains("Move left a space") && text.contains("Privacy & Security") && text.contains("Device Control and Data Access"))
-            #expect(text.contains("every program run in that app"))
+            // One sentence (maintainer, 2026-11-10); `dnm check` says where to grant it and what it allows.
+            #expect(text == "--desktop needs the Accessibility permission to switch Desktops.")
         }
         #expect(fake.steps == 0)
         #expect(fake.pointedAt == nil)

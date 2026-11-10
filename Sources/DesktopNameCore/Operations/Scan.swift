@@ -75,7 +75,7 @@ extension DesktopLabeler {
     @MainActor
     public func scan(switcher: DesktopSwitching, separateSpaces: Bool, isInterrupted: () -> Bool = { false },
                      progress: ([Display]) -> Void = { _ in }) throws -> ScanResult {
-        guard switcher.isTrusted else { throw DesktopNavigator.permissionMissing(for: "cleanup --scan", outcome: "Nothing was deleted.") }
+        guard switcher.isTrusted else { throw DesktopNavigator.permissionMissing(for: "cleanup --scan", to: "scan Desktops") }
         let preview = try scanPreview()
         let displays = preview.displays
         let navigator = DesktopNavigator(switcher: switcher)

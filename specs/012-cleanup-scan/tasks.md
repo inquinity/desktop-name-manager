@@ -132,7 +132,10 @@ control"`).
     the first display: `Stopped before any display was scanned. Nothing was deleted.`, exit 130, both labels kept,
     both displays back on the Desktop they started on. The Ctrl-C was delivered to the terminal tab directly; a key
     press while the Desktops switch away from the terminal is still to be checked by hand.
-  - Still open: by hand 6 (Accessibility off), Live 1 (one display), Live 3 (a display not connected), Live 5
+  - By hand 6 (Accessibility off for the app running dnm, empty private store): the `--desktop`-style explanation,
+    `Nothing was deleted.`, exit 1, no switching and no prompt. Passed. The maintainer found the text too long; a
+    shorter one is proposed.
+  - Still open: Live 1 (one display), Live 3 (a display not connected), Live 5
     (optional).
 
 ## Dependencies

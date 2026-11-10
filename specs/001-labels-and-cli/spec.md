@@ -405,7 +405,7 @@ the expected labels; the other Desktops are unchanged.
   interfaces: it moves the pointer to that display (and back), uses the "Move left a space" and
   "Move right a space" shortcuts, and confirms each step with the system's public notification that the
   active Desktop changed. It MUST end on the Desktop it started on, also when it fails. Without `--desktop`
-  there is no switching and no permission; with it, the tool needs the Accessibility permission: when it is missing, the tool MUST change nothing, say why it is needed and how to grant it,
+  there is no switching and no permission; with it, the tool needs the Accessibility permission: when it is missing, the tool MUST change nothing, say in one sentence why it is needed (`dnm check` says how to grant it; amended 2026-11-10),
   and MUST NOT trigger a permission prompt on its own. A Desktop number that does not exist, shortcuts
   that are off, or a step that cannot be confirmed MUST stop the command with a message, return to the
   starting Desktop and label nothing. A Desktop change made by the person during the command (more

@@ -203,7 +203,7 @@ import Testing
             Issue.record("expected an error")
         } catch let error as DnmError {
             let text = error.errorDescription ?? ""
-            #expect(error.exitCode == 1 && text.hasPrefix("cleanup --scan needs the Accessibility permission") && text.hasSuffix("Nothing was deleted."))
+            #expect(error.exitCode == 1 && text == "cleanup --scan needs the Accessibility permission to scan Desktops.")
         }
         #expect(rig.switcher.steps == 0 && rig.switcher.pointedAt == nil)
         #expect(try rig.manifestBytes() == before)

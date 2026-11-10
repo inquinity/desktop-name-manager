@@ -43,7 +43,7 @@ public struct DesktopNavigator {
 
     public func visit<T>(desktop target: Int, on display: Display, _ body: () throws -> T) throws -> T {
         guard target >= 1 else { throw DnmError.invalidInput("--desktop takes a Desktop number, 1 or more.") }
-        guard switcher.isTrusted else { throw Self.permissionMissing(for: "--desktop", outcome: "Nothing was changed.") }
+        guard switcher.isTrusted else { throw Self.permissionMissing(for: "--desktop", to: "switch Desktops") }
         let savedPointer = try switcher.pointAt(display)
         defer { switcher.restorePointer(savedPointer) }
         let baseline = switcher.announcedChanges
@@ -95,14 +95,10 @@ public struct DesktopNavigator {
         return result
     }
 
-    /// The explanation when the Accessibility permission is missing, for `--desktop` and `cleanup --scan`.
-    public static func permissionMissing(for feature: String, outcome: String) -> DnmError {
-        .failure("""
-            \(feature) needs the Accessibility permission, to press macOS's own "Move left a space" and "Move right a space" \
-            shortcuts (macOS offers apps no public way to switch Desktops). Nothing else is typed or read. Grant it to the app \
-            you run dnm from in \(About.accessibilitySettings), then run the command again. Note: \(About.accessibilityScope) \
-            \(outcome)
-            """)
+    /// The one-sentence explanation when the Accessibility permission is missing, for `--desktop` and `cleanup --scan`;
+    /// `dnm check` says how to grant it.
+    public static func permissionMissing(for feature: String, to purpose: String) -> DnmError {
+        .failure("\(feature) needs the Accessibility permission to \(purpose).")
     }
 
     // MARK: - Walking every Desktop (spec 012, research R1)

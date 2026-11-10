@@ -16,3 +16,5 @@ dropped (the same process as the sibling project).
   Labels of displays that are not connected are left alone and named. Ctrl-C returns the display to its Desktop and
   deletes nothing (exit 130).
 - **`cleanup --json`** has a new `mode` field, `"age"` or `"scan"`; nothing else changes in the age-based document.
+- **Shorter Accessibility message.** When the permission is missing, `--desktop` and `cleanup --scan` now say so in
+  one sentence; `dnm check` says where to turn it on.
