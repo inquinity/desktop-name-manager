@@ -98,6 +98,10 @@ target changes; `DesktopNameCore` is untouched.
     display labeled); completion after a leading `-q` is checked by hand (quickstart scenario 10), as
     `CompletionTests` reads script text only; the seeded alias relies on loading not re-checking alias names, which
     the tests would catch if it changed.
+  - Re-review of the fixes (Opus, fresh context, `c0d7d09`): no regression; the trap stays inside the private stores
+    and keeps the exit status, `--dry-run` is safe under `set -u`, the escaping is right on bash 3.2. Its low finding
+    is fixed (the scan also catches `write(STDERR_FILENO` and `write(2,`); control characters in a display name are
+    not escaped in the seeded JSON (accepted: display names do not contain them).
 - [ ] T027 Quickstart by-hand scenarios 1 to 10 (no wallpaper change; scenario 10 is Tab completion in bash and zsh at the keyboard) and a live run of `Tests/live/live-syntax.sh` on the maintainer's Mac under the live-test rules (back up `Index.plist`, private `DNM_STORE_DIR`, restore with `dnm remove`), quoting `dnm --version`; record the results in this file
 
 ## Dependencies

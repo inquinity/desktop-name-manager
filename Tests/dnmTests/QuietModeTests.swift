@@ -81,7 +81,7 @@ import Testing
                 #expect(!line.contains("warning:") && !line.contains("note:"), "\(file): \(line)")
             }
             if file != "Output.swift" {
-                for writer in ["FileHandle.standardError", "fileDescriptor: 2", "fputs(", "stderr"] {
+                for writer in ["FileHandle.standardError", "fileDescriptor: 2", "write(STDERR_FILENO", "write(2,", "fputs(", "stderr"] {
                     #expect(!text.contains(writer), "\(file) writes to standard error without Output (\(writer))")
                 }
             }
