@@ -27,7 +27,7 @@ live-test rules, with live control asked for and announced first when Desktops s
 
 ## Phase 2: Core (spec FR-002, FR-003, FR-005; research R2, R3)
 
-- [ ] T006 [P] In `Tests/DesktopNameCoreTests/RemoveLabelTests.swift`, tests first: a Desktop that reports the original of a label of this display is set again with the recorded placement and fill, outcome `.repaired`, no change record, manifest identical apart from `lastSeen` (SC-003); an unrelated image is not set, outcome `.noLabel` (SC-002); an original of a label of another display is not matched; a missing original throws `originalMissing` and sets nothing; two labels with one original use the most recent one's placement; no store yet: `.noLabel`, store not created; a normal label is removed exactly as before
+- [ ] T006 [P] In `Tests/DesktopNameCoreTests/RemoveLabelTests.swift`, tests first: a Desktop that reports the original of a label of this display is set again with the recorded placement and fill, outcome `.repaired`, no change record, manifest identical apart from `lastSeen` (SC-003); an unrelated image is not set, outcome `.noLabel` (SC-002); an original of a label of another display is not matched; a missing original throws `originalMissing` and sets nothing; two labels with one original use the most recent one's placement; no store yet: `.noLabel`, store not created; a normal label is removed exactly as before; `undo` after a repair gives the same result it would have given before it (FR-006)
 - [ ] T007 In `Sources/DesktopNameCore/Operations/RemoveLabel.swift`, add `case repaired` to `RemoveLabelOutcome` and a `matchingOriginal(for url: URL?, on display: Display, in manifest: Manifest) -> Stamp?` (labels of `display.uuid` whose original resolves, through `Self.resolve`, to the same file as `url` after resolving symbolic links; the most recent `createdAt` wins); in `performRemoveLabel`, when `stamp(for:in:)` finds nothing, try the match: set the original with `apply(_:placement:on:)` and `Self.placement(of:)`, mark seen as today, record no change, return `.repaired`
 
 **Checkpoint**: core tests pass.
@@ -35,7 +35,7 @@ live-test rules, with live control asked for and announced first when Desktops s
 ## Phase 3: Command (spec FR-004, FR-007; contracts/cli.md)
 
 - [ ] T008 In `Sources/dnm/Commands/RemoveCommand.swift`, print the repair line for `.repaired` (contracts/cli.md), and do not call `changed()` for it, so a part-way message on several displays does not name a repaired display (research R4); add the help sentence
-- [ ] T009 [P] In `Tests/DesktopNameCoreTests/DisplayBatchTests.swift` (or `RemoveLabelTests`), several displays: one repaired, one removed, then a failure: the part-way message names only the removed display; in `Tests/dnmTests/`, `remove --help` has the sentence
+- [ ] T009 [P] In `Tests/DesktopNameCoreTests/DisplayBatchTests.swift` (or `RemoveLabelTests`), several displays: one repaired, one removed, then a failure: the part-way message names only the removed display; `remove --desktop 2` repairs Desktop 2 with the fake switcher (FR-007); in `Tests/dnmTests/`, `remove --help` has the sentence
 - [ ] T009a (only if Q1 = an option) Add `--repair` to `remove`, its help, completion (spec 007) and tests; plain `remove` keeps `No label on <display>.`
 
 ## Phase 4: Docs (spec FR-008)
@@ -58,3 +58,10 @@ live-test rules, with live control asked for and announced first when Desktops s
 
 Phase 1 is the decision point. If it confirms the repair, the change is small (one outcome, one lookup, one line),
 and fits a patch release after 0.3.0.
+
+## Analysis (2026-11-09)
+
+Every functional requirement maps to a task: FR-001 T002-T005; FR-002, FR-003, FR-005 T006-T007; FR-004 T008;
+FR-006 T006; FR-007 T009; FR-008 T008, T010, T011; FR-009 T013. SC-001 T014; SC-002, SC-003 T006; SC-004 T013.
+No constitution conflict. Open before implementing: the proposed decisions Q1-Q5 (spec Clarifications).
+
