@@ -24,7 +24,7 @@ connects later. To get one without a second monitor, seed the throwaway store wi
 made-up display (loading does not re-check names):
 
 ```bash
-printf '{"schemaVersion":3,"stamps":[],"changes":[],"aliases":[{"name":"%s","displayUUID":"00000000-0000-0000-0000-000000000000","displayName":"Elsewhere"}]}' '<name>' >"$DNM_STORE_DIR/manifest.json"
+printf '{"schemaVersion":3,"stamps":[],"changes":[],"aliases":[{"name":"%s","displayUUID":"ELSEWHERE","displayName":"Elsewhere"}]}' '<name>' >"$DNM_STORE_DIR/manifest.json"
 ```
 
 | # | Scenario | Command | Expected |
