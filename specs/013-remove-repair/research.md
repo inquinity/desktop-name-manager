@@ -39,7 +39,6 @@
 
 ## R4. Messages
 
-- `.repaired`: `No label is recorded for this Desktop; dnm set its original wallpaper again, in case the screen still
-  showed a label.` (spec Q2), on standard output.
+- `.repaired`: `No label recorded; set the original wallpaper again in case a label still showed.` (spec Q2), on standard output.
 - With several displays, a repaired display is not counted as changed in the part-way message (spec 010 FR-006):
   what macOS reports for it is unchanged and there is nothing to undo, so the suggested `undo` does not name it.

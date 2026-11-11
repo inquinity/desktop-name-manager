@@ -77,7 +77,7 @@ is built. "Not set" means it has no release yet; its place in the order is the c
 | Several displays in one command: `set`, `remove` and `undo` act on every display named, checking all of them before the first change and stopping at the first failure ([specs/010-several-displays](specs/010-several-displays/)). Several Desktops of one display is potential feature F11 | F3 | 0.2.2 (released 2026-11-09) |
 | `dnm cleanup --scan`: find labels of deleted Desktops exactly by visiting every Desktop (Accessibility, opt-in) ([specs/012-cleanup-scan](specs/012-cleanup-scan/), formerly stage 2 of spec 009); a bigger concept, so a minor version | F9 | 0.3.0 |
 | Quiet flag: `-q` / `--quiet` (and `DNM_QUIET=1`) suppresses warnings, such as an alias overridden by a display's name, on every command; results and errors still print ([backlog](docs/backlog.md)) | F7 | 0.3.0 |
-| `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) ([specs/013-remove-repair](specs/013-remove-repair/)); planned next, after 0.3.0 | F6 | Not set |
+| `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) ([specs/013-remove-repair](specs/013-remove-repair/)); if the live check confirms the repair | F6 | 0.3.0 |
 | **The menu-bar app and label editor** ([M2](#m2-the-menu-bar-app-and-label-editor)) | **M2** | Not set |
 | **Quick View: see every label, switch to one** ([M3](#m3-quick-view)) | **M3** | Not set |
 | **Desktop groups, display roles and sites** ([M4](#m4-desktop-groups-display-roles-and-sites)) | **M4** | Not set |

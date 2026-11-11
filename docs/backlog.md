@@ -115,7 +115,7 @@ Ideas recorded for later. None is part of a current spec.
   name can do today. (A name that is part of another, such as `LG Ultra` and `LG Ultra HD`, already works:
   an exact name wins over a partial match.) Spec 001 planned these for display roles (M4); they could come
   sooner as a small CLI feature (`dnm alias DP1 "LG Ultra HD"`, shown by `dnm displays`).
-- **`remove` repairs a misreported Desktop** (2026-10-08; roadmap F6, planned next: `specs/013-remove-repair`). Known issue KI-3: a new Desktop that inherited
+- **`remove` repairs a misreported Desktop** (2026-10-08; roadmap F6, 0.3.0: `specs/013-remove-repair`). Known issue KI-3: a new Desktop that inherited
   the left-most Desktop's label can report the original wallpaper while still showing the label. When the
   reported image is the original of one of our labels, `remove` could set that original again (public
   `setDesktopImageURL`, with the recorded placement) so the screen catches up. Low priority: keeping the

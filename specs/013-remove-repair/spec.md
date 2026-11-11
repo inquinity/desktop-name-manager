@@ -4,9 +4,9 @@
 
 **Created**: 2026-11-09
 
-**Status**: Draft, with proposed decisions awaiting the maintainer (see Clarifications)
+**Status**: Clarified 2026-11-11; implementation gated on the live confirmation (FR-001)
 
-**Target release**: not set; planned next after 0.3.0 (roadmap F6)
+**Target release**: 0.3.0 (maintainer, 2026-11-11: the next changes are the GUI, so F6 joins 0.3.0)
 
 **Input**: Roadmap F6 and the backlog entry "`remove` repairs a misreported Desktop" (2026-10-08): known issue KI-3,
 a new Desktop that inherited the left-most Desktop's label can report the original wallpaper while still showing the
@@ -34,23 +34,23 @@ screen catch up.
 
 ## Clarifications
 
-### Proposed decisions (2026-11-09, awaiting the maintainer)
+### Session 2026-11-11
 
-Written while the maintainer was away; each is the recommended answer and is what the plan assumes. A different
-answer changes the plan where noted.
+Proposed 2026-11-09 while the maintainer was away; the maintainer accepted Q1 and Q3-Q5 as proposed and chose the
+short line for Q2.
 
-- Q1: Does plain `dnm remove` repair, or only with a new option? → Proposed: **plain `remove`**, because the person
+- Q1: Does plain `dnm remove` repair, or only with a new option? → A: **plain `remove`**, because the person
   cannot tell a misreported Desktop from an unlabeled one, and the repair sets what is already reported (no new
   option to learn; FR-002). Alternative: `remove --repair`, which would keep plain `remove`'s "No label" unchanged.
-- Q2: What does `remove` print after a repair? → Proposed: `No label is recorded for this Desktop; dnm set its
-  original wallpaper again, in case the screen still showed a label.` on standard output, exit 0 (FR-004). It is a
+- Q2: What does `remove` print after a repair? → A: `No label recorded; set the original wallpaper again in case a label still showed.`
+  on standard output, exit 0 (FR-004). It is a
   result, not a warning, so quiet mode (spec 011) does not hide it.
-- Q3: Is a repair recorded for `undo`? → Proposed: **no**. It sets the image macOS already reports, so there is
+- Q3: Is a repair recorded for `undo`? → A: **no**. It sets the image macOS already reports, so there is
   nothing to put back; `undo` after a repair says what it says today for the change before it (FR-006).
-- Q4: Does `--desktop N` and several displays (spec 010) apply? → Proposed: **yes**, the repair is part of `remove`
+- Q4: Does `--desktop N` and several displays (spec 010) apply? → A: **yes**, the repair is part of `remove`
   on each display named, on Desktop N when `--desktop` is given (FR-007).
 - Q5: What if the live confirmation (FR-001) shows that setting the original again does not make the screen catch
-  up? → Proposed: **stop**: KI-3 stays open with what was learned, this spec is closed as not feasible with public
+  up? → A: **stop**: KI-3 stays open with what was learned, this spec is closed as not feasible with public
   interfaces, and nothing ships (FR-001).
 
 ## User Scenarios & Testing

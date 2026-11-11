@@ -8,8 +8,7 @@ description: "Task list for feature F6: remove repairs a misreported Desktop"
 
 **Tests**: included (SC-002, SC-003).
 
-**Before starting**: confirm or change the proposed decisions Q1-Q5 in spec.md (`/speckit-clarify`). The tasks
-assume the proposals; Q1 = "an option" adds T009a below.
+**Decisions**: Q1-Q5 settled 2026-11-11 (spec Clarifications): plain `remove` repairs, so T009a does not apply.
 
 **Rules for every task**: no automated test changes a real wallpaper (fake wallpaper system, temporary store);
 synthetic names; public interfaces only in `Sources/`; `prototype/` only for research; live steps under the
@@ -57,11 +56,11 @@ live-test rules, with live control asked for and announced first when Desktops s
 ## Implementation strategy
 
 Phase 1 is the decision point. If it confirms the repair, the change is small (one outcome, one lookup, one line),
-and fits a patch release after 0.3.0.
+and joins 0.3.0 (maintainer, 2026-11-11).
 
 ## Analysis (2026-11-09)
 
 Every functional requirement maps to a task: FR-001 T002-T005; FR-002, FR-003, FR-005 T006-T007; FR-004 T008;
 FR-006 T006; FR-007 T009; FR-008 T008, T010, T011; FR-009 T013. SC-001 T014; SC-002, SC-003 T006; SC-004 T013.
-No constitution conflict. Open before implementing: the proposed decisions Q1-Q5 (spec Clarifications).
+No constitution conflict. Q1-Q5 settled 2026-11-11.
 

@@ -33,5 +33,4 @@
 
 - The spec names `setDesktopImageURL` and `desktopImageURL(for:)` because the feature is about what those public
   interfaces report and do; that is the subject, not an implementation choice (as in specs 001 and 009).
-- Clarification is pending: Q1-Q5 are proposed decisions written while the maintainer was away. Run
-  `/speckit-clarify` (or confirm them) before `/speckit-implement`.
+- Clarified 2026-11-11: the maintainer accepted Q1 and Q3-Q5 and chose the short line for Q2.
