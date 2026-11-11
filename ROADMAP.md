@@ -77,7 +77,7 @@ is built. "Not set" means it has no release yet; its place in the order is the c
 | Several displays in one command: `set`, `remove` and `undo` act on every display named, checking all of them before the first change and stopping at the first failure ([specs/010-several-displays](specs/010-several-displays/)). Several Desktops of one display is potential feature F11 | F3 | 0.2.2 (released 2026-11-09) |
 | `dnm cleanup --scan`: find labels of deleted Desktops exactly by visiting every Desktop (Accessibility, opt-in) ([specs/012-cleanup-scan](specs/012-cleanup-scan/), formerly stage 2 of spec 009); a bigger concept, so a minor version | F9 | 0.3.0 |
 | Quiet flag: `-q` / `--quiet` (and `DNM_QUIET=1`) suppresses warnings, such as an alias overridden by a display's name, on every command; results and errors still print ([backlog](docs/backlog.md)) | F7 | 0.3.0 |
-| `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) ([specs/013-remove-repair](specs/013-remove-repair/)); if the live check confirms the repair | F6 | 0.3.0 |
+| `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) ([specs/013-remove-repair](specs/013-remove-repair/)); closed 2026-11-11: KI-3 did not reproduce | F6 | Closed, not built |
 | **The menu-bar app and label editor** ([M2](#m2-the-menu-bar-app-and-label-editor)) | **M2** | Not set |
 | **Quick View: see every label, switch to one** ([M3](#m3-quick-view)) | **M3** | Not set |
 | **Desktop groups, display roles and sites** ([M4](#m4-desktop-groups-display-roles-and-sites)) | **M4** | Not set |
@@ -133,5 +133,5 @@ constitution amendment for a preview stage; see the open decision in the maintai
   cleaning up all labeled images, and a separate full-featured build.
 - [specs/001-labels-and-cli/known-issues.md](specs/001-labels-and-cli/known-issues.md): KI-1 (the left-most
   Desktop's wallpaper is copied to new Desktops), KI-2 (Desktops of a display arrangement that is not
-  connected are invisible) and KI-3 (a new Desktop that inherited a label can report "No label").
+  connected are invisible) and KI-3 (a new Desktop that inherited a label could report "No label"; not reproduced in 2026-11).
 - [docs/research/](docs/research/): how macOS ties Desktops to wallpapers, and Desktop-switching timings.

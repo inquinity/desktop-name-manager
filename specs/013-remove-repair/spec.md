@@ -4,9 +4,9 @@
 
 **Created**: 2026-11-09
 
-**Status**: Clarified 2026-11-11; implementation gated on the live confirmation (FR-001)
+**Status**: Closed 2026-11-11, not built: KI-3 did not reproduce in the live confirmation (FR-001; research R1)
 
-**Target release**: 0.3.0 (maintainer, 2026-11-11: the next changes are the GUI, so F6 joins 0.3.0)
+**Target release**: none (planned for 0.3.0 on 2026-11-11, then closed the same day; maintainer)
 
 **Input**: Roadmap F6 and the backlog entry "`remove` repairs a misreported Desktop" (2026-10-08): known issue KI-3,
 a new Desktop that inherited the left-most Desktop's label can report the original wallpaper while still showing the

@@ -32,3 +32,7 @@ both read-only, and names `dnm`'s stamps from its manifest. You describe an acti
 what changed; it logs to the untracked `working-notes/research/`. Run it with `just observe`
 (`just observe --once` for a single snapshot). It is never part of the product.
 
+`reset-wallpaper.swift` prints what each display reports with public calls only, and with `--set NAME` sets that
+display's reported image again (with `--via FILE`, another image first). Written for known issue KI-3's retest (spec
+013 research R1), which did not need it. Build it with `swiftc -O -o build.noindex/research/reset-wallpaper
+prototype/reset-wallpaper.swift`.

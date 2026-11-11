@@ -19,6 +19,12 @@
     the maintainer before building.
   - Neither works: stop (spec Q5).
 
+- **Result (2026-11-11, macOS 27.2, `0.3.0 build 31 (91d4e7e)`)**: step 1 did not reproduce KI-3. The new Desktop
+showed the label and macOS reported the labeled image for it; `dnm show` found the label and plain `dnm remove`
+restored the original on screen (confirmed by the maintainer). The snapshot (step 2) showed the display's default for
+new Desktops reset to the original, and the new Desktop's own entry still the labeled image. Steps 3-4 were not needed
+(`prototype/reset-wallpaper.swift` was written for them). The maintainer closed the feature: nothing to repair.
+
 ## R2. Which original and which placement
 
 - **Decision**: a label matches when its `displayUUID` is this display and its recorded original resolves (bookmark,

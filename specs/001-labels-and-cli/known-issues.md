@@ -48,7 +48,7 @@ still be used by a Desktop of another arrangement.
 
 ## KI-3: A new Desktop that inherited a label reports "no label" once the left-most label is removed
 
-**Status:** open (found live 2026-10-07, `dnm` 0.1.0). Cause not yet confirmed.
+**Status:** not reproduced (2026-11-11, macOS 27.2, `dnm` 0.3.0 build 31); found live 2026-10-07 on `dnm` 0.1.0.
 
 **Steps.** One display with three Desktops: unlabeled, label A, label B.
 1. Label the left-most Desktop with C.
@@ -74,6 +74,14 @@ fall back to that default and report the original, while the screen still draws 
 clean), delete the Desktop `dnm` misreads, and label the new one; shell history makes the `dnm set` easy to
 repeat. Keeping the left-most Desktop unlabeled avoids the problem altogether, because new Desktops then
 never inherit a label.
+
+**Retest 2026-11-11 (spec 013, research R1).** The steps above were followed on the built-in display with a private
+store. After step 3 the new Desktop still showed the label, but macOS reported the labeled image for it (not the
+original), `dnm show` found the label, and plain `dnm remove` restored the original on screen. A read-only
+`prototype/space-observer.swift` snapshot showed that step 3 does reset the display's default for new Desktops to the
+original (half of the hypothesis above), while the new Desktop keeps its own entry for the labeled image, which is
+what the public reader returns. Whether macOS or `dnm` changed since 0.1.0 is not known. Feature F6 (a repair in
+`remove`) was closed as not needed; if the issue returns, `specs/013-remove-repair` is ready to build from.
 
 ## KI-4: Ctrl-C during `cleanup --scan` reaches `dnm` only while its terminal window is in front
 

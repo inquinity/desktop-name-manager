@@ -10,17 +10,27 @@ description: "Task list for feature F6: remove repairs a misreported Desktop"
 
 **Decisions**: Q1-Q5 settled 2026-11-11 (spec Clarifications): plain `remove` repairs, so T009a does not apply.
 
+**Closed 2026-11-11 after Phase 1**: KI-3 did not reproduce (T002), so Phases 2-5 were not started (maintainer: close
+F6, ship 0.3.0 without it).
+
 **Rules for every task**: no automated test changes a real wallpaper (fake wallpaper system, temporary store);
 synthetic names; public interfaces only in `Sources/`; `prototype/` only for research; live steps under the
 live-test rules, with live control asked for and announced first when Desktops switch.
 
 ## Phase 1: Confirm (blocks everything; spec FR-001, research R1)
 
-- [ ] T001 Confirm the baseline on `main`: `just build`, `just test`, `just periphery` pass; quote `dnm --version`
-- [ ] T002 Live, by hand with the maintainer: reproduce KI-3 (quickstart steps 1-3) with a throwaway `DNM_STORE_DIR` and `Index.plist` backed up; record whether it reproduces on macOS 27
-- [ ] T003 Live: snapshot the KI-3 state with `prototype/space-observer.swift` (read-only); note the new Desktop's entry versus `dnm show`; keep identifiers out of tracked files (notes in `working-notes/`, a scrubbed summary in KI-3)
-- [ ] T004 Live: with a one-off prototype in `prototype/` (never shipped), set the reported URL and options again on the new Desktop and look at the screen; if nothing changes, try the labeled image then the original (research R1 step 4)
-- [ ] T005 Record the outcome in `specs/001-labels-and-cli/known-issues.md` (KI-3) and `specs/013-remove-repair/research.md` (R1); if neither way works, stop here and close this spec as not feasible (spec Q5); if only the two-step way works, amend FR-002 and ask the maintainer before continuing
+- [X] T001 Confirm the baseline on `main`: `just build`, `just test`, `just periphery` pass; quote `dnm --version`
+  - `0.3.0 build 31 (91d4e7e)`: build, 367 core and 82 CLI tests, Periphery clean.
+- [X] T002 Live, by hand with the maintainer: reproduce KI-3 (quickstart steps 1-3) with a throwaway `DNM_STORE_DIR` and `Index.plist` backed up; record whether it reproduces on macOS 27
+  - Not reproduced (macOS 27.2, built-in display, private store, `Index.plist` backed up): the new Desktop reported
+    its labeled image; `dnm show` found the label; plain `dnm remove` restored the original on screen.
+- [X] T003 Live: snapshot the KI-3 state with `prototype/space-observer.swift` (read-only); note the new Desktop's entry versus `dnm show`; keep identifiers out of tracked files (notes in `working-notes/`, a scrubbed summary in KI-3)
+  - Snapshot in `working-notes/research/`: the display default reset to the original; the new Desktop's own entry
+    the labeled image. Summary in KI-3.
+- [X] T004 Live: with a one-off prototype in `prototype/` (never shipped), set the reported URL and options again on the new Desktop and look at the screen; if nothing changes, try the labeled image then the original (research R1 step 4)
+  - Not needed: there was nothing to repair. `prototype/reset-wallpaper.swift` kept for a future retest.
+- [X] T005 Record the outcome in `specs/001-labels-and-cli/known-issues.md` (KI-3) and `specs/013-remove-repair/research.md` (R1); if neither way works, stop here and close this spec as not feasible (spec Q5); if only the two-step way works, amend FR-002 and ask the maintainer before continuing
+  - KI-3 marked not reproduced; R1 has the result; the feature is closed (no FR-002 change).
 
 **Checkpoint**: the cause is known and a repair is shown to work.
 
