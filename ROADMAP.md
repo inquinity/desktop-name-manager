@@ -12,7 +12,7 @@ The features in build order. Each milestone is reached when its feature is done;
 | Milestone | Feature | Specification | Status |
 |---|---|---|---|
 | **M1 (MVP)** | Labels and the `dnm` command-line tool | [specs/001-labels-and-cli](specs/001-labels-and-cli/) | **Released as 0.1.0 (build 1), 2026-10-07**: notarized, in the unlisted `desktop-name-manager` cask. Installed and checked on macOS 26 and 27; in daily use. The Intel refusal check remains. **0.1.1 (build 2)** and **0.1.2 (build 3)** released 2026-10-09 with display aliases (F2) and shell completions (F1); **0.2.0 (build 4)** released 2026-10-10 with the display as a positional argument (F8); **0.2.1 (build 5)** released 2026-11-03 with label reuse and `dnm cleanup` (F4, stage 1); **0.2.2 (build 12)** released 2026-11-09 with several displays in one command (F3) |
-| M2 | The menu-bar app and label editor | not written | Notes only |
+| M2 | The menu-bar app and label editor | [specs/014-menu-bar-app](specs/014-menu-bar-app/) | Specified, clarified and planned 2026-11-12; prototypes next. Target 0.4.0 |
 | M3 | Quick View: see every label, switch to one | not written | Notes only |
 | M4 | Desktop groups, display roles and sites (home and work monitors) | not written | Notes only |
 | **M5 (1.0.0)** | Packaging and release: signed, notarized, Homebrew cask | [specs/005-packaging-and-release](specs/005-packaging-and-release/) | Draft, not clarified. Its first stage (a notarized build in an unlisted cask) is part of M1 |
@@ -78,7 +78,7 @@ is built. "Not set" means it has no release yet; its place in the order is the c
 | `dnm cleanup --scan`: find labels of deleted Desktops exactly by visiting every Desktop (Accessibility, opt-in) ([specs/012-cleanup-scan](specs/012-cleanup-scan/), formerly stage 2 of spec 009); a bigger concept, so a minor version | F9 | 0.3.0 |
 | Quiet flag: `-q` / `--quiet` (and `DNM_QUIET=1`) suppresses warnings, such as an alias overridden by a display's name, on every command; results and errors still print ([backlog](docs/backlog.md)) | F7 | 0.3.0 |
 | `remove` repairs a Desktop that still shows a label macOS no longer reports (known issue KI-3) ([specs/013-remove-repair](specs/013-remove-repair/)); closed 2026-11-11: KI-3 did not reproduce | F6 | Closed, not built |
-| **The menu-bar app and label editor** ([M2](#m2-the-menu-bar-app-and-label-editor)) | **M2** | Not set |
+| **The menu-bar app and label editor** ([M2](#m2-the-menu-bar-app-and-label-editor), [specs/014-menu-bar-app](specs/014-menu-bar-app/)); `dnm` ships inside the app | **M2** | 0.4.0 |
 | **Quick View: see every label, switch to one** ([M3](#m3-quick-view)) | **M3** | Not set |
 | **Desktop groups, display roles and sites** ([M4](#m4-desktop-groups-display-roles-and-sites)) | **M4** | Not set |
 | Apply a label file: `dnm apply <file>` runs `set` lines (display, label and later Desktop) in order, so a whole arrangement is one command; a base the app (M2) could build on ([backlog](docs/backlog.md)) | F10 | Late 0.x (just before or after M5) |
@@ -135,3 +135,4 @@ constitution amendment for a preview stage; see the open decision in the maintai
   Desktop's wallpaper is copied to new Desktops), KI-2 (Desktops of a display arrangement that is not
   connected are invisible) and KI-3 (a new Desktop that inherited a label could report "No label"; not reproduced in 2026-11).
 - [docs/research/](docs/research/): how macOS ties Desktops to wallpapers, and Desktop-switching timings.
+- [docs/app-and-cli.md](docs/app-and-cli.md): what only the app or only `dnm` offers, and why.
