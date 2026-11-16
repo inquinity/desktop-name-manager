@@ -21,9 +21,9 @@ gate starts before it is passed.
 
 ## Phase 1: Setup
 
-- [ ] T001 Create the worktree `.worktree/014-menu-bar-app` on branch `014-menu-bar-app` from `main` (check `.worktree/` is ignored); confirm the baseline there: `just build`, `just test` and `just periphery` pass; quote `dnm --version`
-- [ ] T002 Start the version: `just bump minor` (0.3.1 → 0.4.0 in `Version.xcconfig`); commit with the first change
-- [ ] T003 [P] Start `specs/014-menu-bar-app/prototypes/REVIEW.md` with the structure in data-model.md (PrototypeReview: rounds with date, stage, what was shown, decisions, changes; an approval line per stage)
+- [X] T001 Create the worktree `.worktree/014-menu-bar-app` on branch `014-menu-bar-app` from `main` (check `.worktree/` is ignored); confirm the baseline there: `just build`, `just test` and `just periphery` pass; quote `dnm --version`
+- [X] T002 Start the version: `just bump minor` (0.3.1 → 0.4.0 in `Version.xcconfig`); commit with the first change
+- [X] T003 [P] Start `specs/014-menu-bar-app/prototypes/REVIEW.md` with the structure in data-model.md (PrototypeReview: rounds with date, stage, what was shown, decisions, changes; an approval line per stage)
 
 ## Phase 2: Prototype stage 1 — web mockups (US1) and Gate A
 
@@ -32,13 +32,13 @@ gate starts before it is passed.
 **Independent test**: open the published mockups' index; every state below is one click away; no image comes from
 `wallpaper-samples/` or `working-notes/` (FR-003).
 
-- [ ] T004 [US1] Load the `artifact-design` guidance, then create `specs/014-menu-bar-app/prototypes/index.html`: a self-contained page (inline CSS and JS, no external assets) with synthetic wallpapers drawn in CSS or SVG (a light and a dark one, a busy one), light and dark mode, and a list linking every state in T005-T009
-- [ ] T005 [US1] Mockup the editor in `specs/014-menu-bar-app/prototypes/index.html`, starting from `working-notes/ui-concepts/Main.dc.html` but limited to contracts/app-ui.md: Desktop empty, labeled (field prefilled and selected), typing with a live-looking preview, each invalid case with its sentence from contracts/app-ui.md, unsupported wallpaper (no Apply), working, an error; style chips Automatic (with its choice), Plain, Halo, Frosted only; color Automatic, Light, Dark, Custom; the six positions as a grid; Small, Medium, Large; Remove Label, Cancel, Apply; one variant with position, size and color behind "More options" and one without, for the maintainer to choose
-- [ ] T006 [P] [US1] Mockup the menu-bar item and menu (contracts/app-ui.md §Menu-bar item, §Menu): the three modes with and without a label, a long label shortened to 24 characters, the menu with and without Remove, Undo and the red "Old labeled images use <size>. Clean Up…" line
-- [ ] T007 [P] [US1] Mockup the hotkey's floating panel (the editor near the top of the active display, item hidden) and the welcome window (contracts/app-ui.md §Welcome window)
-- [ ] T008 [P] [US1] Mockup Settings: General (menu-bar mode, hotkey recorder with its "Another app is using this shortcut" line, Open at login), New labels (with the "`dnm` keeps its own defaults" line), Clean Up (with old labels, with none, confirming, and with the red message)
-- [ ] T009 [P] [US1] Mockup About and Help > Configuration with the content of `dnm about` and `dnm check` (synthetic display names; the Accessibility row's app wording from research R8), and an app icon draft (the icon used in all mockups)
-- [ ] T010 [US1] Check the mockups: no personal path, name, display or Desktop identifier, no copied image (grep the folder; FR-003); publish `prototypes/index.html` as a private claude.ai artifact and record its link and round 1 in `prototypes/REVIEW.md`
+- [X] T004 [US1] Load the `artifact-design` guidance, then create `specs/014-menu-bar-app/prototypes/index.html`: a self-contained page (inline CSS and JS, no external assets) with synthetic wallpapers drawn in CSS or SVG (a light and a dark one, a busy one), light and dark mode, and a list linking every state in T005-T009
+- [X] T005 [US1] Mockup the editor in `specs/014-menu-bar-app/prototypes/index.html`, starting from `working-notes/ui-concepts/Main.dc.html` but limited to contracts/app-ui.md: Desktop empty, labeled (field prefilled and selected), typing with a live-looking preview, each invalid case with its sentence from contracts/app-ui.md, unsupported wallpaper (no Apply), working, an error; style chips Automatic (with its choice), Plain, Halo, Frosted only; color Automatic, Light, Dark, Custom; the six positions as a grid; Small, Medium, Large; Remove Label, Cancel, Apply; one variant with position, size and color behind "More options" and one without, for the maintainer to choose
+- [X] T006 [P] [US1] Mockup the menu-bar item and menu (contracts/app-ui.md §Menu-bar item, §Menu): the three modes with and without a label, a long label shortened to 24 characters, the menu with and without Remove, Undo and the red "Old labeled images use <size>. Clean Up…" line
+- [X] T007 [P] [US1] Mockup the hotkey's floating panel (the editor near the top of the active display, item hidden) and the welcome window (contracts/app-ui.md §Welcome window)
+- [X] T008 [P] [US1] Mockup Settings: General (menu-bar mode, hotkey recorder with its "Another app is using this shortcut" line, Open at login), New labels (with the "`dnm` keeps its own defaults" line), Clean Up (with old labels, with none, confirming, and with the red message)
+- [X] T009 [P] [US1] Mockup About and Help > Configuration with the content of `dnm about` and `dnm check` (synthetic display names; the Accessibility row's app wording from research R8), and an app icon draft (the icon used in all mockups)
+- [X] T010 [US1] Check the mockups: no personal path, name, display or Desktop identifier, no copied image (grep the folder; FR-003); publish `prototypes/index.html` as a private claude.ai artifact and record its link and round 1 in `prototypes/REVIEW.md`
 - [ ] T011 [US1] **Gate A**: review rounds with the maintainer; apply each round's changes to the mockups and to contracts/app-ui.md (wording, "More options" decision, menu-bar width); record the decisions and the approval with its date in `prototypes/REVIEW.md` (FR-002, SC-007)
 
 **Checkpoint**: the mockups are approved; contracts/app-ui.md matches them.
