@@ -8,7 +8,7 @@ quotes is the proposed wording; the approved prototype may change wording, and `
 
 | Mode | The item |
 |---|---|
-| Icon and text (default) | icon + the app's fixed text (proposed "DNM"; settled in prototype review) |
+| Icon and text (default) | icon + "dnm" (prototype review round 6) |
 | Icon | icon |
 | Hidden | no item |
 
@@ -72,10 +72,10 @@ One sentence, under the field, shown instead of enabling Apply. The core's own s
 |---|---|
 | Empty | none (Apply off) |
 | Too long | "A label can have at most 30 characters; this one has N." |
-| Unsupported wallpaper | One sentence naming the kind, with no reason clause and no "yet" (no Apply): "Dynamic wallpapers are not supported." Likewise "Shuffling wallpapers…", "Aerial wallpapers…" and "Apple catalog wallpapers are not supported." The core's other reasons (no wallpaper file, an unreadable picture) get their own sentence, settled in prototype review |
+| Unsupported wallpaper | One sentence naming the kind, with no reason clause and no "yet" (no Apply): "Dynamic wallpapers are not supported." Likewise "Shuffling wallpapers…", "Aerial wallpapers…" and "Apple catalog wallpapers are not supported." A file that is not a readable picture: "Cannot read wallpaper ‘<file name>’." No wallpaper file (a solid color or another type with no file): to be settled in prototype review |
 | Original missing (Remove) | the core's `originalMissing` sentence |
-| Store newer than the app | the core's `newerManifest` sentence, with "Update the app." for "Update the tool." |
-| A stamp from another store | the core's sentence, with "then try again" for "then run again" |
+| Store newer than the app | the core's `newerManifest` sentence, with "this app" for "this tool" and "Update the app." for "Update the tool." |
+| A stamp from another store | the core's sentence, with "this app" for "this tool" and "then try again" for "then run again" |
 | Any other failure | the core's sentence; the Desktop is left as it was |
 
 A sentence from the core that names a `dnm` option or command is shown with the app's wording for the same action; the
@@ -116,11 +116,16 @@ The main window's Settings… opens it at General, Configuration… at Configura
   count; opens Displays). Storage: Labels in use (count and size; opens Labels), Old labeled images (size, with Clean
   Up…), Data folder (the path, shortened with `~`, with Show in Finder). Only what the app can read: no Accessibility
   row (the app does not use it) and no Space-shortcut row (macOS offers no public way to read it).
-- **Displays**: one row per display: its name, "Main display" under the main one, and its aliases on the right
-  ("Aliases: desk, left", or "No aliases").
+- **Displays**: one row per display: its name, "Main display" under the main one, and on the right its aliases as
+  tags, each with × to remove it, then a small "Add alias" field with +; Return adds. Adding and removing use the
+  core's alias operations (`setAlias`, `removeAlias`), so the rules and sentences are `dnm alias`'s: letters,
+  numbers, hyphens and underscores, at most 30, not "main", not only digits ("An alias cannot be only digits.", without
+  the core's `--display` clause), not a connected display's name. A refusal is one red line under the row; an alias
+  already on another display moves, and the row says "<alias> moved here from <display>." No confirmation: removing an
+  alias is undone by adding it again.
 - **Labels**: the labels in use, with their display and size, and their count and total under them.
-- **About**: a header card with the app icon, "Desktop Name Manager", "Version 0.4.0 (34)", the build date if the
-  build carries one, and a one-line tagline; Privacy: "Needs no permissions" and "Never connects", each with a check
+- **About**: a header card with the app icon, "Desktop Name Manager", "Version 0.4.0 (34)", and the one-line
+  tagline "Labels for your Desktops, right in the wallpaper." (no build date); Privacy: "Needs no permissions" and "Never connects", each with a check
   symbol and one line; Links: "GitHub ↗" (the source repository) and "Acknowledgements ›", which turns the pane to the
   acknowledgements with a back button. As in CodexBar: one row per third-party component shipped in the app bundle
   (transitive ones included), each with a disclosure arrow, its name, its authors, and its license identifier on the

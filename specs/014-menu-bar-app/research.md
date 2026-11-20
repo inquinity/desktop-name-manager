@@ -130,7 +130,7 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
   not use the permission, and `AXIsProcessTrusted()` in the app would report the app, not the terminal that runs
   `dnm`), as is the Space-shortcut row (not readable through public interfaces). Since prototype review on
   2026-11-19 these are panes of the Settings window: Configuration (macOS, Separate Spaces, space used, the data
-  folder), Displays (each display with its aliases) and Labels (the labels in use, from the store); the main window
+  folder), Displays (each display with its aliases, which it adds and removes through the core's alias operations) and Labels (the labels in use, from the store); the main window
   shows the count of labels in use and the space used from the same reads.
 - **Rationale**: the values they share never disagree because there is one source; a row the app cannot act on or
   read is noise to someone who never uses a terminal (FR-019a).

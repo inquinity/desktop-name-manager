@@ -37,7 +37,6 @@ Planned by spec 014 (M2, 0.4.0); none is built yet.
 | Label a Desktop that is not on screen (`--desktop`, Accessibility) | Deliberate (spec 014): the app needs no permission in M2 | Gap: could come with Quick View (M3) |
 | Several displays in one command (`set`, `remove`, `undo` with several displays) | Inherent to a command line; the editor labels one Desktop at a time | No |
 | One label's details (`dnm show`) | Gap: the app's Labels pane lists the labels in use with display and size, as `dnm list` does (spec 014 FR-019, prototype review 2026-11-19), but not one label's options and files | Quick View (M3) |
-| Setting display aliases (`dnm alias`) | Inherent: aliases are for typing; the app names displays as macOS does, and its Displays pane lists each display with its aliases (spec 014 FR-019) | No |
 | Finding labels of deleted Desktops by visiting every Desktop (`cleanup --scan`, Accessibility) | Deliberate (spec 014): the app needs no permission in M2. Age-based cleanup is in both (spec 014 FR-016a) | Gap: could come with Quick View (M3) |
 | Machine-readable output (`--json`) and quiet mode (`-q`) | Inherent | No |
 | The Accessibility and Space-shortcut checks of `dnm check` | Inherent: they concern the terminal that runs `dnm`, and the app neither uses Accessibility nor can read the shortcuts (spec 014 FR-019, research R8) | No |
@@ -45,4 +44,6 @@ Planned by spec 014 (M2, 0.4.0); none is built yet.
 
 ## Closed
 
-None yet.
+| Capability | Closed by |
+|---|---|
+| Setting display aliases (`dnm alias`) | Spec 014 (0.4.0, planned): the app's Displays pane adds and removes aliases with the same core operations and rules (prototype review, 2026-11-19) |

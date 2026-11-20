@@ -80,7 +80,8 @@ Expected: all pass; `build.noindex/app/Desktop Name Manager.app` exists with the
     message shows in the main window and in Clean Up, and goes away after cleaning.
 11. **The Settings window** (FR-016, FR-019): Settings…, Configuration… and About Desktop Name Manager open it at
     General, Configuration and About; the version, macOS version, Separate Spaces, displays and aliases match `dnm
-    about` and `dnm check`; the Labels pane lists what `dnm list` lists for the Desktops on screen and stored; no
+    about` and `dnm check`; an alias added or removed in Displays shows in `dnm alias` at once, and "main" or
+    "123" is refused with one line; the Labels pane lists what `dnm list` lists for the Desktops on screen and stored; no
     window or message names `dnm` or Terminal (FR-019a).
 12. **No permission, no network** (SC-006, SC-008, live): on a fresh user account, run scenarios 3 and 8: no
     permission prompt appears; `nettop -p <app pid>` shows no connection throughout.

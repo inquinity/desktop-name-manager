@@ -323,6 +323,16 @@ code { font-family: var(--font-mono); font-size: .92em; }
 .grp { background: var(--w-grp); border-radius: 12px; padding: 0 14px; }
 .srow { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 8px 0; border-bottom: 1px solid var(--w-sep); }
 .srow:last-child { border-bottom: 0; }
+.drow { flex-wrap: wrap; }
+.atags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: flex-end; }
+.atag { display: inline-flex; align-items: center; gap: 2px; height: 22px; padding: 0 4px 0 9px; border-radius: 11px; background: var(--w-ctl); font-size: 12px; }
+.atag button, .aadd button { border: 0; background: transparent; color: var(--w-sec); font-size: 13px; width: 18px; height: 18px; border-radius: 9px; cursor: pointer; padding: 0; line-height: 1; }
+.atag button:hover, .aadd button:not(:disabled):hover { background: var(--w-sep); color: inherit; }
+.aadd { display: inline-flex; align-items: center; gap: 2px; }
+.aadd input { width: 84px; height: 22px; border-radius: 6px; border: 1px solid var(--w-sep); background: transparent; color: inherit; font: inherit; font-size: 12px; padding: 0 6px; user-select: text; }
+.aadd button:disabled { opacity: .35; cursor: default; }
+.amsg { flex-basis: 100%; margin: 4px 0 0; font-size: 11px; color: var(--w-sec); text-align: right; }
+.amsg.bad { color: var(--w-danger); }
 .srow .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .srow .t small { color: var(--w-sec); font-size: 11px; }
 .srow .v { color: var(--w-sec); font-variant-numeric: tabular-nums; text-align: right; }
@@ -350,7 +360,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
 <div class="wrap">
   <header class="top">
     <div>
-      <p class="eyebrow">Spec 014 · Prototype stage 1 · Version 5, for review round 5</p>
+      <p class="eyebrow">Spec 014 · Prototype stage 1 · Version 7, for review round 7</p>
       <h1>Desktop Name Manager: menu-bar app mockups</h1>
       <p class="lede">Every screen FR-001 asks for, as a clickable mockup. Pick a state from the list, or use the Mac screen itself:
         the menu-bar item opens the main window, which labels this Desktop and opens Settings, Configuration and About in one
@@ -361,8 +371,6 @@ code { font-family: var(--font-mono); font-size: .92em; }
         <button data-v="light">Light</button><button data-v="dark">Dark</button><button data-v="busy">Busy</button></div></div>
       <div class="ctl"><span id="lbl-mac">Mac appearance</span><div class="seg" aria-labelledby="lbl-mac" data-ctl="mac">
         <button data-v="light">Light</button><button data-v="dark">Dark</button></div></div>
-      <div class="ctl"><span id="lbl-mbt">Menu-bar text</span><div class="seg" aria-labelledby="lbl-mbt" data-ctl="mbtext">
-        <button data-v="DNM">DNM</button><button data-v="dnm">dnm</button><button data-v="Label">Label</button></div></div>
       <div class="ctl"><span id="lbl-var">Editor options</span><div class="seg" aria-labelledby="lbl-var" data-ctl="variant">
         <button data-v="fold">Behind More options</button><button data-v="open">Always shown</button></div></div>
     </div>
@@ -502,14 +510,14 @@ code { font-family: var(--font-mono); font-size: .92em; }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
   // ---------- State ----------
-  var S = { wp: 'light', mac: 'light', variant: 'fold', mbtext: 'DNM' };
+  var S = { wp: 'light', mac: 'light', variant: 'fold', mbtext: 'dnm' };
   function reset() {
     Object.assign(S, {
       label: null, raw: '', look: 'auto', color: 'auto', custom: '#ffd166', pos: 'bottom-left', size: 'medium',
       edOpen: false, panel: false, edState: 'ready', err: null, touched: false, selectAll: false, more: false, unsupported: false,
       menuOpen: false, mode: 'both', undo: null, prev: null, over: false, hotkey: false, win: null,
       tab: 'general', hotkeyTaken: false, cleanup: 'list', ring: false, login: false, sel: [], aboutView: 'main',
-      q: '', qTouched: false, focusId: null,
+      q: '', qTouched: false, focusId: null, aliases: [['laptop'], ['desk', 'left']], aliasDraft: ['', ''], aliasMsg: null,
       defaults: { look: 'auto', color: 'auto', pos: 'bottom-left', size: 'medium' }
     });
   }
@@ -543,33 +551,32 @@ code { font-family: var(--font-mono); font-size: .92em; }
       set: function () { S.edOpen = true; openEditorFrom(null); S.raw = 'Quarterly planning and budget review'; S.touched = true; } },
     { g: 'Editor', id: 'editor-unsupported', name: 'Unsupported wallpaper', reqs: ['FR-009', 'Edge cases'],
       desc: 'A dynamic wallpaper. The editor says why in one sentence, offers no Apply, and nothing changes. The sentence names the kind of wallpaper and promises nothing: "Dynamic wallpapers are not supported."',
-      q: ['dnm set says "This wallpaper is not supported yet: <reason>." Drop "yet" in the core too, so both say the same, or change only the app?'],
       set: function () { S.unsupported = true; S.edOpen = true; openEditorFrom(null); S.edState = 'unsupported'; } },
+    { g: 'Editor', id: 'editor-unreadable', name: 'Unreadable wallpaper', reqs: ['FR-009', 'Edge cases'],
+      desc: 'The wallpaper file is there but is not a picture the app can read. One sentence names the file; no Apply, and nothing changes.',
+      set: function () { S.unsupported = 'unreadable'; S.edOpen = true; openEditorFrom(null); S.edState = 'unsupported'; } },
     { g: 'Editor', id: 'editor-working', name: 'Working', reqs: ['FR-007', 'FR-026'],
       desc: 'After Apply. Under a second on a 5K wallpaper (FR-026), so the progress shows only on the button; the editor closes when the label is on the Desktop.',
       set: function () { S.edOpen = true; openEditorFrom(null); S.raw = 'Q4 budget'; S.edState = 'working'; } },
     { g: 'Editor', id: 'editor-error', name: 'Error', reqs: ['FR-009'],
-      desc: 'A failure leaves the Desktop as it was and says so. The sentence is the core\'s, with the app\'s wording where the core names a dnm action ("try again" for "run again").',
-      q: ['The newer-store error says "newer than this tool understands … Update the app." Change "this tool" to "this app" as well?'],
+      desc: 'A failure leaves the Desktop as it was and says so. The sentence is the core\'s, with the app\'s wording where the core names dnm: "this app" for "this tool", "try again" for "run again".',
       set: function () {
         S.edOpen = true; openEditorFrom(null); S.raw = 'Q4 budget'; S.edState = 'error';
-        S.err = 'The wallpaper Lake.heic was made by this tool but is not in this store (another build or a lost manifest). Choose a wallpaper in System Settings > Wallpaper, then try again. Nothing was changed.';
+        S.err = 'The wallpaper Lake.heic was made by this app but is not in this store (another build or a lost manifest). Choose a wallpaper in System Settings > Wallpaper, then try again. Nothing was changed.';
       } },
 
     { g: 'Main window', id: 'main-unlabeled', name: 'No label', reqs: ['FR-010', 'FR-013', 'FR-013a'],
       desc: 'Clicking the menu-bar item opens the main window. The item shows the icon and a fixed text, never the label, so a label such as "Shutdown" cannot look like an app. It names the display and its Desktop\'s label, and its field labels this Desktop at once with the default style from General: type and press Return. "Style and Preview…" opens the editor for anything else. Below: the labels in use, the space they take with Clean Up, and the way to Settings, Configuration and About.',
-      q: ['Which fixed text should the menu-bar item show: DNM, dnm or Label? Switch with "Menu-bar text" above.', 'Is "Style and Preview…" the right name for the way into the full editor?', 'Should the hotkey open this main window, or the editor (as now)?'],
+      q: ['Is "Style and Preview…" the right name for the way into the full editor?', 'Should the hotkey open this main window, or the editor (as now)?'],
       set: function () { openMain(); } },
     { g: 'Main window', id: 'main-labeled', name: 'Labeled, with Undo', reqs: ['FR-010', 'FR-011', 'FR-013', 'FR-013a'],
       desc: 'A labeled Desktop: the field holds the label, selected, so typing replaces it and Return relabels the Desktop, keeping the label\'s style. Remove Label appears, and Undo for 60 seconds after a change. The hotkey shows beside "Style and Preview…" when one is recorded.',
-      q: ['Relabeling from the field keeps the label\'s style (shown). Should it take the defaults from General instead?'],
       set: function () { S.label = Object.assign({}, MAIL); S.undo = 'label'; S.hotkey = true; openMain(); } },
     { g: 'Main window', id: 'main-invalid', name: 'Invalid label typed', reqs: ['FR-008', 'FR-013a'],
       desc: 'Line breaks and control characters are ignored as they are typed or pasted, so the only sentence left is the length. Label stays off; Return does nothing until the text fits.',
       set: function () { openMain(); S.q = 'Quarterly planning and budget review'; S.qTouched = true; S.selectAll = false; } },
     { g: 'Main window', id: 'main-over', name: 'Old images over 50 MB', reqs: ['FR-016b', 'FR-027'],
       desc: 'One storage line: the space labeled images use, and under it how much of that is old images. At 50 MB of old images the second line turns red, with a warning symbol and the words; Clean Up… is beside it. No separate banner, no second Clean Up.',
-      q: ['Is this what "needs work" meant? It was a red banner plus a second space line with different numbers.'],
       set: function () { S.label = Object.assign({}, MAIL); S.over = true; S.cleanup = 'over'; openMain(); } },
     { g: 'Main window', id: 'menu-icon', name: 'Icon mode', reqs: ['FR-010'],
       desc: 'Icon mode: the menu-bar item is the icon alone, without the text. The main window names the label.',
@@ -580,7 +587,6 @@ code { font-family: var(--font-mono); font-size: .92em; }
 
     { g: 'Hotkey and welcome', id: 'hotkey-panel', name: 'Hotkey panel', reqs: ['FR-004', 'FR-014'],
       desc: 'With the item hidden, the hotkey opens the same editor as a floating panel near the top of the active display.',
-      q: ['There is no hotkey until one is recorded (⌃⌥⌘L here is an example). Should the empty recorder suggest a shortcut, or stay blank?'],
       set: function () { S.mode = 'hidden'; S.hotkey = true; S.panel = true; openEditorFrom(null); } },
     { g: 'Hotkey and welcome', id: 'welcome', name: 'Welcome window', reqs: ['FR-017a'],
       desc: 'Shown once: the first time the app is opened by this user, and never again (a login start never shows it). It says what the app does and how to start: click its icon in the menu bar, shown as it looks there. OK or closing it dismisses it.',
@@ -588,14 +594,12 @@ code { font-family: var(--font-mono); font-size: .92em; }
 
     { g: 'Settings', id: 'prefs-general', name: 'General', reqs: ['FR-010', 'FR-014', 'FR-016', 'FR-017'],
       desc: '"Settings…" opens this window at General: Open at login, what the menu bar shows, the hotkey, and the defaults for new labels (no sample: the editor is where a label is seen). There is no hotkey until a shortcut is recorded; × clears it. Every pane is in the sidebar, as in System Settings.',
-      q: ['Is "General" the right name for this pane, with the Mac\'s details in "Configuration"? (The menu item names match the panes.)'],
       set: function () { S.label = Object.assign({}, MAIL); S.win = 'settings'; S.tab = 'general'; } },
     { g: 'Settings', id: 'prefs-hotkey-taken', name: 'Hotkey already in use', reqs: ['FR-015'],
       desc: 'The recorded shortcut belongs to another app, so there is no hotkey and the pane says why in one line.',
       set: function () { S.win = 'settings'; S.tab = 'general'; S.hotkeyTaken = true; } },
     { g: 'Settings', id: 'prefs-cleanup', name: 'Clean Up: old labels', reqs: ['FR-016a'],
       desc: 'Old labeled images: label, display, why it is old, size, for an age that can be changed (30 days by default). Select the ones to delete; Delete Selected stays off until something is selected.',
-      q: ['Is a number field enough for the age, or should it be a menu (7, 30, 90 days)?'],
       set: function () { S.win = 'settings'; S.tab = 'cleanup'; S.cleanup = 'list'; } },
     { g: 'Settings', id: 'prefs-cleanup-none', name: 'Clean Up: nothing old', reqs: ['FR-016a'],
       desc: 'Nothing is older than the age: "No old images."',
@@ -611,16 +615,16 @@ code { font-family: var(--font-mono); font-size: .92em; }
       desc: '"Configuration…" opens the window here: the macOS version, Separate Spaces, the space labeled images use (with Clean Up), and the data folder.',
       set: function () { S.win = 'settings'; S.tab = 'config'; } },
     { g: 'This Mac and About', id: 'displays', name: 'Displays', reqs: ['FR-019'],
-      desc: 'Each display, the main one marked, with its aliases.',
-      q: ['Aliases can only be read here. Should the app let you add and remove them?'],
+      desc: 'Each display, the main one marked, with its aliases, which can be added and removed here (as dnm alias does).',
       set: function () { S.win = 'settings'; S.tab = 'displays'; } },
+    { g: 'This Mac and About', id: 'displays-alias-error', name: 'Displays: alias refused', reqs: ['FR-019'],
+      desc: 'Add an alias by typing it and pressing Return or +; × removes one. The core\'s rules apply (letters, numbers, hyphens and underscores; at most 30; not "main", not only digits, not a display\'s name), with its sentences. An alias already on the other display moves here, and the pane says so.',
+      set: function () { S.win = 'settings'; S.tab = 'displays'; S.aliasDraft = ['main', '']; S.aliasMsg = [0, 'main is reserved and cannot be used as an alias.', true]; } },
     { g: 'This Mac and About', id: 'labels', name: 'Labels', reqs: ['FR-019'],
       desc: 'The labels in use, by display, with their size. The main window\'s "Labels in use" line opens this pane.',
-      q: ['The labels in use: here in their own pane (shown), in the main window, or under Configuration?'],
       set: function () { S.win = 'settings'; S.tab = 'labels'; } },
     { g: 'This Mac and About', id: 'about', name: 'About', reqs: ['FR-019', 'FR-023', 'FR-024'],
-      desc: '"About Desktop Name Manager" opens the window here: a header card (icon, name, version and build, build date, one line on what it does), the two promises, and links. No Updates section: the app never connects, so it cannot check.',
-      q: ['Keep the build date ("Built Nov 18, 2026")? It needs a small build-script change.', 'Is "Labels for your Desktops, right in the wallpaper." the right tagline?'],
+      desc: '"About Desktop Name Manager" opens the window here: a header card (icon, name, version and build, one line on what it does; no build date), the two promises, and links. No Updates section: the app never connects, so it cannot check.',
       set: function () { S.win = 'settings'; S.tab = 'about'; } },
     { g: 'This Mac and About', id: 'about-ack', name: 'About: acknowledgements', reqs: ['FR-019'],
       desc: 'As in CodexBar: one row per third-party component shipped in the app, with its name, its authors and its license on the right. The disclosure arrow shows the full license text. The back button returns.',
@@ -682,7 +686,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
     if (S.undo) s += '<button class="mi" data-act="undo">Undo ' + (S.undo === 'label' ? 'Label' : 'Remove') + ' on Built-in Display</button>';
     s += '</div><div class="mw-grp">' +
       '<button class="mi" data-act="pane" data-v="labels">Labels in use<span class="k">' + ACTIVE.length + ' on 2 displays ›</span></button>' +
-      '<div class="mw-info"><span style="display:flex;flex-direction:column;gap:1px"><span>Space used: ' + (S.over ? '81.0 MB' : '31.2 MB') + '</span>' +
+      '<div class="mw-info"><span style="display:flex;flex-direction:column;gap:5px;padding:3px 0"><span>Space used: ' + (S.over ? '81.0 MB' : '31.2 MB') + '</span>' +
       (S.over ? '<span style="color:var(--w-danger);font-weight:600"><span aria-hidden="true">⚠︎ </span>63.4 MB in old images</span>' : '<span class="v" style="margin:0">13.2 MB in old images</span>') +
       '</span><span class="grow" style="flex:1"></span><button type="button" class="btn sm" data-act="open-cleanup">Clean Up…</button></div></div>' +
       '<hr><div class="mw-grp" style="background:transparent;padding:0">' +
@@ -713,7 +717,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
   function editor() {
     var wp = deskWp(), d = draft(), problem = checkText(S.raw), unsupported = S.edState === 'unsupported', working = S.edState === 'working';
     var dis = unsupported || working, r = resolve(d, wp), msg = '';
-    if (unsupported) msg = '<p class="msg" role="status"><span aria-hidden="true">⚠︎</span>Dynamic wallpapers are not supported.</p>';
+    if (unsupported) msg = '<p class="msg" role="status"><span aria-hidden="true">⚠︎</span>' + (S.unsupported === 'unreadable' ? 'Cannot read wallpaper \u2018Lake.heic\u2019.' : 'Dynamic wallpapers are not supported.') + '</p>';
     else if (S.edState === 'error') msg = '<p class="msg" role="alert"><span aria-hidden="true">⚠︎</span>' + esc(S.err) + '</p>';
     else if (problem && S.touched && S.raw.trim()) msg = '<p class="msg" role="status"><span aria-hidden="true">⚠︎</span>' + esc(problem) + '</p>';
     var showOpts = S.variant === 'open' || S.more;
@@ -727,7 +731,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
       '<input id="ed-text" class="field" type="text" autocomplete="off" spellcheck="false" placeholder="What is this Desktop for?" value="' + esc(shown(S.raw)) + '"' + (dis ? ' disabled' : '') + '>' + msg +
       '<div class="preview" role="img" aria-label="Preview: ' + esc(d.text ? '"' + d.text + '", ' + LOOK_NAME[r.look] + ', ' + POS_NAME[d.pos].toLowerCase() : 'this Desktop, no label') + '">' +
       wpSvg(wp) + '<div class="pbar"></div><div class="pdock"></div>' + (unsupported ? '' : labelEl(d, wp, 372 / 1280)) +
-      (unsupported ? '<div class="veil">Dynamic wallpaper</div>' : '') + '</div>' +
+      (unsupported ? '<div class="veil">' + (S.unsupported === 'unreadable' ? 'Unreadable picture' : 'Dynamic wallpaper') + '</div>' : '') + '</div>' +
       '<div style="display:flex;flex-direction:column;gap:6px"><span class="cap">Style</span><div class="chips">' + chips + '</div>' +
       '<p class="note">' + (S.look === 'auto' ? 'Automatic picks ' + LOOK_NAME[r.auto] + ' for this spot.' : 'Automatic would pick ' + LOOK_NAME[r.auto] + ' for this spot.') + '</p></div>';
     if (S.variant === 'fold') s += '<button type="button" class="disclose" data-act="more" aria-expanded="' + S.more + '"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3.5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>More options</button>';
@@ -830,9 +834,29 @@ code { font-family: var(--font-mono); font-size: .92em; }
       srow('Data folder', '<button type="button" class="btn sm" data-act="noop">Show in Finder</button>', '<span class="mono path">' + STORE_PATH + '</span>') + '</div>';
   }
   function paneDisplays() {
-    return '<div class="grp">' + DISPLAYS.map(function (d) {
-      return srow(esc(d[0]), '<span class="v">' + (d[2] ? 'Aliases: ' + esc(d[2]) : 'No aliases') + '</span>', d[1] ? 'Main display' : '');
+    return '<div class="grp">' + DISPLAYS.map(function (d, i) {
+      var tags = S.aliases[i].map(function (a) {
+        return '<span class="atag">' + esc(a) + '<button type="button" data-act="alias-rm" data-v="' + i + ':' + esc(a) + '" aria-label="Remove alias ' + esc(a) + '">×</button></span>';
+      }).join('');
+      var add = '<span class="aadd"><input id="alias-' + i + '" data-i="' + i + '" class="afield" placeholder="Add alias" maxlength="40" value="' + esc(S.aliasDraft[i]) + '" aria-label="Add an alias for ' + esc(d[0]) + '" autocomplete="off" spellcheck="false"><button type="button" data-act="alias-add" data-v="' + i + '" aria-label="Add" ' + (S.aliasDraft[i].trim() ? '' : 'disabled') + '>+</button></span>';
+      var m = S.aliasMsg && S.aliasMsg[0] === i ? '<p class="amsg' + (S.aliasMsg[2] ? ' bad' : '') + '" role="status">' + (S.aliasMsg[2] ? '<span aria-hidden="true">⚠︎ </span>' : '') + esc(S.aliasMsg[1]) + '</p>' : '';
+      return '<div class="srow drow"><span class="t"><span>' + esc(d[0]) + '</span>' + (d[1] ? '<small>Main display</small>' : '') + '</span>' +
+        '<span class="atags">' + (tags || '<span class="v">No aliases</span>') + add + '</span>' + m + '</div>';
     }).join('') + '</div>';
+  }
+  function aliasAdd(i) {
+    var raw = S.aliasDraft[i].trim(), err = null;
+    if (!raw) return;
+    if (raw.toLowerCase() === 'main') err = 'main is reserved and cannot be used as an alias.';
+    else if (/^[0-9]+$/.test(raw)) err = 'An alias cannot be only digits.';
+    else if (!/^[A-Za-z0-9_-]+$/.test(raw)) err = 'Alias names cannot contain spaces or special characters. Use letters, numbers, hyphens, or underscores.';
+    else if (raw.length > 30) err = 'Alias names can be at most 30 characters.';
+    else if (DISPLAYS.some(function (d) { return d[0].toLowerCase() === raw.toLowerCase(); })) err = raw + ' is already the name of a connected display and cannot be used as an alias.';
+    if (err) { S.aliasMsg = [i, err, true]; return; }
+    var other = 1 - i, at = S.aliases[other].map(function (a) { return a.toLowerCase(); }).indexOf(raw.toLowerCase()), note = null;
+    if (S.aliases[i].some(function (a) { return a.toLowerCase() === raw.toLowerCase(); })) { S.aliasDraft[i] = ''; S.aliasMsg = null; return; }
+    if (at >= 0) { S.aliases[other].splice(at, 1); note = raw + ' moved here from ' + DISPLAYS[other][0] + '.'; }
+    S.aliases[i].push(raw); S.aliasDraft[i] = ''; S.aliasMsg = note ? [i, note, false] : null; S.focusId = 'alias-' + i;
   }
   function paneLabels() {
     var used = ACTIVE.reduce(function (a, r) { return a + r[2]; }, 0);
@@ -850,7 +874,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
         return '<details class="ack"><summary><span class="tri" aria-hidden="true">›</span><strong>' + esc(a[0]) + '</strong><span class="au">' + esc(a[1]) + '</span><span class="li">' + esc(a[2]) + '</span></summary><pre>' + esc(a[3]) + '</pre></details>';
       }).join('') + '</div>';
     }
-    return '<div class="grp hero">' + appIcon(96) + '<h2>Desktop Name Manager</h2><p class="ver">Version 0.4.0 (34)</p><p class="built">Built Nov 18, 2026</p>' +
+    return '<div class="grp hero">' + appIcon(96) + '<h2>Desktop Name Manager</h2><p class="ver">Version 0.4.0 (34)</p>' +
       '<p class="tag">Labels for your Desktops, right in the wallpaper.</p></div>' +
       '<h3 class="gh">Privacy</h3><div class="grp">' +
       srow('Needs no permissions', CHECK, 'Labeling a Desktop needs nothing from macOS beyond its wallpaper.') +
@@ -894,14 +918,15 @@ code { font-family: var(--font-mono); font-size: .92em; }
     var wp = deskWp();
     screen.setAttribute('data-mac', S.mac);
     var focused = document.activeElement && document.activeElement.id, selStart = null, selEnd = null;
-    if (focused === 'ed-text' || focused === 'q-text') { selStart = document.activeElement.selectionStart; selEnd = document.activeElement.selectionEnd; }
+    var keepIds = /^(ed-text|q-text|alias-\d)$/;
+    if (keepIds.test(focused || '')) { selStart = document.activeElement.selectionStart; selEnd = document.activeElement.selectionEnd; }
     var h = wpSvg(wp, null, 'wp') + (S.label && !S.unsupported ? labelEl(S.label, wp, 1) : '') + dock() + menubar();
     if (S.panel) h += '<section class="win panel editor" role="dialog" aria-label="Label this Desktop">' + editor() + '</section>';
     if (S.win === 'welcome') h += welcome();
     if (S.win === 'settings') h += settingsWin();
     if (S.win === 'icon') h += iconSheet();
     screen.innerHTML = h;
-    var keep = (focused === 'ed-text' || focused === 'q-text') && document.getElementById(focused);
+    var keep = keepIds.test(focused || '') && document.getElementById(focused);
     if (keep && !keep.disabled) { keep.focus({ preventScroll: true }); try { keep.setSelectionRange(selStart, selEnd); } catch (e) { } }
     else if (S.focusField && S.focusId) {
       var f = document.getElementById(S.focusId);
@@ -992,6 +1017,8 @@ code { font-family: var(--font-mono); font-size: .92em; }
       case 'item': S.ring = false; if (S.edOpen) { S.edOpen = false; } else if (S.menuOpen) { S.menuOpen = false; } else { openMain(); S.focusField = true; } break;
       case 'q-apply': quickApply(); return;
       case 'pane': openPane(v); break;
+      case 'alias-add': aliasAdd(Number(v)); break;
+      case 'alias-rm': (function () { var k = v.indexOf(':'), i = Number(v.slice(0, k)), n = v.slice(k + 1); S.aliases[i] = S.aliases[i].filter(function (a) { return a !== n; }); S.aliasMsg = null; })(); break;
       case 'pf-login': S.login = !S.login; break;
       case 'close-menu': S.menuOpen = false; break;
       case 'open-editor': S.menuOpen = false; S.panel = false; S.edOpen = true; openEditorFrom(S.label); S.focusField = true; break;
@@ -1036,6 +1063,8 @@ code { font-family: var(--font-mono); font-size: .92em; }
       render();
     } else if (t.id === 'q-text') {
       S.q = t.value; S.qTouched = true; render();
+    } else if (t.classList && t.classList.contains('afield')) {
+      var ai = Number(t.getAttribute('data-i')); S.aliasDraft[ai] = t.value; if (S.aliasMsg && S.aliasMsg[0] === ai) S.aliasMsg = null; S.focusId = t.id; render();
     } else if (t.id === 'ed-custom' || t.id === 'pf-custom') {
       S.custom = t.value;
       if (t.id === 'ed-custom') S.color = 'custom'; else S.defaults.color = 'custom';
@@ -1063,6 +1092,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
     if (e.key === 'Enter' && e.target && (e.target.id === 'ed-text' || e.target.id === 'q-text') && (e.shiftKey || e.altKey)) { e.preventDefault(); return; }
     if (e.key === 'Enter' && e.target && e.target.id === 'ed-text') { e.preventDefault(); doApply(); return; }
     if (e.key === 'Enter' && e.target && e.target.id === 'q-text') { e.preventDefault(); quickApply(); return; }
+    if (e.key === 'Enter' && e.target && e.target.classList && e.target.classList.contains('afield')) { e.preventDefault(); aliasAdd(Number(e.target.getAttribute('data-i'))); render(); return; }
     if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('srow') && e.target.hasAttribute('data-act')) { e.preventDefault(); e.target.click(); return; }
     if (!inField && (e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !e.metaKey && !e.altKey && !e.ctrlKey) {
       go(current + (e.key === 'ArrowRight' ? 1 : -1));

@@ -62,6 +62,11 @@ product, installed with the app, and both read and write one store: a label set 
   (FR-010), and the main window names the label. The label field ignores line breaks and control characters, and an
   empty field just turns Apply off (FR-008). No message says a wallpaper is "not supported yet" (FR-009). The defaults
   for new labels sit in General, without a second labeling screen; there is no Create Label pane (FR-016).
+- **Prototype review, rounds 4 to 6** (maintainer, 2026-11-19; prototypes/REVIEW.md): the menu-bar text is "dnm"
+  (FR-010). An unsupported wallpaper gets one sentence naming its kind ("Dynamic wallpapers are not supported."), and
+  the core drops "yet" for `dnm` too (FR-009). Relabeling keeps the label's style (FR-013a). The Displays pane adds
+  and removes aliases, as `dnm alias` does; About has no build date, and its acknowledgements follow CodexBar
+  (FR-019).
 
 ## Clarifications
 
@@ -232,7 +237,7 @@ they share.
    the app does), that it needs no permissions and never connects, a link to the source, and the acknowledgements.
 6. **Given** the Configuration, Displays and Labels panes, **When** they open, **Then** they show the macOS version,
    whether displays have separate Spaces, the space labeled images use and the data folder; each display with its
-   aliases; and the labels in use with their display and size.
+   aliases, which can be added and removed there; and the labels in use with their display and size.
 7. **Given** a new label made in the main window or the editor, **Then** its options are the defaults chosen in General,
    and `dnm`'s own defaults are unchanged (FR-018).
 8. **Given** old labels that `dnm cleanup` would list, **When** the person opens Clean Up in Settings, **Then** the same
@@ -315,7 +320,7 @@ they share.
 **The menu-bar item and the main window**
 
 - **FR-010**: The app MUST show a menu-bar item in one of three modes chosen in Settings: Icon and text (default),
-  Icon, or Hidden. The text is fixed (proposed "DNM"; settled in prototype review) and the item MUST NOT show the
+  Icon, or Hidden. The text is fixed: "dnm" (prototype review, 2026-11-19) and the item MUST NOT show the
   Desktop's label, so that no label can look like an app's name.
 - **FR-011**: The main window MUST name the label of its display's Desktop on screen as it is when the window opens,
   including changes made with `dnm` and Desktop switches since it last opened.
@@ -372,8 +377,9 @@ they share.
   license, expanding to the license text, as in CodexBar). It has no Updates section, since the app never connects. The
   Configuration pane MUST show only what the app can read: the macOS version, whether displays have separate Spaces,
   the space labels in use and old labeled images take (with Clean Up…), and the data folder with a way to show it in
-  Finder. The Displays pane MUST show each display, the main one marked, with its aliases; the Labels pane, the labels
-  in use with their display and size. Values the app shares with `dnm about` and `dnm check` MUST come from the same
+  Finder. The Displays pane MUST show each display, the main one marked, with its aliases, and MUST let the person add
+  and remove aliases with the core's rules and sentences (the same operations as `dnm alias`); the Labels pane, the
+  labels in use with their display and size. About shows no build date. Values the app shares with `dnm about` and `dnm check` MUST come from the same
   core source, so they never disagree. No pane has a Copy button.
 - **FR-019a**: The app's windows, menus and messages MUST NOT refer to the command-line tool, Terminal, or `dnm`
   commands and options; a person who has never used a terminal must find nothing there they cannot act on. The

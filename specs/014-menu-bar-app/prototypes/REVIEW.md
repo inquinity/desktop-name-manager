@@ -185,6 +185,48 @@ Add one entry per review round, newest last:
   2. `dnm set` says "This wallpaper is not supported yet: <reason>." Drop "yet" in the core too, or only in the app?
   3. Still open: round 4's questions 1, 2 and 4, without the acknowledgements question (settled).
 
+### Round 5: 2026-11-19, stage 1
+
+- **Decisions** (maintainer, 2026-11-19):
+  - **Drop "yet" in the core too** (round-5 question 2): `dnm set` and the app say "This wallpaper is not supported:
+    <reason>." in the core's sentence; the app shows its shorter per-kind sentence.
+  - **The menu-bar item's text is "DNM"** (round-4 question 1).
+- **Changes made** (version 6 of the artifact, same link):
+  - `DnmError.unsupportedWallpaper` drops "yet"; its test and `docs/release-notes/UNRELEASED.md` updated.
+  - `index.html`: the "Menu-bar text" switch and both settled questions removed; the item shows "DNM".
+  - `spec.md` (FR-010) and `contracts/app-ui.md` (menu-bar item) say "DNM".
+- **Still open**: round 5's question 1 (the sentences for no wallpaper file and an unreadable picture); round 4's
+  question 2 (the storage row); the round-2 questions.
+
+### Round 6: 2026-11-19, stage 1
+
+- **What was shown**: version 6 of the artifact (same link), 28 states. State numbers below are version 6's.
+- **Decisions** (maintainer, 2026-11-19):
+  - **Menu-bar text "dnm"**, lower case (replaces round 5's "DNM").
+  - **An unreadable picture**: "cannot read wallpaper '<file>'" (the app shows "Cannot read wallpaper ‘Lake.heic’.").
+  - **No wallpaper file**: options asked for; still open.
+  - **"this app" for "this tool"** in the app's sentences (8).
+  - **Relabeling keeps the label's style** (10).
+  - **The storage row's placement is better** (12), with a little more space between its two lines.
+  - **The hotkey recorder stays blank** (15); **General is the right name** (17); **a number field is enough** for
+    the age (19); **the labels in use stay in the Labels pane** (25); **the tagline stays** (26).
+  - **The Displays pane adds and removes aliases** (24): a minimal expansion, added now.
+  - **No build date** (26): the easiest choice; most apps have none.
+- **Changes made** (version 7 of the artifact, same link):
+  - `index.html`: "dnm" in the menu bar and the welcome; more space in the storage row; a new "Unreadable wallpaper"
+    state; "this app" in the error state; Displays shows aliases as tags with ×, an Add alias field with + (Return
+    adds), the core's rules and sentences, and a move note; a new "Displays: alias refused" state; no build date;
+    the settled questions removed. 30 states.
+  - `spec.md` (decision bullet, User Story 3 scenario 6, FR-010, FR-019), `contracts/app-ui.md` (menu-bar item,
+    editor messages, Displays, About), `tasks.md` (T051), `quickstart.md` (scenario 11), `research.md` (R8) and
+    `docs/app-and-cli.md` (setting aliases moves to Closed) updated to match.
+- **Questions for round 7**:
+  1. A Desktop with no wallpaper file: which option (see the round-6 reply)?
+  2. Should the core's unreadable-picture reason change to match, so `dnm set` says "cannot read wallpaper
+     '<file>'" too?
+  3. Still open from round 2: "Style and Preview…", what the hotkey opens; from round 1: the open items in the
+     Round 1 list.
+
 ## Approvals
 
 - **Stage 1 (Gate A)**: not yet approved.
