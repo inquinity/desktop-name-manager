@@ -202,7 +202,11 @@ final class PrototypeDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let window = NSWindow(contentViewController: NSHostingController(rootView: PrototypeView()))
+        // The editor grows once its picture loads; without this the window keeps its first size and SwiftUI centers
+        // the taller content in it, cutting off the top and bottom.
+        let controller = NSHostingController(rootView: PrototypeView())
+        controller.sizingOptions = [.preferredContentSize]
+        let window = NSWindow(contentViewController: controller)
         window.title = "Editor prototype (spec 014, stage 2)"
         window.center()
         window.makeKeyAndOrderFront(nil)
