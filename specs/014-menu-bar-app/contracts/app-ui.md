@@ -39,7 +39,9 @@ brackets appear only when their condition holds.
 12. "Quit" ⌘Q
 
 The hotkey opens the same main window for the active display (FR-012, FR-014): under the item when it is shown, else
-as a floating panel near the top of that display.
+as a floating panel near the top of that display. It only opens (not a toggle): pressing it while the main window is
+open for the active display leaves the window as it is and gives it the keyboard; a window open for another display
+moves to the active one.
 
 The main window never lists other Desktops' labels (the Labels pane does). It opens on the display whose menu bar was
 clicked and labels that display's Desktop on screen.

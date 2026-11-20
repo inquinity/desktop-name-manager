@@ -43,6 +43,26 @@ extension DesktopLabeler {
             throw DnmError.invalidInput("\(clash.name) is already the name of a connected display and cannot be used as an alias.")
         }
         let display = try DisplayResolver.resolve(displayValue, in: displays)
+        return try storeAlias(name, on: display, displays: displays)
+    }
+
+    /// Points alias `rawName` at `display` itself, with the same rules and sentences as `setAlias(_:display:)` (the
+    /// app's Displays pane, where two displays may share a name).
+    @discardableResult
+    public func setAlias(_ rawName: String, on display: Display) throws -> SetAliasResult {
+        let name = try DisplayAlias.validated(rawName)
+        let displays = try system.displays()
+        if let clash = displays.first(where: { $0.name.lowercased() == name.lowercased() }) {
+            throw DnmError.invalidInput("\(clash.name) is already the name of a connected display and cannot be used as an alias.")
+        }
+        // The display as it is now: its name, main flag or resolution may have changed since the caller read it.
+        guard let current = displays.first(where: { $0.uuid == display.uuid }) else {
+            throw DnmError.failure("The display \"\(display.name)\" is no longer connected.")
+        }
+        return try storeAlias(name, on: current, displays: displays)
+    }
+
+    private func storeAlias(_ name: String, on display: Display, displays: [Display]) throws -> SetAliasResult {
         guard !display.uuid.hasPrefix("no-uuid-") else {
             throw DnmError.invalidInput("\(display.name) has no stable identity that macOS keeps across reconnects, so it cannot have an alias.")
         }

@@ -28,7 +28,7 @@ import Testing
 
         deinit { try? FileManager.default.removeItem(at: root) }
 
-        @MainActor func draft(defaults: LabelOptions = LabelOptions()) throws -> EditorDraft {
+        @MainActor func draft(defaults: LabelOptions = LabelOptions()) async throws -> EditorDraft {
             let current = try labeler.currentLabel(on: display)
             let draft = EditorDraft(display: display, currentLabel: current, defaults: defaults, actions: EditorActions(
                 apply: { [self] text, options in
@@ -37,7 +37,7 @@ import Testing
                     try labeler.setLabel(text, options: options, on: display)
                 },
                 remove: { [self] in removed += 1; try labeler.removeLabel(on: display) }), previewWidth: 400, chipWidth: 120)
-            draft.load { try labeler.previewSource(on: display, maxPixelWidth: 400) }
+            await draft.load { try labeler.previewOrigin(on: display) }
             return draft
         }
     }
@@ -51,33 +51,33 @@ import Testing
         Issue.record("the preview did not finish rendering within 10 s")
     }
 
-    @Test func anUnlabeledDesktopStartsEmptyWithTheDefaultsAndApplyOff() throws {
+    @Test func anUnlabeledDesktopStartsEmptyWithTheDefaultsAndApplyOff() async throws {
         let rig = try Rig()
-        let draft = try rig.draft(defaults: LabelOptions(look: .halo, position: .top, size: .large))
+        let draft = try await rig.draft(defaults: LabelOptions(look: .halo, position: .top, size: .large))
         #expect(draft.text.isEmpty)
         #expect(draft.style == .halo && draft.position == .top && draft.size == .large)
         #expect(draft.state == .invalid && draft.message == nil && !draft.canApply && !draft.canRemove)
         #expect(draft.preview != nil)   // the bare wallpaper
     }
 
-    @Test func aLabeledDesktopStartsFromItsLabel() throws {
+    @Test func aLabeledDesktopStartsFromItsLabel() async throws {
         let rig = try Rig()
         try rig.labeler.setLabel(LabelText("Q4 budget"), options: LabelOptions(look: .frosted, position: .topRight, size: .small), on: rig.display)
-        let draft = try rig.draft(defaults: LabelOptions(look: .halo))
+        let draft = try await rig.draft(defaults: LabelOptions(look: .halo))
         #expect(draft.text == "Q4 budget")
         #expect(draft.style == .frosted && draft.color == nil && draft.position == .topRight && draft.size == .small)
         #expect(draft.canApply && draft.canRemove)
     }
 
-    @Test func lineBreaksAndControlCharactersAreLeftOut() throws {
-        let draft = try Rig().draft()
+    @Test func lineBreaksAndControlCharactersAreLeftOut() async throws {
+        let draft = try await Rig().draft()
         draft.setText("Budget\tNo\ntes\u{202E}")
         #expect(draft.text == "BudgetNotes")
         #expect(draft.state == .ready && draft.message == nil)
     }
 
-    @Test func tooLongTurnsApplyOffWithTheSentence() throws {
-        let draft = try Rig().draft()
+    @Test func tooLongTurnsApplyOffWithTheSentence() async throws {
+        let draft = try await Rig().draft()
         draft.setText("Quarterly planning and budget review")
         #expect(draft.state == .invalid && !draft.canApply)
         #expect(draft.message == "A label can have at most 30 characters; this one has 36.")
@@ -85,70 +85,70 @@ import Testing
         #expect(draft.state == .ready && draft.message == nil)
     }
 
-    @Test func clearingTheFieldSaysNothing() throws {
-        let draft = try Rig().draft()
+    @Test func clearingTheFieldSaysNothing() async throws {
+        let draft = try await Rig().draft()
         draft.setText("Q4")
         draft.setText("   ")
         #expect(draft.state == .invalid && draft.message == nil)
     }
 
-    @Test func applyLabelsTheDesktopOnceAndCloses() throws {
+    @Test func applyLabelsTheDesktopOnceAndCloses() async throws {
         let rig = try Rig()
-        let draft = try rig.draft()
+        let draft = try await rig.draft()
         draft.setText("Q4 budget")
         draft.setStyle(.frosted)
-        draft.apply()
-        draft.apply()   // a second press after closing does nothing
+        await draft.apply()
+        await draft.apply()   // a second press after closing does nothing
         #expect(rig.applied.count == 1)
         #expect(rig.applied.first?.1 == LabelOptions(look: .frosted, position: .bottomLeft, size: .medium))
         #expect(draft.state == .closed)
         #expect(try rig.labeler.currentLabel(on: rig.display)?.look == .frosted)
     }
 
-    @Test func aFailedApplyKeepsTheEditorOpenWithTheSentence() throws {
+    @Test func aFailedApplyKeepsTheEditorOpenWithTheSentence() async throws {
         let rig = try Rig()
         rig.failApply = DnmError.newerManifest(found: 4, supported: 3)
-        let draft = try rig.draft()
+        let draft = try await rig.draft()
         draft.setText("Q4 budget")
-        draft.apply()
+        await draft.apply()
         #expect(draft.state == .ready)
         #expect(draft.message == "The stored data is format 4, newer than this app understands (3). Update the app. Nothing was changed.")
         #expect(rig.system.setCalls.isEmpty)
     }
 
-    @Test func removeIsOfferedOnlyWithALabel() throws {
+    @Test func removeIsOfferedOnlyWithALabel() async throws {
         let rig = try Rig()
         try rig.labeler.setLabel(LabelText("Q4 budget"), on: rig.display)
-        let draft = try rig.draft()
-        draft.remove()
+        let draft = try await rig.draft()
+        await draft.remove()
         #expect(rig.removed == 1 && draft.state == .closed)
         #expect(try rig.labeler.currentLabel(on: rig.display) == nil)
 
-        let fresh = try rig.draft()
-        fresh.remove()
+        let fresh = try await rig.draft()
+        await fresh.remove()
         #expect(rig.removed == 1)
     }
 
-    @Test func anUnsupportedWallpaperHasItsSentenceAndNoApply() throws {
+    @Test func anUnsupportedWallpaperHasItsSentenceAndNoApply() async throws {
         let rig = try Rig(wallpaper: nil)
         let url = try SyntheticImages.writeMultiFrame(to: rig.root.appendingPathComponent("Dynamic.tiff"))
         rig.system.show(url, on: rig.display)
-        let draft = try rig.draft()
+        let draft = try await rig.draft()
         #expect(draft.state == .unsupported)
         #expect(draft.message == "Dynamic wallpapers are not supported.")
         draft.setText("Q4 budget")
         #expect(!draft.canApply)
     }
 
-    @Test func noWallpaperFile() throws {
+    @Test func noWallpaperFile() async throws {
         let rig = try Rig(wallpaper: nil)
-        let draft = try rig.draft()
+        let draft = try await rig.draft()
         #expect(draft.state == .unsupported && draft.message == "This Desktop has no wallpaper picture to label.")
     }
 
-    @Test func cancelClosesWithNoChange() throws {
+    @Test func cancelClosesWithNoChange() async throws {
         let rig = try Rig()
-        let draft = try rig.draft()
+        let draft = try await rig.draft()
         draft.setText("Q4 budget")
         draft.cancel()
         #expect(draft.state == .closed && rig.applied.isEmpty && rig.system.setCalls.isEmpty)
@@ -156,7 +156,7 @@ import Testing
 
     @Test func thePreviewAndChipsRenderAndAutomaticSaysWhatItPicks() async throws {
         let rig = try Rig(wallpaper: SyntheticImages.noise())
-        let draft = try rig.draft()
+        let draft = try await rig.draft()
         draft.setText("Q4 budget")
         try await settle(draft)
         #expect(draft.chips.count == 4)
@@ -167,7 +167,7 @@ import Testing
 
     @Test func rapidChangesEndWithTheNewestRequest() async throws {
         let rig = try Rig()
-        let draft = try rig.draft()
+        let draft = try await rig.draft()
         for text in ["Q", "Q4", "Q4 b", "Q4 bu", "Q4 budget"] { draft.setText(text) }
         draft.setStyle(.plain)
         try await settle(draft)

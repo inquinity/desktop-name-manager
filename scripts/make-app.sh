@@ -86,7 +86,7 @@ done < <("${repository_root}/scripts/make-acknowledgements.sh" --binary-license-
 # Every path in the bundle, relative to Contents/ (contracts/app-bundle.md). The dry run prints exactly this list.
 bundle_layout() {
     printf '%s\n' "Info.plist" "PkgInfo" "MacOS/DesktopNameManager" "Helpers/dnm" "Resources/AppIcon.icns" \
-        "Resources/Licenses/LICENSE.txt"
+        "Resources/MenuBarGlyph.svg" "Resources/Licenses/LICENSE.txt"
     local license_file
     for license_file in "${license_files[@]}"; do
         printf 'Resources/Licenses/%s\n' "$(basename "$license_file")"
@@ -112,6 +112,7 @@ for executable in DesktopNameManager dnm; do
     fi
 done
 require_file "${resources_source}/Info.plist" "The Info.plist template is part of the repository."
+require_file "${resources_source}/MenuBarGlyph.svg" "The menu-bar glyph is part of the repository."
 require_file "${repository_root}/LICENSE" "The project license is part of the repository."
 for license_file in "${license_files[@]}"; do
     require_file "${repository_root}/${license_file}" "Listed by scripts/make-acknowledgements.sh."
@@ -144,6 +145,7 @@ sed -e "s/@VERSION@/${version}/g" -e "s/@BUILD@/${build_number}/g" -e "s/@BUNDLE
 plutil -lint -s "${staged}/Info.plist"
 printf 'APPL????' >"${staged}/PkgInfo"
 iconutil -c icns "${resources_source}/AppIcon.iconset" -o "${staged}/Resources/AppIcon.icns"
+cp "${resources_source}/MenuBarGlyph.svg" "${staged}/Resources/MenuBarGlyph.svg"
 cp "${repository_root}/LICENSE" "${staged}/Resources/Licenses/LICENSE.txt"
 for license_file in "${license_files[@]}"; do
     cp "${repository_root}/${license_file}" "${staged}/Resources/Licenses/"

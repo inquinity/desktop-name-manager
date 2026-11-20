@@ -72,6 +72,9 @@ public final class EditorDraft {
     @ObservationIgnored private var source: PreviewSource?
     @ObservationIgnored private var chipSource: PreviewSource?
     @ObservationIgnored private var generation = 0
+    /// True once Apply or Remove changed the Desktop; false when the editor was cancelled (the main window then comes
+    /// back).
+    public private(set) var changed = false
     /// True while a preview is being rendered (tests wait on it).
     public private(set) var isRendering = false
     @ObservationIgnored public let previewWidth: Int
@@ -102,11 +105,18 @@ public final class EditorDraft {
 
     // MARK: - Opening
 
-    /// Loads the Desktop's picture once (the image `setLabel` would stamp). A wallpaper the app will not label leaves
-    /// the editor in `unsupported`, with its sentence and no Apply.
-    public func load(_ makeSource: () throws -> PreviewSource) {
+    /// Loads the Desktop's picture once (the image `setLabel` would stamp). `makeOrigin` runs here, on the main actor
+    /// (it reads the wallpaper system); the picture is then loaded and composed off the main thread, and the editor
+    /// stays in `loading` until it arrives (up to about 170 ms on a 5K display). A wallpaper the app will not label
+    /// leaves the editor in `unsupported`, with its sentence and no Apply.
+    public func load(_ makeOrigin: () throws -> PreviewOrigin) async {
+        let width = previewWidth
         do {
-            let source = try makeSource()
+            let origin = try makeOrigin()
+            let source = try await Task.detached(priority: .userInitiated) {
+                try DesktopLabeler.previewSource(from: origin, maxPixelWidth: width)
+            }.value
+            guard state == .loading else { return }   // closed meanwhile
             self.source = source
             chipSource = source.scaled(toWidth: chipWidth)
             preview = source.image
@@ -114,6 +124,7 @@ public final class EditorDraft {
             validate()
             scheduleRender()
         } catch {
+            guard state == .loading else { return }
             state = .unsupported
             message = MessageWording.sentence(for: error)
         }
@@ -171,26 +182,33 @@ public final class EditorDraft {
 
     // MARK: - Applying
 
-    /// Applies once; a second press while applying does nothing. On failure the editor stays open with the sentence,
-    /// and the Desktop is as it was.
-    public func apply() {
+    /// Applies once; a second press while applying does nothing. The working state is drawn before the change starts
+    /// (research R7). On failure the editor stays open with the sentence, and the Desktop is as it was.
+    public func apply() async {
         guard state == .ready, let labelText = try? LabelText(text) else { return }
         state = .applying
+        await Working.drawn()
+        guard state == .applying else { return }   // closed meanwhile: no change
         do {
             try actions.apply(labelText, options)
+            changed = true
             state = .closed
         } catch {
+            guard state == .applying else { return }
             state = .ready
             message = MessageWording.sentence(for: error)
         }
     }
 
-    public func remove() {
+    public func remove() async {
         guard canRemove else { return }
         let before = state
         state = .removing
+        await Working.drawn()
+        guard state == .removing else { return }
         do {
             try actions.remove()
+            changed = true
             state = .closed
         } catch {
             state = before

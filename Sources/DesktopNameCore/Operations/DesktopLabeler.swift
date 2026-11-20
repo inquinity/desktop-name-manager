@@ -6,8 +6,8 @@ import Foundation
 /// The label operations (set, remove, undo, list, show) over a wallpaper system and a store.
 /// Everything the CLI does goes through here, and so will the app.
 public final class DesktopLabeler {
-    let system: WallpaperSystem
-    let store: Store
+    public let system: WallpaperSystem
+    public let store: Store
     let time: TimeSource
     /// How long to wait for macOS to report a wallpaper it was just told to show.
     let settleTimeout: TimeInterval

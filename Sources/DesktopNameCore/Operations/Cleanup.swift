@@ -21,8 +21,9 @@ public struct CleanupCandidate: Equatable, Sendable {
     public var bytes: Int64
     /// When a Desktop was last seen showing it; nil if never.
     public var lastSeen: Date?
-    /// The stamp and its file in the store; never printed.
-    var stampID: UUID
+    /// The stamp it belongs to, which identifies it in a selection (the app's Clean Up pane); never printed.
+    public internal(set) var stampID: UUID
+    /// Its file in the store; never printed.
     var fileName: String
 }
 
@@ -32,6 +33,14 @@ public struct CleanupPlan: Equatable, Sendable {
     public var days: Int?
     public var candidates: [CleanupCandidate]
     public var totalBytes: Int64 { candidates.reduce(0) { $0 + $1.bytes } }
+
+    /// A plan of some of another plan's candidates, for `carryOut` to delete only those (the app's Clean Up pane,
+    /// spec 014): `carryOut` deletes a candidate only if it is still one.
+    public init(days: Int?, candidates: [CleanupCandidate]) {
+        self.days = days
+        self.candidates = candidates
+    }
+
     /// A scan's plan before it has found anything.
     public static let emptyScan = CleanupPlan(days: nil, candidates: [])
 }

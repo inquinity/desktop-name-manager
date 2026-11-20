@@ -43,6 +43,13 @@ public struct SystemWallpaperSystem: WallpaperSystem {
         }
     }
 
+    /// The display `screen` shows, as `displays()` reports it, for the app to name the display whose menu bar was
+    /// clicked (spec 014).
+    @MainActor
+    public static func display(for screen: NSScreen) -> Display {
+        display(for: screen, mainID: CGMainDisplayID())
+    }
+
     // MARK: - Helpers (main actor)
 
     @MainActor

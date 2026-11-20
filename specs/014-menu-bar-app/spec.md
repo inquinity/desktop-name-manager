@@ -93,6 +93,12 @@ product, installed with the app, and both read and write one store: a label set 
   window on the first launch only, saying how to start (FR-017a). Its "Open at login" choice and its button to
   label this Desktop were removed in prototype review on 2026-11-16: a welcome does not configure.
 
+### Session 2026-11-20
+
+- Q: When the main window is already open, should pressing the hotkey close it (a toggle)? → A: No; the hotkey
+  only opens the main window; pressing it while the window is open for the active display leaves it open as it is,
+  and a window open for another display moves to the active one (FR-014).
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Prototype the interface and approve it before the build (Priority: P1)
@@ -346,7 +352,9 @@ they share.
 - **FR-014**: The app MUST offer one optional global hotkey that opens the main window, as a click on the menu-bar
   item does. There is a hotkey exactly when a shortcut is recorded in Settings: none is recorded by default, and
   clearing the shortcut removes the hotkey; when the menu-bar item is hidden, the main window MUST open as a floating
-  panel near the top of the active display, and its "Style and Preview…" opens the editor in that panel.
+  panel near the top of the active display, and its "Style and Preview…" opens the editor in that panel. The hotkey
+  only opens the main window; it is not a toggle: pressing it while the window is open for the active display leaves
+  it open as it is, and a window open for another display moves to the active one.
 - **FR-015**: If the recorded shortcut cannot be claimed, the app MUST say so in Settings and keep no hotkey.
 
 **Settings and app life**

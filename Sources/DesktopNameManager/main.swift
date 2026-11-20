@@ -1,19 +1,7 @@
 import AppKit
-import DesktopNameApp
 
-// The menu-bar app (spec 014). Phase 3 placeholder: an accessory app with an empty menu-bar item, so the bundle
-// can be assembled and launched; the main window and the rest arrive in later tasks.
-@MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var statusItem: NSStatusItem?
-
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        item.button?.title = AppInfo.menuBarText
-        item.button?.setAccessibilityLabel(AppInfo.displayName)
-        statusItem = item
-    }
-}
+// Desktop Name Manager, the menu-bar app (spec 014). An accessory app (LSUIElement): no Dock icon, except while the
+// welcome or Settings window is open. Everything is wired in AppDelegate.
 
 let application = NSApplication.shared
 let delegate = AppDelegate()

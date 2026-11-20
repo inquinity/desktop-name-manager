@@ -48,18 +48,38 @@ public struct PreviewSource: @unchecked Sendable {
     }
 }
 
+/// Which picture a preview is made from: the Desktop's original and the display's geometry (spec 014). Made on the
+/// thread that may read the wallpaper system; turned into a `PreviewSource` on any thread.
+public struct PreviewOrigin: Sendable {
+    let original: Original
+    let geometry: DisplayGeometry
+}
+
 extension DesktopLabeler {
     /// Loads the image `setLabel` would stamp for the Desktop on screen of `display` (the recorded original when the
     /// Desktop is labeled), composed for the display at no more than `maxPixelWidth`. Throws as `setLabel` would for
     /// a wallpaper that cannot be labeled, a missing original or a stamp from another store. Reads only.
     public func previewSource(on display: Display, maxPixelWidth: Int) throws -> PreviewSource {
+        try Self.previewSource(from: previewOrigin(on: display), maxPixelWidth: maxPixelWidth)
+    }
+
+    /// The cheap half of `previewSource(on:maxPixelWidth:)`: which picture the preview is made from. It reads the
+    /// wallpaper system, so it runs where that system may be used (the main thread for the real one); the expensive
+    /// half, `previewSource(from:maxPixelWidth:)`, can then run on any thread. Throws as `previewSource` does.
+    public func previewOrigin(on display: Display) throws -> PreviewOrigin {
         let current = try system.currentWallpaper(on: display)
         let (original, _) = try labelingSource(current, in: try store.readManifest())
-        let base = try Backdrop.loadImage(at: try Self.resolve(original))
-        let placement = Backdrop.Placement(Self.placement(of: original))
+        return PreviewOrigin(original: original, geometry: display.geometry)
+    }
+
+    /// Loads and composes the picture of `origin`. Touches neither the wallpaper system nor the store, so it is safe
+    /// off the main thread.
+    public static func previewSource(from origin: PreviewOrigin, maxPixelWidth: Int) throws -> PreviewSource {
+        let base = try Backdrop.loadImage(at: try resolve(origin.original))
+        let placement = Backdrop.Placement(placement(of: origin.original))
         // The full-size composition is made once, only to sample it, and then released.
-        let sampler = Sampler(backdrop: try Backdrop.compose(base: base, placement: placement, geometry: display.geometry))
-        let geometry = Self.previewGeometry(display.geometry, maxPixelWidth: maxPixelWidth)
+        let sampler = Sampler(backdrop: try Backdrop.compose(base: base, placement: placement, geometry: origin.geometry))
+        let geometry = previewGeometry(origin.geometry, maxPixelWidth: maxPixelWidth)
         let backdrop = try Backdrop.compose(base: base, placement: placement, geometry: geometry)
         return PreviewSource(backdrop: backdrop, geometry: geometry, sampler: sampler)
     }

@@ -43,7 +43,7 @@ public struct EditorView: View {
             .textFieldStyle(.roundedBorder)
             .focused($fieldFocused)
             .disabled(draft.state == .unsupported || draft.state == .applying || draft.state == .removing)
-            .onSubmit { draft.apply() }
+            .onSubmit { Task { await draft.apply() } }
             .accessibilityLabel("Label")
     }
 
@@ -122,12 +122,12 @@ public struct EditorView: View {
     private var buttons: some View {
         HStack {
             if draft.currentLabel != nil {
-                Button("Remove Label") { draft.remove() }.disabled(!draft.canRemove)
+                Button("Remove Label") { Task { await draft.remove() } }.disabled(!draft.canRemove)
             }
             Spacer()
             Button("Cancel") { close { draft.cancel() } }
                 .keyboardShortcut(.cancelAction)
-            Button("Apply") { draft.apply() }
+            Button("Apply") { Task { await draft.apply() } }
                 .keyboardShortcut(.defaultAction)
                 .disabled(!draft.canApply)
         }

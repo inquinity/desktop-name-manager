@@ -159,7 +159,7 @@ final class PrototypeModel {
                 try labeler.removeLabel(on: display)
                 self.status = "Removed (fake wallpaper, temporary store)"
             }), previewWidth: previewWidth)
-        draft.load { try labeler.previewSource(on: display, maxPixelWidth: previewWidth) }
+        Task { await draft.load { try labeler.previewOrigin(on: display) } }
         status = "Opened in \(millis(Date().timeIntervalSince(started)))"
         self.draft = draft
     }

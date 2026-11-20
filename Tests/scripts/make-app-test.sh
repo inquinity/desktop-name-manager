@@ -58,7 +58,7 @@ dry_run_field() {
 
 expected_layout="$(
     printf '%s\n' Info.plist PkgInfo MacOS/DesktopNameManager Helpers/dnm Resources/AppIcon.icns \
-        Resources/Licenses/LICENSE.txt
+        Resources/MenuBarGlyph.svg Resources/Licenses/LICENSE.txt
     while IFS= read -r license_file; do
         printf 'Resources/Licenses/%s\n' "$(basename "$license_file")"
     done < <("${repository_root}/scripts/make-acknowledgements.sh" --binary-license-files)
