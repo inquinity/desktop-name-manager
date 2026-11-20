@@ -67,6 +67,8 @@ product, installed with the app, and both read and write one store: a label set 
   the core drops "yet" for `dnm` too (FR-009). Relabeling keeps the label's style (FR-013a). The Displays pane adds
   and removes aliases, as `dnm alias` does; About has no build date, and its acknowledgements follow CodexBar
   (FR-019).
+- **Prototype review, round 8** (maintainer, 2026-11-19; prototypes/REVIEW.md): the hotkey opens the main window, not
+  the editor (FR-014); "Style and Preview…" keeps its name.
 
 ## Clarifications
 
@@ -74,8 +76,8 @@ product, installed with the app, and both read and write one store: a label set 
 
 - Q: Should the hotkey open the full editor, or concept B's quick bar (one field and a short "labeled · Undo"
   notice)? → A: The full editor; there is one editor, and no quick bar (FR-014). Amended in prototype review on
-  2026-11-19: the main window has a field that labels this Desktop with the defaults (FR-013a); the hotkey still
-  opens the full editor, and there is still no notice.
+  2026-11-19: the main window has a field that labels this Desktop with the defaults (FR-013a); the hotkey opens the
+  main window, as a click on the item does (round 8), and there is still no notice.
 - Q: Should the menu show only the current Desktop's label, or list every stored label by display, as concept A's
   menu and `dnm list` do? → A: The current Desktop only; listing labels is Quick View's (M3) (FR-013). Amended in
   prototype review on 2026-11-16 and 2026-11-19: the main window still shows only the current Desktop's label, with a
@@ -189,9 +191,9 @@ label; switch the menu-bar mode in Settings and see the item change.
 
 ---
 
-### User Story 4 - Open the editor with a hotkey (Priority: P3)
+### User Story 4 - Open the main window with a hotkey (Priority: P3)
 
-As a person who labels often, I want an optional keyboard shortcut that opens the editor, so that I can label a
+As a person who labels often, I want an optional keyboard shortcut that opens the main window, so that I can label a
 Desktop without reaching for the menu bar, and so that I can keep the menu-bar item hidden.
 
 **Why this priority**: a convenience over Story 2, off by default.
@@ -202,9 +204,10 @@ shortcut no longer does anything.
 **Acceptance Scenarios**:
 
 1. **Given** a fresh install, **When** Settings opens, **Then** no shortcut is recorded, so there is no hotkey.
-2. **Given** a recorded shortcut, **When** the person presses it in any app, **Then** the editor opens for the Desktop on
-   screen of the active display, as from the menu bar (from the menu-bar item when it is shown; as a floating panel near
-   the top of the active display when the item is hidden).
+2. **Given** a recorded shortcut, **When** the person presses it in any app, **Then** the main window opens for the Desktop on
+   screen of the active display, as a click on the menu-bar item opens it (under the item when it is shown; as a
+   floating panel near the top of the active display when the item is hidden), and "Style and Preview…" leads on to
+   the editor.
 3. **Given** the person picks a shortcut another app or macOS already uses, **When** the app cannot claim it, **Then**
    Settings says so and there is no hotkey; nothing else is changed.
 4. **Given** a recorded shortcut, **When** it is used, **Then** no macOS permission is asked for or needed.
@@ -266,7 +269,7 @@ they share.
 - **A full-screen app is in front**: the main window names the label of the Desktop under it if macOS reports one,
   else "No label"; labeling works on the Desktop behind the full-screen app only if `dnm set` would.
 - **Several displays**: the main window and the editor label the Desktop on screen of the display they were opened
-  on; the hotkey uses the active display (FR-012).
+  on; the hotkey opens the main window for the active display (FR-012).
 - **Labeling takes longer than usual** (a very large wallpaper): the editor shows that it is working and cannot be
   applied twice.
 - **The first launch is at login** (Open at login set by a previous install, the app's settings kept): the welcome
@@ -299,7 +302,7 @@ they share.
 **The editor**
 
 - **FR-004**: The app MUST offer an editor for the Desktop on screen of one display, opened from the main window's
-  "Style and Preview…" or the hotkey, holding: the label field, a live preview, the style choices, the color, position and size, and
+  "Style and Preview…", holding: the label field, a live preview, the style choices, the color, position and size, and
   Apply, Cancel and Remove Label.
 - **FR-005**: The preview MUST show this Desktop's wallpaper with the label as it would be applied, and MUST follow
   every change to the text or options without changing the wallpaper.
@@ -325,10 +328,10 @@ they share.
 - **FR-011**: The main window MUST name the label of its display's Desktop on screen as it is when the window opens,
   including changes made with `dnm` and Desktop switches since it last opened.
 - **FR-012**: With several displays, the main window MUST be about the display whose menu bar was clicked, and the
-  hotkey MUST open the editor for the active display (the display with the frontmost window).
+  hotkey MUST open the main window for the active display (the display with the frontmost window).
 - **FR-013**: Clicking the menu-bar item MUST open the app's main window, a panel under the item, holding: the Desktop
   it is about (its display, and its label or "No label"); the red message when FR-016b holds; the label field of
-  FR-013a; "Style and Preview…", which opens the editor (with the hotkey shown when one is recorded); Remove Label
+  FR-013a; "Style and Preview…", which opens the editor; Remove Label
   (only with a label); Undo (only within an undo window); the number of labels in use, which opens the Labels pane;
   the space labeled images use, with Clean Up…; and Settings…, Configuration…, About Desktop Name Manager and Quit.
   Applying or removing a label MUST NOT show a separate notice; the wallpaper and the menu-bar item are the
@@ -340,9 +343,10 @@ they share.
 
 **Hotkey**
 
-- **FR-014**: The app MUST offer one optional global hotkey that opens the editor. There is a hotkey exactly when a
-  shortcut is recorded in Settings: none is recorded by default, and clearing the shortcut removes the hotkey; when the menu-bar item is hidden, the editor MUST open as a floating panel near the
-  top of the active display. The hotkey opens the full editor, as "Style and Preview…" does.
+- **FR-014**: The app MUST offer one optional global hotkey that opens the main window, as a click on the menu-bar
+  item does. There is a hotkey exactly when a shortcut is recorded in Settings: none is recorded by default, and
+  clearing the shortcut removes the hotkey; when the menu-bar item is hidden, the main window MUST open as a floating
+  panel near the top of the active display, and its "Style and Preview…" opens the editor in that panel.
 - **FR-015**: If the recorded shortcut cannot be claimed, the app MUST say so in Settings and keep no hotkey.
 
 **Settings and app life**

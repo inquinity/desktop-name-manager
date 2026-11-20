@@ -25,7 +25,7 @@ brackets appear only when their condition holds.
    it "Label" (default, Return), off while the text is invalid or unchanged. One sentence under it when the text is
    too long (the editor's sentence); the field follows the editor's input rules. A Desktop with no label gets the
    defaults for new labels from General; a labeled Desktop keeps its label's style and gets the new text. On success the main window closes.
-3. "Style and Preview…" (shows the hotkey when one is recorded): opens the editor in the same panel.
+3. "Style and Preview…": opens the editor in the same panel.
 4. [labeled] "Remove Label"
 5. [undo available] "Undo <Label|Remove> on <display>" (`checkUndo` passes; 60-second window)
 6. "Labels in use" with "<n> on <m> displays ›": opens the Labels pane.
@@ -38,13 +38,16 @@ brackets appear only when their condition holds.
 11. "About Desktop Name Manager" (at About)
 12. "Quit" ⌘Q
 
+The hotkey opens the same main window for the active display (FR-012, FR-014): under the item when it is shown, else
+as a floating panel near the top of that display.
+
 The main window never lists other Desktops' labels (the Labels pane does). It opens on the display whose menu bar was
 clicked and labels that display's Desktop on screen.
 
 ## Editor (FR-004 to FR-009)
 
-Opened from the main window's "Style and Preview…" (in the same panel; Cancel returns to the main window) or from the
-hotkey, for the Desktop on screen of one display.
+Opened from the main window's "Style and Preview…" (in the same panel; Cancel returns to the main window), for the
+Desktop on screen of one display.
 
 - Header: "Label this Desktop" and the display's name.
 - Label field: focused; holds the current label, selected, or is empty.
@@ -103,7 +106,7 @@ The main window's Settings… opens it at General, Configuration… at Configura
 
 - **General**:
   - System: "Open at login" (a switch, off by default); "Menu bar shows" (Icon and text / Icon / Nothing (hidden)).
-  - Hotkey: "Open the editor" with a shortcut recorder, empty by default ("Record Shortcut"), with a clear button (×)
+  - Hotkey: "Open the main window" with a shortcut recorder, empty by default ("Record Shortcut"), with a clear button (×)
     once a shortcut is recorded; there is a hotkey exactly when a shortcut is recorded, so there is no on/off switch.
     A one-line error when it cannot be claimed: "Another app is using this shortcut. Choose another."
   - New Labels: Style, Color, Position and Size, used for new labels from the main window and the editor. No sample:

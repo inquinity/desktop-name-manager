@@ -27,8 +27,9 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
   (FR-010, prototype review round 3).
   Clicking it opens the main window: an `NSPopover` anchored to the item (FR-013, prototype review 2026-11-19), whose
   content is read from the store each time it opens, so it always reflects it. "Style and Preview…" replaces the
-  popover's content with the editor (Cancel returns to the main window); the hotkey opens the editor in the same
-  popover, or, when the item is hidden, in a floating `NSPanel` near the top of the active display (FR-014). The
+  popover's content with the editor (Cancel returns to the main window); the hotkey opens the main window in the same
+  popover, or, when the item is hidden, in a floating `NSPanel` near the top of the active display (FR-014,
+  prototype review round 8). The
   Settings window is one `NSWindow` holding a SwiftUI `NavigationSplitView`: a sidebar of panes (General, Create
   Label, Clean Up, Configuration, Displays, Labels, About) and the selected pane as a grouped `Form` (FR-016); the
   main window's items and a second launch select the pane to show. All content is SwiftUI, hosted with
@@ -72,7 +73,7 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
   has to follow Desktop switches in the background. The main window reads, when it opens, `desktopImageURL(for:)` for
   the screen whose menu bar was clicked (the status item button's window's screen) and looks the file up in the store:
   one of our stamps gives its label; anything else gives "No label". The counts and sizes it shows are read at the same
-  moment. The hotkey opens the editor for the **active display**: the screen of the frontmost app's frontmost window
+  moment. The hotkey opens the main window for the **active display**: the screen of the frontmost app's frontmost window
   where macOS reports it (`NSScreen.main` as seen from the app), else the screen under the pointer.
 - **Two cases with their own rule** (spec Edge Cases): with "Displays have separate Spaces" off, the main window is
   about the main display (one Desktop spans every display, as `dnm` treats it); with a full-screen app in front, it

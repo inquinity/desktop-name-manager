@@ -241,6 +241,23 @@ Add one entry per review round, newest last:
 - **Still open**: from round 2, "Style and Preview…" and what the hotkey opens; from round 1, the open items in the
   Round 1 list.
 
+### Round 8: 2026-11-19, stage 1
+
+- **Decisions** (maintainer, 2026-11-19):
+  - **The hotkey opens the main window**, not the editor; with the item hidden, as a floating panel.
+  - **"Style and Preview…" keeps its name.**
+- **Changes made** (version 9 of the artifact, same link):
+  - `index.html`: the hotkey state shows the main window as a floating panel, where "Style and Preview…" turns it
+    into the editor; the recorder row says "Open the main window"; the shortcut is no longer shown beside "Style and
+    Preview…".
+  - `spec.md` (round-8 bullet, the 2026-11-12 clarification, User Story 4, Edge Cases, FR-004, FR-012 to FR-014),
+    `contracts/app-ui.md`, `research.md` (R2, R5), `tasks.md` (Phase 7, T045), `quickstart.md` (scenario 8) and
+    `docs/app-and-cli.md` updated to match.
+- **Still open** (from round 1; round 1's questions 7 and 9 were settled in round 6):
+  1. Editor options: behind "More options", or always shown? (state 3, "Editor options" switch)
+  2. Is "Automatic picks Frosted for this spot" the right way to show the automatic choice? (state 3)
+  3. Is the icon's direction right? Round 1 called the draft "acceptable, a good start" (last state).
+
 ## Approvals
 
 - **Stage 1 (Gate A)**: not yet approved.

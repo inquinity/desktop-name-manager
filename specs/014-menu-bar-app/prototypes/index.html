@@ -284,6 +284,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
 .screen { --w-grp: rgba(0, 0, 0, .045); --w-side: rgba(232, 232, 236, .96); }
 .screen[data-mac="dark"] { --w-grp: rgba(255, 255, 255, .06); --w-side: rgba(50, 50, 55, .96); }
 .mainwin { top: calc(100% + 6px); right: -64px; width: 340px; padding: 12px; display: flex; flex-direction: column; gap: 10px; border-radius: 14px; }
+.mainwin.floatmain { top: 70px; right: auto; left: 50%; transform: translateX(-50%); }
 .mw-head { display: flex; flex-direction: column; gap: 1px; padding: 2px 4px 0; }
 .mw-head .disp { font-size: 11px; color: var(--w-sec); }
 .mw-head .lab { font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
@@ -360,7 +361,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
 <div class="wrap">
   <header class="top">
     <div>
-      <p class="eyebrow">Spec 014 · Prototype stage 1 · Version 8, for review round 8</p>
+      <p class="eyebrow">Spec 014 · Prototype stage 1 · Version 9, for review round 9</p>
       <h1>Desktop Name Manager: menu-bar app mockups</h1>
       <p class="lede">Every screen FR-001 asks for, as a clickable mockup. Pick a state from the list, or use the Mac screen itself:
         the menu-bar item opens the main window, which labels this Desktop and opens Settings, Configuration and About in one
@@ -515,7 +516,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
     Object.assign(S, {
       label: null, raw: '', look: 'auto', color: 'auto', custom: '#ffd166', pos: 'bottom-left', size: 'medium',
       edOpen: false, panel: false, edState: 'ready', err: null, touched: false, selectAll: false, more: false, unsupported: false,
-      menuOpen: false, mode: 'both', undo: null, prev: null, over: false, hotkey: false, win: null,
+      menuOpen: false, mainPanel: false, mode: 'both', undo: null, prev: null, over: false, hotkey: false, win: null,
       tab: 'general', hotkeyTaken: false, cleanup: 'list', ring: false, login: false, sel: [], aboutView: 'main',
       q: '', qTouched: false, focusId: null, aliases: [['laptop'], ['desk', 'left']], aliasDraft: ['', ''], aliasMsg: null,
       defaults: { look: 'auto', color: 'auto', pos: 'bottom-left', size: 'medium' }
@@ -529,7 +530,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
     S.selectAll = !!label; S.touched = false; S.edState = 'ready'; S.err = null; S.focusId = 'ed-text';
   }
   function openMain() { S.menuOpen = true; S.q = S.label ? S.label.text : ''; S.qTouched = false; S.selectAll = !!S.label; S.focusId = 'q-text'; }
-  function openPane(p) { S.menuOpen = false; S.win = 'settings'; S.tab = p; S.aboutView = 'main'; }
+  function openPane(p) { S.menuOpen = false; S.mainPanel = false; S.win = 'settings'; S.tab = p; S.aboutView = 'main'; }
 
   // ---------- The states (the index) ----------
   var STATES = [
@@ -570,11 +571,10 @@ code { font-family: var(--font-mono); font-size: .92em; }
 
     { g: 'Main window', id: 'main-unlabeled', name: 'No label', reqs: ['FR-010', 'FR-013', 'FR-013a'],
       desc: 'Clicking the menu-bar item opens the main window. The item shows the icon and a fixed text, never the label, so a label such as "Shutdown" cannot look like an app. It names the display and its Desktop\'s label, and its field labels this Desktop at once with the default style from General: type and press Return. "Style and Preview…" opens the editor for anything else. Below: the labels in use, the space they take with Clean Up, and the way to Settings, Configuration and About.',
-      q: ['Is "Style and Preview…" the right name for the way into the full editor?', 'Should the hotkey open this main window, or the editor (as now)?'],
       set: function () { openMain(); } },
     { g: 'Main window', id: 'main-labeled', name: 'Labeled, with Undo', reqs: ['FR-010', 'FR-011', 'FR-013', 'FR-013a'],
-      desc: 'A labeled Desktop: the field holds the label, selected, so typing replaces it and Return relabels the Desktop, keeping the label\'s style. Remove Label appears, and Undo for 60 seconds after a change. The hotkey shows beside "Style and Preview…" when one is recorded.',
-      set: function () { S.label = Object.assign({}, MAIL); S.undo = 'label'; S.hotkey = true; openMain(); } },
+      desc: 'A labeled Desktop: the field holds the label, selected, so typing replaces it and Return relabels the Desktop, keeping the label\'s style. Remove Label appears, and Undo for 60 seconds after a change.',
+      set: function () { S.label = Object.assign({}, MAIL); S.undo = 'label'; openMain(); } },
     { g: 'Main window', id: 'main-invalid', name: 'Invalid label typed', reqs: ['FR-008', 'FR-013a'],
       desc: 'Line breaks and control characters are ignored as they are typed or pasted, so the only sentence left is the length. Label stays off; Return does nothing until the text fits.',
       set: function () { openMain(); S.q = 'Quarterly planning and budget review'; S.qTouched = true; S.selectAll = false; } },
@@ -585,12 +585,12 @@ code { font-family: var(--font-mono); font-size: .92em; }
       desc: 'Icon mode: the menu-bar item is the icon alone, without the text. The main window names the label.',
       set: function () { S.label = Object.assign({}, MAIL); S.mode = 'icon'; openMain(); } },
     { g: 'Main window', id: 'menu-hidden', name: 'Hidden', reqs: ['FR-010', 'FR-014', 'FR-017'],
-      desc: 'No menu-bar item, so no main window. The editor opens with the hotkey (see "Hotkey panel"); opening the app again shows Settings at General, where the item can be turned back on.',
+      desc: 'No menu-bar item. The hotkey still opens the main window, as a floating panel (see "Hotkey, item hidden"); opening the app again shows Settings at General, where the item can be turned back on.',
       set: function () { S.label = Object.assign({}, MAIL); S.mode = 'hidden'; } },
 
-    { g: 'Hotkey and welcome', id: 'hotkey-panel', name: 'Hotkey panel', reqs: ['FR-004', 'FR-014'],
-      desc: 'With the item hidden, the hotkey opens the same editor as a floating panel near the top of the active display.',
-      set: function () { S.mode = 'hidden'; S.hotkey = true; S.panel = true; openEditorFrom(null); } },
+    { g: 'Hotkey and welcome', id: 'hotkey-panel', name: 'Hotkey, item hidden', reqs: ['FR-012', 'FR-014'],
+      desc: 'The hotkey opens the main window for the active display: under the menu-bar item when it is shown (as a click does), or, with the item hidden, as this floating panel near the top of the display. "Style and Preview…" turns the panel into the editor.',
+      set: function () { S.mode = 'hidden'; S.hotkey = true; openMain(); S.menuOpen = false; S.mainPanel = true; } },
     { g: 'Hotkey and welcome', id: 'welcome', name: 'Welcome window', reqs: ['FR-017a'],
       desc: 'Shown once: the first time the app is opened by this user, and never again (a login start never shows it). It says what the app does and how to start: click its icon in the menu bar, shown as it looks there. OK or closing it dismisses it.',
       set: function () { S.win = 'welcome'; S.ring = true; } },
@@ -676,15 +676,15 @@ code { font-family: var(--font-mono); font-size: .92em; }
       '<svg width="16" height="14" viewBox="0 0 16 14" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="14" height="4.5" rx="2.25" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="8" width="14" height="4.5" rx="2.25" stroke="currentColor" stroke-width="1.3"/><circle cx="11.8" cy="3.75" r="1.3" fill="currentColor"/><circle cx="4.2" cy="10.25" r="1.3" fill="currentColor"/></svg>' +
       '<span>Sun 15 Nov 10:24</span></span></div>';
   }
-  function mainWin() {
+  function mainWin(floating) {
     var lab = S.label ? S.label.text : null, problem = checkText(S.q), changed = !S.label || S.q.trim() !== S.label.text;
-    var s = '<section class="win mainwin" role="dialog" aria-label="Desktop Name Manager">' +
+    var s = '<section class="win mainwin' + (floating ? ' floatmain' : '') + '" role="dialog" aria-label="Desktop Name Manager">' +
       '<div class="mw-head"><span class="disp">Built-in Display</span><span class="lab' + (lab ? '' : ' none') + '">' + (lab ? esc(lab) : 'No label') + '</span></div>';
     s += '<div class="qrow"><label for="q-text" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Label this Desktop</label>' +
       '<input id="q-text" class="field" type="text" autocomplete="off" spellcheck="false" placeholder="Label this Desktop" value="' + esc(shown(S.q)) + '">' +
       '<button type="button" class="btn primary" data-act="q-apply"' + (problem || !changed ? ' disabled' : '') + '>Label</button></div>';
     if (problem && S.qTouched && S.q.trim()) s += '<p class="msg" role="status" style="margin:-4px 2px 0"><span aria-hidden="true">⚠︎</span>' + esc(problem) + '</p>';
-    s += '<div class="mw-grp"><button class="mi" data-act="open-editor">Style and Preview…' + (S.hotkey ? '<span class="k">⌃⌥⌘L</span>' : '') + '</button>';
+    s += '<div class="mw-grp"><button class="mi" data-act="open-editor">Style and Preview…' + '</button>';
     if (S.label) s += '<button class="mi" data-act="remove">Remove Label</button>';
     if (S.undo) s += '<button class="mi" data-act="undo">Undo ' + (S.undo === 'label' ? 'Label' : 'Remove') + ' on Built-in Display</button>';
     s += '</div><div class="mw-grp">' +
@@ -798,7 +798,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
       srow('Menu bar shows', '<select class="select" id="pf-mode" aria-label="Menu bar shows">' +
         [['both', 'Icon and text'], ['icon', 'Icon'], ['hidden', 'Nothing (hidden)']].map(function (o) { return '<option value="' + o[0] + '"' + (S.mode === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>') +
       '</div><h3 class="gh">Hotkey</h3><div class="grp">' +
-      srow('Open the editor', '<span class="recorder" role="group" aria-label="Hotkey">' +
+      srow('Open the main window', '<span class="recorder" role="group" aria-label="Hotkey">' +
         (keys ? keys + '<button type="button" data-act="hk-clear" aria-label="Clear hotkey">×</button>'
           : '<button type="button" class="rec-empty" data-act="hk-record">Record Shortcut</button>') + '</span>',
         S.hotkeyTaken ? '<span class="err" role="alert">⚠︎ Another app is using this shortcut. Choose another.</span>' : '') + '</div>' +
@@ -924,6 +924,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
     var keepIds = /^(ed-text|q-text|alias-\d)$/;
     if (keepIds.test(focused || '')) { selStart = document.activeElement.selectionStart; selEnd = document.activeElement.selectionEnd; }
     var h = wpSvg(wp, null, 'wp') + (S.label && !S.unsupported ? labelEl(S.label, wp, 1) : '') + dock() + menubar();
+    if (S.mainPanel) h += mainWin(true);
     if (S.panel) h += '<section class="win panel editor" role="dialog" aria-label="Label this Desktop">' + editor() + '</section>';
     if (S.win === 'welcome') h += welcome();
     if (S.win === 'settings') h += settingsWin();
@@ -977,7 +978,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
   function go(i, fromHash) {
     current = Math.max(0, Math.min(STATES.length - 1, i));
     try { window.getSelection().removeAllRanges(); } catch (e) { }
-    reset(); STATES[current].set(); S.focusField = S.edOpen || S.panel || S.menuOpen;
+    reset(); STATES[current].set(); S.focusField = S.edOpen || S.panel || S.menuOpen || S.mainPanel;
     if (!fromHash && location.hash !== '#' + STATES[current].id) { try { history.replaceState(null, '', '#' + STATES[current].id); } catch (e) { location.hash = STATES[current].id; } }
     caption(); render();
   }
@@ -1011,7 +1012,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
     var t = S.q.trim();
     if (checkText(S.q) || (S.label && t === S.label.text)) return;
     var base = S.label || { look: S.defaults.look, color: S.defaults.color, custom: S.custom, pos: S.defaults.pos, size: S.defaults.size };
-    S.prev = S.label; S.label = Object.assign({}, base, { text: t }); S.undo = 'label'; S.menuOpen = false; render();
+    S.prev = S.label; S.label = Object.assign({}, base, { text: t }); S.undo = 'label'; S.menuOpen = false; S.mainPanel = false; render();
   }
   screen.addEventListener('click', function (e) {
     var b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
@@ -1023,8 +1024,8 @@ code { font-family: var(--font-mono); font-size: .92em; }
       case 'alias-add': aliasAdd(Number(v)); break;
       case 'alias-rm': (function () { var k = v.indexOf(':'), i = Number(v.slice(0, k)), n = v.slice(k + 1); S.aliases[i] = S.aliases[i].filter(function (a) { return a !== n; }); S.aliasMsg = null; })(); break;
       case 'pf-login': S.login = !S.login; break;
-      case 'close-menu': S.menuOpen = false; break;
-      case 'open-editor': S.menuOpen = false; S.panel = false; S.edOpen = true; openEditorFrom(S.label); S.focusField = true; break;
+      case 'close-menu': S.menuOpen = false; S.mainPanel = false; break;
+      case 'open-editor': var fl = S.mainPanel; S.menuOpen = false; S.mainPanel = false; S.panel = fl; S.edOpen = !fl; openEditorFrom(S.label); S.focusField = true; break;
       case 'look': S.look = v; break;
       case 'color': S.color = v; break;
       case 'pos': S.pos = v; break;
@@ -1032,8 +1033,8 @@ code { font-family: var(--font-mono); font-size: .92em; }
       case 'more': S.more = !S.more; break;
       case 'apply': doApply(); return;
       case 'cancel': S.edOpen = false; S.panel = false; break;
-      case 'remove': S.prev = S.label; S.label = null; S.undo = 'remove'; S.edOpen = false; S.panel = false; S.menuOpen = false; break;
-      case 'undo': S.label = S.prev; S.prev = null; S.undo = null; S.menuOpen = false; break;
+      case 'remove': S.prev = S.label; S.label = null; S.undo = 'remove'; S.edOpen = false; S.panel = false; S.menuOpen = false; S.mainPanel = false; break;
+      case 'undo': S.label = S.prev; S.prev = null; S.undo = null; S.menuOpen = false; S.mainPanel = false; break;
       case 'open-cleanup': openPane('cleanup'); S.sel = []; if (S.cleanup === 'none' || S.cleanup === 'confirm') S.cleanup = S.over ? 'over' : 'list'; break;
       case 'close-win': S.win = null; S.ring = false; break;
       case 'welcome-done': S.win = null; S.ring = false; break;
@@ -1088,7 +1089,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
     if (e.key === 'Escape') {
       if (S.cleanup === 'confirm') S.cleanup = S.over ? 'over' : 'list';
       else if (S.edOpen || S.panel) { S.edOpen = false; S.panel = false; }
-      else if (S.menuOpen) S.menuOpen = false;
+      else if (S.menuOpen || S.mainPanel) { S.menuOpen = false; S.mainPanel = false; }
       else return;
       render(); return;
     }

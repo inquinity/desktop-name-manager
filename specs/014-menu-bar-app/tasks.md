@@ -115,15 +115,16 @@ it names the right label (SC-004).
 
 **Checkpoint**: Stories 2 and 3 work together.
 
-## Phase 7: User Story 4 — Open the editor with a hotkey (P3)
+## Phase 7: User Story 4 — Open the main window with a hotkey (P3)
 
-**Goal**: an optional shortcut, off by default, opens the same editor; a floating panel when the item is hidden.
+**Goal**: an optional shortcut, off by default, opens the main window; a floating panel when the item is hidden.
 
-**Independent test**: turn on ⌃⌥⌘L, press it in another app, label the Desktop; turn it off: nothing happens.
+**Independent test**: record ⌃⌥⌘L, press it in another app, label the Desktop from the main window; clear it: nothing
+happens.
 
 - [ ] T043 [P] [US4] Create `Sources/DesktopNameApp/Hotkey/Shortcut.swift` (key code and modifiers; valid only with "at least two of ⌃⌥⌘, or ⌘ with ⇧; Escape, Return, Tab, Space alone refused"; display string such as "⌃⌥⌘L") and `ShortcutRecorder.swift` (a SwiftUI control that captures one key while focused); `Tests/DesktopNameAppTests/ShortcutTests.swift` covers the rules and the display strings
 - [ ] T044 [US4] Create `Sources/DesktopNameManager/HotkeyRegistrar.swift`: `RegisterEventHotKey`/`UnregisterEventHotKey` (research R3); on `eventHotKeyExistsErr` or any failure, report it so Settings shows "Another app is using this shortcut. Choose another." and the shortcut is not stored (FR-015); register at launch when a shortcut is stored
-- [ ] T045 [US4] In `Sources/DesktopNameManager/PopoverPresenter.swift`, open the editor from the hotkey for the active display: in the popover from the status item when shown, else in a floating `NSPanel` near the top of the active display (FR-014); one editor at a time
+- [ ] T045 [US4] In `Sources/DesktopNameManager/PopoverPresenter.swift`, open the main window from the hotkey for the active display: in the popover from the status item when shown, else in a floating `NSPanel` near the top of the active display, where "Style and Preview…" swaps in the editor (FR-014); one main window or editor at a time
 - [ ] T046 [US4] Live check (quickstart scenario 8) with approved live control; record the results in this file
 
 ## Phase 8: User Story 5 — Settings, Configuration and About in one window (P3)

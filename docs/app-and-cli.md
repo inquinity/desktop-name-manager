@@ -23,7 +23,7 @@ Planned by spec 014 (M2, 0.4.0); none is built yet.
 |---|---|---|
 | Live preview of the label over the wallpaper before applying it, including a small view of each style | Inherent: a terminal cannot show the image. A CLI could write a preview image to a file | Gap, small: for example `dnm set --preview <file>`. Not planned |
 | The current Desktop's label always visible in the menu bar, following Desktop switches | Inherent: `dnm show` and `dnm list` answer when asked, which is the CLI equivalent | No |
-| A global hotkey that opens the editor | Inherent | No |
+| A global hotkey that opens the main window | Inherent | No |
 | Label defaults chosen in Settings (style, color, position, size) | Deliberate (2026-11-12, spec 014 FR-018): the app's defaults never change `dnm`, so scripts keep behaving as documented | Gap: a `dnm` defaults file or environment variables could add it. Not planned |
 | Open at login | Inherent: `dnm` does not run in the background | No |
 | Choosing which old labeled images to delete (Clean Up's selection) | Deliberate (prototype review, 2026-11-16): `dnm cleanup` deletes the whole list after one confirmation | Gap, small: for example `dnm cleanup` taking labels to keep. Not planned |

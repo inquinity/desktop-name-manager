@@ -69,8 +69,9 @@ Expected: all pass; `build.noindex/app/Desktop Name Manager.app` exists with the
    display; switch Desktops 20 times across both displays, opening the main window from each display's menu bar after
    each switch; it names the right label every time; a label set with `dnm` shows the next time it opens; the item
    shows only the icon and the fixed text, never a label; Icon and Hidden modes behave as contracts/app-ui.md says.
-8. **Hotkey** (US4, live): record a shortcut (⌃⌥⌘L); press it in another app; the editor opens on the active display; hide
-   the menu-bar item and press it again: a floating panel opens; pick a shortcut another app holds: Settings says so.
+8. **Hotkey** (US4, live): record a shortcut (⌃⌥⌘L); press it in another app; the main window opens on the active display; hide
+   the menu-bar item and press it again: the main window opens as a floating panel, and "Style and Preview…" turns it
+   into the editor; pick a shortcut another app holds: Settings says so.
 9. **Welcome and login** (US5, live): `defaults delete com.altmansoftwaredesign.desktop-name-manager.dev`, launch:
    the welcome window shows once; turn on Open at login in Settings, log out and in: the app is in the menu bar with
    no window and no welcome window; launching it again opens the Settings window at General.
