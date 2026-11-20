@@ -39,7 +39,7 @@ extension DnmError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .invalidInput(let message): message
-        case .unsupportedWallpaper(let reason): "This wallpaper is not supported yet: \(reason). Nothing was changed."
+        case .unsupportedWallpaper(let reason): "This wallpaper is not supported: \(reason). Nothing was changed."
         case .accessDenied(let message): "macOS denied access: \(message). Nothing was changed."
         case .originalMissing(let name): "The original wallpaper \(name) can no longer be found. Choose a wallpaper in System Settings > Wallpaper. Nothing was changed."
         case .cannotUndo(let reason): "Cannot undo: \(reason)."

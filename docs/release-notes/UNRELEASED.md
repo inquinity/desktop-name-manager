@@ -7,4 +7,5 @@ scripts/compose-release-notes.sh builds <version>.md from this file; this commen
 dropped (the same process as the sibling project).
 -->
 
-_(nothing yet)_
+- The message for a wallpaper `dnm` cannot label no longer says "not supported yet": it says "This wallpaper is
+  not supported: <reason>.", since support for them is not decided.
