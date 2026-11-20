@@ -267,7 +267,16 @@ Add one entry per review round, newest last:
   "Editor options" switch and state 3's questions; `contracts/app-ui.md` (Editor) records the decision.
 - **Still open**: is the icon's direction right (last state)?
 
+### Round 10: 2026-11-19, stage 1
+
+- **Decisions** (maintainer, 2026-11-19):
+  - **The icon's direction is fine.** No open questions remain for stage 1.
+  - **Gate A approved.**
+- **Checked before recording it**: the mockups hold no personal path, name, display or Desktop identifier, and no
+  embedded image (FR-003); `contracts/app-ui.md` matches version 10 of the artifact.
+
 ## Approvals
 
-- **Stage 1 (Gate A)**: not yet approved.
+- **Stage 1 (Gate A)**: approved by the maintainer on 2026-11-19, on version 10 of the artifact
+  (<https://claude.ai/artifact/KRA1BURSSodgeypy4wjQri>) after ten review rounds. App code may start (T012 onward).
 - **Stage 2 (Gate B)**: not yet approved.

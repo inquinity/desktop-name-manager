@@ -39,7 +39,7 @@ gate starts before it is passed.
 - [X] T008 [P] [US1] Mockup Settings: General (menu-bar mode, hotkey recorder with its "Another app is using this shortcut" line, Open at login), New labels (with the "`dnm` keeps its own defaults" line), Clean Up (with old labels, with none, confirming, and with the red message)
 - [X] T009 [P] [US1] Mockup About and Help > Configuration with the content of `dnm about` and `dnm check` (synthetic display names; the Accessibility row's app wording from research R8), and an app icon draft (the icon used in all mockups)
 - [X] T010 [US1] Check the mockups: no personal path, name, display or Desktop identifier, no copied image (grep the folder; FR-003); publish `prototypes/index.html` as a private claude.ai artifact and record its link and round 1 in `prototypes/REVIEW.md`
-- [ ] T011 [US1] **Gate A**: review rounds with the maintainer; apply each round's changes to the mockups and to contracts/app-ui.md (wording, "More options" decision, menu-bar width); record the decisions and the approval with its date in `prototypes/REVIEW.md` (FR-002, SC-007)
+- [X] T011 [US1] **Gate A**: review rounds with the maintainer; apply each round's changes to the mockups and to contracts/app-ui.md (wording, "More options" decision, menu-bar width); record the decisions and the approval with its date in `prototypes/REVIEW.md` (FR-002, SC-007)
 
 **Checkpoint**: the mockups are approved; contracts/app-ui.md matches them.
 
