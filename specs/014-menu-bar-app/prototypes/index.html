@@ -360,7 +360,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
 <div class="wrap">
   <header class="top">
     <div>
-      <p class="eyebrow">Spec 014 · Prototype stage 1 · Version 7, for review round 7</p>
+      <p class="eyebrow">Spec 014 · Prototype stage 1 · Version 8, for review round 8</p>
       <h1>Desktop Name Manager: menu-bar app mockups</h1>
       <p class="lede">Every screen FR-001 asks for, as a clickable mockup. Pick a state from the list, or use the Mac screen itself:
         the menu-bar item opens the main window, which labels this Desktop and opens Settings, Configuration and About in one
@@ -555,6 +555,9 @@ code { font-family: var(--font-mono); font-size: .92em; }
     { g: 'Editor', id: 'editor-unreadable', name: 'Unreadable wallpaper', reqs: ['FR-009', 'Edge cases'],
       desc: 'The wallpaper file is there but is not a picture the app can read. One sentence names the file; no Apply, and nothing changes.',
       set: function () { S.unsupported = 'unreadable'; S.edOpen = true; openEditorFrom(null); S.edState = 'unsupported'; } },
+    { g: 'Editor', id: 'editor-nofile', name: 'No wallpaper file', reqs: ['FR-009', 'Edge cases'],
+      desc: 'macOS reports no wallpaper file: a solid color, a full-screen app\'s Space, or a type with no file. The app cannot tell which, so the sentence says what is missing and promises nothing.',
+      set: function () { S.unsupported = 'nofile'; S.edOpen = true; openEditorFrom(null); S.edState = 'unsupported'; } },
     { g: 'Editor', id: 'editor-working', name: 'Working', reqs: ['FR-007', 'FR-026'],
       desc: 'After Apply. Under a second on a 5K wallpaper (FR-026), so the progress shows only on the button; the editor closes when the label is on the Desktop.',
       set: function () { S.edOpen = true; openEditorFrom(null); S.raw = 'Q4 budget'; S.edState = 'working'; } },
@@ -717,7 +720,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
   function editor() {
     var wp = deskWp(), d = draft(), problem = checkText(S.raw), unsupported = S.edState === 'unsupported', working = S.edState === 'working';
     var dis = unsupported || working, r = resolve(d, wp), msg = '';
-    if (unsupported) msg = '<p class="msg" role="status"><span aria-hidden="true">⚠︎</span>' + (S.unsupported === 'unreadable' ? 'Cannot read wallpaper \u2018Lake.heic\u2019.' : 'Dynamic wallpapers are not supported.') + '</p>';
+    if (unsupported) msg = '<p class="msg" role="status"><span aria-hidden="true">⚠︎</span>' + (S.unsupported === 'unreadable' ? 'Cannot read wallpaper \u2018Lake.heic\u2019.' : S.unsupported === 'nofile' ? 'This Desktop has no wallpaper picture to label.' : 'Dynamic wallpapers are not supported.') + '</p>';
     else if (S.edState === 'error') msg = '<p class="msg" role="alert"><span aria-hidden="true">⚠︎</span>' + esc(S.err) + '</p>';
     else if (problem && S.touched && S.raw.trim()) msg = '<p class="msg" role="status"><span aria-hidden="true">⚠︎</span>' + esc(problem) + '</p>';
     var showOpts = S.variant === 'open' || S.more;
@@ -731,7 +734,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
       '<input id="ed-text" class="field" type="text" autocomplete="off" spellcheck="false" placeholder="What is this Desktop for?" value="' + esc(shown(S.raw)) + '"' + (dis ? ' disabled' : '') + '>' + msg +
       '<div class="preview" role="img" aria-label="Preview: ' + esc(d.text ? '"' + d.text + '", ' + LOOK_NAME[r.look] + ', ' + POS_NAME[d.pos].toLowerCase() : 'this Desktop, no label') + '">' +
       wpSvg(wp) + '<div class="pbar"></div><div class="pdock"></div>' + (unsupported ? '' : labelEl(d, wp, 372 / 1280)) +
-      (unsupported ? '<div class="veil">' + (S.unsupported === 'unreadable' ? 'Unreadable picture' : 'Dynamic wallpaper') + '</div>' : '') + '</div>' +
+      (unsupported ? '<div class="veil">' + (S.unsupported === 'unreadable' ? 'Unreadable picture' : S.unsupported === 'nofile' ? 'No wallpaper file' : 'Dynamic wallpaper') + '</div>' : '') + '</div>' +
       '<div style="display:flex;flex-direction:column;gap:6px"><span class="cap">Style</span><div class="chips">' + chips + '</div>' +
       '<p class="note">' + (S.look === 'auto' ? 'Automatic picks ' + LOOK_NAME[r.auto] + ' for this spot.' : 'Automatic would pick ' + LOOK_NAME[r.auto] + ' for this spot.') + '</p></div>';
     if (S.variant === 'fold') s += '<button type="button" class="disclose" data-act="more" aria-expanded="' + S.more + '"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3.5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>More options</button>';

@@ -227,6 +227,20 @@ Add one entry per review round, newest last:
   3. Still open from round 2: "Style and Preview…", what the hotkey opens; from round 1: the open items in the
      Round 1 list.
 
+### Round 7: 2026-11-19, stage 1
+
+- **Decisions** (maintainer, 2026-11-19):
+  - **No wallpaper file**: option 1, "This Desktop has no wallpaper picture to label."
+  - **The core changes too**, for both cases, so `dnm set` and the app say the same.
+- **Changes made** (version 8 of the artifact, same link):
+  - Core: `WallpaperKind` gains `noFile` and `unreadable(name:)`; `DnmError` gains `noWallpaperFile` ("This Desktop
+    has no wallpaper picture to label. Nothing was changed.") and `unreadableWallpaper` ("Cannot read wallpaper
+    '<file>'. Nothing was changed."), both exit 3. A file ImageIO opens but cannot identify now counts as
+    unreadable. Tests and `docs/release-notes/UNRELEASED.md` updated.
+  - `index.html`: a new "No wallpaper file" state. 31 states. `contracts/app-ui.md` (editor messages) updated.
+- **Still open**: from round 2, "Style and Preview…" and what the hotkey opens; from round 1, the open items in the
+  Round 1 list.
+
 ## Approvals
 
 - **Stage 1 (Gate A)**: not yet approved.

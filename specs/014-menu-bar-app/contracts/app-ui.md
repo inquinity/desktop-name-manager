@@ -72,7 +72,7 @@ One sentence, under the field, shown instead of enabling Apply. The core's own s
 |---|---|
 | Empty | none (Apply off) |
 | Too long | "A label can have at most 30 characters; this one has N." |
-| Unsupported wallpaper | One sentence naming the kind, with no reason clause and no "yet" (no Apply): "Dynamic wallpapers are not supported." Likewise "Shuffling wallpapers…", "Aerial wallpapers…" and "Apple catalog wallpapers are not supported." A file that is not a readable picture: "Cannot read wallpaper ‘<file name>’." No wallpaper file (a solid color or another type with no file): to be settled in prototype review |
+| Unsupported wallpaper | One sentence naming the kind, with no reason clause and no "yet" (no Apply): "Dynamic wallpapers are not supported." Likewise "Shuffling wallpapers…", "Aerial wallpapers…" and "Apple catalog wallpapers are not supported." A file that is not a readable picture: "Cannot read wallpaper ‘<file name>’." No wallpaper file (a solid color, a full-screen app's Space, or a type with no file): "This Desktop has no wallpaper picture to label." The core has the same two sentences, followed by "Nothing was changed." (`DnmError.unreadableWallpaper`, `.noWallpaperFile`) |
 | Original missing (Remove) | the core's `originalMissing` sentence |
 | Store newer than the app | the core's `newerManifest` sentence, with "this app" for "this tool" and "Update the app." for "Update the tool." |
 | A stamp from another store | the core's sentence, with "this app" for "this tool" and "then try again" for "then run again" |
