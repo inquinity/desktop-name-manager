@@ -16,9 +16,7 @@ extension DesktopLabeler {
     /// The details of the label on the current Desktop of `display` (FR-012).
     public func showLabel(on display: Display) throws -> ShowLabelResult {
         try housekeeping()
-        let current = try system.currentWallpaper(on: display)
-        let manifest = try store.readManifest()
-        guard let stamp = stamp(for: current.url, in: manifest) else {
+        guard let stamp = try currentStamp(on: display) else {
             return ShowLabelResult(displayName: display.name, isMain: display.isMain, label: nil, createdAt: nil,
                                    originalRecorded: false, stampMissing: false)
         }

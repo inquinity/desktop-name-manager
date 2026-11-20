@@ -106,6 +106,18 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
   position and size). Fallback for speed: a smaller preview, then fewer chip renders.
 - **Alternatives**: drawing the label as a SwiftUI overlay on the wallpaper (fast, but not the real rendering: the
   halo, frost and automatic choice would only be imitated); rejected.
+- **Result of the sweep** (2026-11-19, T024, `PreviewSnapshotTests` over the 9 local samples, 5K display, 800-pixel
+  preview, every position and size: 162 comparisons): judged on the preview's own backdrop, the automatic style
+  differed from `setLabel`'s in 22 cases, always a lighter treatment (halo for frosted, plain for halo): the sampler
+  judges a 1024-pixel copy, and one upscaled from 800 pixels has less texture than one downscaled from 5K. Fixed as
+  planned: `previewSource` composes the full-size backdrop once, only to build the sampler, and every preview is
+  judged with it. After the fix: 0 disagreements; the label's place agrees within one preview pixel; the slowest
+  preview render took 36 ms. The editor's open time (loading the source) is measured by the prototype (T027).
+- **Spike S2** (2026-11-19, `EditorPrototype --measure`, debug build, the same 9 samples, 5K display, 800-pixel
+  preview and 240-pixel chips, every position): opening the editor (loading the picture, the full-size sample and
+  the preview backdrop) took 87 to 167 ms; one preview at most 27 ms; the preview and the four chips together at most
+  50 ms, well inside SC-002's 250 ms, so no fallback (a smaller preview, fewer chips) is needed. The automatic style
+  at preview size agreed with the applied label in all 54 cases.
 
 ## R7. One store for the app and `dnm` (FR-021, FR-022)
 

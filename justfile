@@ -9,7 +9,7 @@ scratch := "build.noindex"
 default:
     @just --list
 
-# Debug build of the library and dnm. Every build moves the build number in Version.xcconfig forward and is
+# Debug build of the library, dnm and the app's executables. Every build moves the build number in Version.xcconfig forward and is
 # stamped with it and its commit (see scripts/build-stamp.sh), so `dnm --version` shows exactly what you run.
 build *args:
     stamp="$(scripts/build-stamp.sh --bump)"; flags=(); while IFS= read -r flag; do flags+=("$flag"); done <<<"$stamp"; \
@@ -20,13 +20,31 @@ build-release *args:
     stamp="$(scripts/build-stamp.sh --bump)"; flags=(); while IFS= read -r flag; do flags+=("$flag"); done <<<"$stamp"; \
     swift build -c release --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}
 
+# Development app bundle (build.noindex/app/Desktop Name Manager.app): a debug build, the .dev bundle ID and store,
+# signed ad hoc. Installs nothing and registers no login item.
+app: build
+    scripts/make-app.sh --dev debug
+
+# Open the development app. With DNM_STORE_DIR set, the app uses that store (as dnm does), for live checks.
+run-app:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    bundle="build.noindex/app/Desktop Name Manager.app"
+    [[ -d "$bundle" ]] || { echo "No app yet: run just app first" >&2; exit 1; }
+    if [[ -n "${DNM_STORE_DIR:-}" ]]; then
+        open --env DNM_STORE_DIR="$DNM_STORE_DIR" "$bundle"
+    else
+        open "$bundle"
+    fi
+
 # Unit and contract tests (they never change your real wallpaper). They keep the build number: the release
 # check runs them on the tagged commit, which must stay clean. The version-script tests run in a throwaway
 # repository afterwards.
 test *args:
     stamp="$(scripts/build-stamp.sh)"; flags=(); while IFS= read -r flag; do flags+=("$flag"); done <<<"$stamp"; \
     swift test --scratch-path {{ scratch }} --force-resolved-versions "${flags[@]}" {{ args }}; \
-    Tests/scripts/version-scripts-test.sh
+    Tests/scripts/version-scripts-test.sh; \
+    Tests/scripts/make-app-test.sh
 
 # Unused-code scan (needs `brew install periphery`).
 periphery:

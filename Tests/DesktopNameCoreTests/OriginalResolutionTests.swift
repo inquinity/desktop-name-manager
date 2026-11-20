@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// How a recorded original is found again (security plan S2 and S10).
 @Suite struct OriginalResolutionTests {

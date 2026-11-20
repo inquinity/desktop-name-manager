@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Spec 006: setting, moving, removing and listing aliases. No wallpaper is ever touched.
 @Suite struct AliasOperationTests {

@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Spec 001 amendment (2026-10-05): macOS gives every new Desktop a copy of the first Desktop's wallpaper, so one
 /// labeled image can be on several Desktops. Two displays showing the same stamp file model two such Desktops.

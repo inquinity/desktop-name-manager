@@ -1,5 +1,6 @@
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 @Suite struct DisplayResolverTests {
     let builtIn = FakeWallpaperSystem.makeDisplay(name: "Built-in Display", uuid: "A", isMain: true)

@@ -13,8 +13,11 @@ package enum LabelRenderer {
         package var label: Label
     }
 
-    package static func render(backdrop: CGImage, text: LabelText, options: LabelOptions, geometry: DisplayGeometry) throws -> Rendered {
-        let sampler = Sampler(backdrop: backdrop)
+    /// `sampler` judges the label's spot; by default it is made from `backdrop`. The preview passes one made from the
+    /// full-size backdrop, so it chooses exactly what `setLabel` will (research R6).
+    package static func render(backdrop: CGImage, text: LabelText, options: LabelOptions, geometry: DisplayGeometry,
+                               sampler given: Sampler? = nil) throws -> Rendered {
+        let sampler = given ?? Sampler(backdrop: backdrop)
         let position = options.position ?? .default
         let size = options.size ?? .default
 

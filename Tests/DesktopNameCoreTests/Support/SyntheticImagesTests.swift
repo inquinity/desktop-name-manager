@@ -1,4 +1,5 @@
 import ImageIO
+import DNMTestSupport
 import Foundation
 import Testing
 

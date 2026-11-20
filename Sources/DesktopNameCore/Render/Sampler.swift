@@ -10,12 +10,12 @@ struct RegionStats: Equatable {
 }
 
 /// A small sRGB copy of the backdrop, for judging how legible a label would be at its spot.
-struct Sampler {
+package struct Sampler: Sendable {
     let width: Int, height: Int
     let luminance: [Float]       // WCAG relative luminance, 0...1
     let lightness: [Float]       // CIE L*, 0...1
 
-    init(backdrop: CGImage) {
+    package init(backdrop: CGImage) {
         let width = 1024
         let height = max(1, Int((Double(backdrop.height) * 1024 / Double(backdrop.width)).rounded()))
         self.width = width

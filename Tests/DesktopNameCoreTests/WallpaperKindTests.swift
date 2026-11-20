@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 @Suite struct WallpaperKindTests {
     func current(_ url: URL?) -> CurrentWallpaper { CurrentWallpaper(url: url, placement: FakeWallpaperSystem.defaultPlacement) }

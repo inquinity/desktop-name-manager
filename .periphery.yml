@@ -2,8 +2,13 @@
 # The public API of DesktopNameCore is kept because the later app links it.
 retain_public: true
 retain_codable_properties: true
-# Report findings in shipping code only; test helpers are not the target of this gate.
+# SwiftUI views' `body` and AppKit's `@objc` entry points are used by the frameworks, not by our code (spec 014).
+retain_objc_accessible: true
+retain_swift_ui_previews: true
+# Report findings in shipping code only; test helpers and the development-only editor prototype are not the target
+# of this gate.
 report_exclude:
   - "Tests/**"
+  - "prototype/**"
   # SwiftPM checkouts of dependencies live in the scratch folder, not in .build
   - "build.noindex/**"

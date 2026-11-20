@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Spec 010: one change on several displays, in order, stopping at the first failure (FR-006, FR-009, SC-002).
 @Suite struct DisplayBatchTests {

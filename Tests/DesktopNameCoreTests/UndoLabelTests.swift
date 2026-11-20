@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 @Suite struct UndoLabelTests {
     func currentName(_ h: LabelerHarness) throws -> String? {

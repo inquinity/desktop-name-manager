@@ -1,6 +1,7 @@
 import CoreGraphics
 import Foundation
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// A labeler wired to a fake wallpaper system, a temporary store and a fake clock.
 final class LabelerHarness {
