@@ -7,4 +7,8 @@ scripts/compose-release-notes.sh builds <version>.md from this file; this commen
 dropped (the same process as the sibling project).
 -->
 
-_(nothing yet)_
+- On macOS 27, labeling a Desktop that shows an Apple dynamic wallpaper (Golden Gate, Macintosh and others)
+  is now refused with exit code 3 and the message "macOS reports the default wallpaper when dynamic or
+  unsupported wallpapers are selected". 0.3.0 labeled the default still picture macOS reports for these
+  wallpapers and so replaced the dynamic wallpaper. If 0.3.0 labeled such a Desktop, `dnm remove` restores
+  that still, not the dynamic wallpaper: choose your wallpaper again in System Settings > Wallpaper.

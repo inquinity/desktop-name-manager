@@ -60,6 +60,55 @@ import Testing
         #expect(h.storeFiles.isEmpty)
     }
 
+    // Spec 015: macOS 27 reports a fixed stand-in still for Apple dynamic wallpapers.
+    static let standInReason = "macOS reports the default wallpaper when dynamic or unsupported wallpapers are selected"
+
+    @Test(arguments: [
+        "/System/Library/CoreServices/DefaultDesktop.heic",
+        "/System//Library/CoreServices/./DefaultDesktop.heic",
+        "/System/Library/Elsewhere/../CoreServices/DefaultDesktop.heic",
+    ])
+    func theStandInLocationIsUnsupported(_ path: String) throws {
+        // Only the location is compared: nothing at the real path is opened.
+        #expect(try WallpaperKind.classify(current(URL(fileURLWithPath: path))) == .unsupported(reason: Self.standInReason))
+    }
+
+    @Test func theStandInIsRefusedWithoutBeingOpened() throws {
+        // A missing file would throw `.originalMissing` if anything tried to read it: only the location decides.
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        let missing = h.root.appendingPathComponent("CoreServices/DefaultDesktop.heic")
+        #expect(try WallpaperKind.classify(current(missing), standIns: [missing]) == .unsupported(reason: Self.standInReason))
+    }
+
+    @Test func aReadableStillAtTheStandInLocationIsStillRefused() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        let still = try h.showOriginal()
+        #expect(try WallpaperKind.classify(current(still), standIns: [still]) == .unsupported(reason: Self.standInReason))
+    }
+
+    @Test func theSamePictureElsewhereIsSupported() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        let still = try h.showOriginal(name: "DefaultDesktop.heic.png")
+        let standIn = h.root.appendingPathComponent("CoreServices/DefaultDesktop.heic")
+        #expect(try WallpaperKind.classify(current(still), standIns: [standIn]) == .supported(still))
+    }
+
+    @Test func settingALabelOnTheStandInChangesNothingAndExitsThree() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        h.system.show(URL(fileURLWithPath: "/System/Library/CoreServices/DefaultDesktop.heic"), on: h.display)
+        do {
+            try h.labeler.setLabel(LabelText("Email"), on: h.display)
+            Issue.record("expected an error")
+        } catch let error as DnmError {
+            #expect(error.exitCode == 3)
+            #expect(error == .unsupportedWallpaper(Self.standInReason))
+            #expect(error.errorDescription == "This wallpaper is not supported yet: \(Self.standInReason). Nothing was changed.")
+        }
+        #expect(h.system.setCalls.isEmpty)
+        #expect(try h.manifest().stamps.isEmpty)
+        #expect(h.storeFiles.isEmpty)
+    }
+
     @Test func noWallpaperFileMapsToExitCodeThree() throws {
         let h = try LabelerHarness(); defer { h.cleanUp() }
         h.system.show(nil, on: h.display)

@@ -264,6 +264,11 @@ Exit codes: `0` success; `1` failure (for example macOS denied access to the wal
 or undo is not possible); `2` invalid input; `3` unsupported wallpaper (dynamic, aerial,
 catalog, shuffle, or none reported). Nothing is changed when a command fails.
 
+On macOS 27, macOS reports Apple's dynamic wallpapers (Golden Gate, Macintosh and others) as a
+default still picture, `/System/Library/CoreServices/DefaultDesktop.heic`, so `dnm` refuses that
+picture too (exit `3`). To label that still on purpose, copy it to another folder and choose the copy
+in System Settings > Wallpaper.
+
 `dnm --version` says which build you have: a release prints its version and build number (for example
 `0.2.2 build 6`); any other build adds the commit it was built from (for example `0.2.2 build 7 (9398ae4)`,
 with `+` if there were uncommitted changes). A build without a stamp says so.
