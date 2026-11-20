@@ -361,7 +361,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
 <div class="wrap">
   <header class="top">
     <div>
-      <p class="eyebrow">Spec 014 · Prototype stage 1 · Version 9, for review round 9</p>
+      <p class="eyebrow">Spec 014 · Prototype stage 1 · Version 10, for review round 10</p>
       <h1>Desktop Name Manager: menu-bar app mockups</h1>
       <p class="lede">Every screen FR-001 asks for, as a clickable mockup. Pick a state from the list, or use the Mac screen itself:
         the menu-bar item opens the main window, which labels this Desktop and opens Settings, Configuration and About in one
@@ -372,8 +372,6 @@ code { font-family: var(--font-mono); font-size: .92em; }
         <button data-v="light">Light</button><button data-v="dark">Dark</button><button data-v="busy">Busy</button></div></div>
       <div class="ctl"><span id="lbl-mac">Mac appearance</span><div class="seg" aria-labelledby="lbl-mac" data-ctl="mac">
         <button data-v="light">Light</button><button data-v="dark">Dark</button></div></div>
-      <div class="ctl"><span id="lbl-var">Editor options</span><div class="seg" aria-labelledby="lbl-var" data-ctl="variant">
-        <button data-v="fold">Behind More options</button><button data-v="open">Always shown</button></div></div>
     </div>
   </header>
 
@@ -511,7 +509,7 @@ code { font-family: var(--font-mono); font-size: .92em; }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
   // ---------- State ----------
-  var S = { wp: 'light', mac: 'light', variant: 'fold', mbtext: 'dnm' };
+  var S = { wp: 'light', mac: 'light', variant: 'open', mbtext: 'dnm' };
   function reset() {
     Object.assign(S, {
       label: null, raw: '', look: 'auto', color: 'auto', custom: '#ffd166', pos: 'bottom-left', size: 'medium',
@@ -542,7 +540,6 @@ code { font-family: var(--font-mono); font-size: .92em; }
       set: function () { S.label = Object.assign({}, MAIL); S.edOpen = true; openEditorFrom(S.label); } },
     { g: 'Editor', id: 'editor-typing', name: 'Typing, with live preview', reqs: ['FR-005', 'FR-006', 'FR-008'],
       desc: 'The preview follows every keystroke and every option. The automatic style says which look it picks for this spot. Try the other wallpapers above: the automatic choice changes with them.',
-      q: ['Keep color, position and size behind "More options", or always show them? Switch with "Editor options" above.', 'Is "Automatic picks Frosted for this spot" the right way to show the automatic choice?'],
       set: function () { S.edOpen = true; openEditorFrom(null); S.raw = 'Status Rep'; S.touched = true; S.pos = 'top-left'; S.more = true; } },
     { g: 'Editor', id: 'editor-invalid-empty', name: 'Invalid: empty', reqs: ['FR-008', 'FR-009'],
       desc: 'The text was removed. Apply is off, with no message: an empty field needs no explanation.',

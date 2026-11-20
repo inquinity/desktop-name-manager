@@ -258,6 +258,15 @@ Add one entry per review round, newest last:
   2. Is "Automatic picks Frosted for this spot" the right way to show the automatic choice? (state 3)
   3. Is the icon's direction right? Round 1 called the draft "acceptable, a good start" (last state).
 
+### Round 9: 2026-11-19, stage 1
+
+- **Decisions** (maintainer, 2026-11-19):
+  - **The editor always shows its options** (color, position, size); no "More options" fold.
+  - **"Automatic picks Frosted for this spot" is fine.**
+- **Changes made** (version 10 of the artifact, same link): `index.html` shows the options always and drops the
+  "Editor options" switch and state 3's questions; `contracts/app-ui.md` (Editor) records the decision.
+- **Still open**: is the icon's direction right (last state)?
+
 ## Approvals
 
 - **Stage 1 (Gate A)**: not yet approved.

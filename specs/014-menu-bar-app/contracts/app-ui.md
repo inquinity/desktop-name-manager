@@ -60,7 +60,7 @@ Desktop on screen of one display.
 - Buttons: [labeled] "Remove Label", "Cancel", "Apply" (default, Return).
 - Escape, Cancel and a click outside close it with no change (no confirmation).
 
-Whether position, size and color sit behind a "More options" fold, as in concept A, is decided in prototype review.
+Color, position and size are always shown; there is no "More options" fold (prototype review round 9).
 
 ### Editor messages (FR-008, FR-009)
 
