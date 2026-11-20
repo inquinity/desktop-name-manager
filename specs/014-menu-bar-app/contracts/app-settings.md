@@ -5,10 +5,9 @@ them (FR-018). Fields and rules are in data-model.md (AppSettings).
 
 | Key | Type | Default |
 |---|---|---|
-| `menuBarMode` | String: `iconAndLabel`, `icon`, `hidden` | `iconAndLabel` |
-| `hotkeyEnabled` | Bool | `false` |
-| `hotkeyKeyCode` | Int (virtual key code) | `37` (L) |
-| `hotkeyModifiers` | Int (Carbon modifier mask) | `controlKey \| optionKey \| cmdKey` |
+| `menuBarMode` | String: `iconAndText`, `icon`, `hidden` | `iconAndText` |
+| `hotkeyKeyCode` | Int (virtual key code), or absent | absent (no hotkey) |
+| `hotkeyModifiers` | Int (Carbon modifier mask), or absent | absent (no hotkey) |
 | `defaultLook` | String: `automatic`, `plain`, `halo`, `frosted` | `automatic` |
 | `defaultColor` | String: `automatic`, `light`, `dark`, `#RRGGBB` | `automatic` |
 | `defaultPosition` | String: `bottom-left`, `bottom-right`, `top-left`, `top-right`, `bottom`, `top` | `bottom-left` |
@@ -18,6 +17,10 @@ them (FR-018). Fields and rules are in data-model.md (AppSettings).
 
 Values use the same spellings as `dnm set`'s options, so the README can describe both in one vocabulary. An unknown or
 invalid value is read as the default and is not rewritten until the person changes that setting.
+
+There is a hotkey exactly when both hotkey keys are present (FR-014). They are written only after the shortcut was
+registered; a shortcut that cannot be claimed is shown with its error in Settings but not stored (FR-015). Clearing
+the shortcut removes both keys.
 
 Removing the app's settings (`defaults delete <bundle ID>`) returns the app to a first launch: the welcome window shows
 again. The label store is not affected.

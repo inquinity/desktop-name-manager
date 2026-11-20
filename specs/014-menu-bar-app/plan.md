@@ -7,9 +7,11 @@
 
 ## Summary
 
-A Mac app, `Desktop Name Manager.app`, that labels the Desktop on screen from the menu bar: a popover editor with a live
-preview rendered by the same core as `dnm`, the current Desktop's label in the menu bar, an optional hotkey, Settings
-(with Clean Up and the over-50 MB message), a first-launch welcome window, About and Help > Configuration. `dnm` ships
+A Mac app, `Desktop Name Manager.app`, that labels the Desktop on screen from the menu bar: a main window under the
+menu-bar item that labels this Desktop with the defaults, a popover editor with a live preview rendered by the same core
+as `dnm`, the current Desktop's label in the menu bar, an optional hotkey, one Settings window with a sidebar (General,
+Clean Up with the over-50 MB message, Configuration, Displays, Labels, About), and a first-launch welcome
+window. `dnm` ships
 inside the app and is unchanged. Work starts with prototypes in two stages (web mockups, then a runnable editor), each
 approved by the maintainer before the next step. Technically: two new SwiftPM targets (an app library and a thin
 executable) built by `just build`, assembled into a bundle by a new script; AppKit status item and popover with
@@ -78,7 +80,8 @@ The order `tasks.md` will follow; each gate is a maintainer approval.
 4. **Labeling from the menu bar** (US2, P1): status item, menu, editor popover, Apply, Remove, Undo; the welcome window
    (it opens the editor).
 5. **Menu-bar label** (US3, P2): spike S1 first; the modes and following the active display.
-6. **Hotkey** (US4, P3) and **Settings, Clean Up, About, Configuration, login** (US5, P3).
+6. **Hotkey** (US4, P3) and **the Settings window: General, Clean Up, Configuration, Displays, Labels,
+   About, login** (US5, P3).
 7. **Polish**: VoiceOver pass, `docs/app-and-cli.md` final state, README section for the app, live checks, reviews.
 
 The spec 005 amendment (packaging: the zip holds the app, the cask installs it and links `dnm` and `desktop-name` from
@@ -114,11 +117,13 @@ Sources/
 ├── DesktopNameCore/                  # + Operations/Preview.swift, Operations/CurrentLabel.swift, Store/StoreWatcher.swift
 ├── dnm/                              # unchanged
 ├── DesktopNameApp/                   # library: app logic and SwiftUI views
-│   ├── Model/                        # AppSettings, EditorDraft, MenuBarState, CleanUpModel, WelcomeState
+│   ├── Model/                        # AppSettings, EditorDraft, QuickLabel, MenuBarState, CleanUpModel, WelcomeState
 │   ├── Editor/                       # EditorView, StyleChips, PreviewView
-│   ├── Windows/                      # WelcomeView, SettingsView (General, Label, Clean Up), AboutView, ConfigurationView
+│   ├── Main/                         # MainView (the panel under the menu-bar item)
+│   ├── Windows/                      # WelcomeView, SettingsWindowView (sidebar) and one view per pane
 │   └── Hotkey/                       # Shortcut value type and recorder view (registration lives in the executable)
-└── DesktopNameManager/               # executable: AppDelegate, StatusItemController, EditorPresenter (popover/panel),
+└── DesktopNameManager/               # executable: AppDelegate, StatusItemController, PopoverPresenter (main window,
+                                      # editor; panel when hidden), SettingsWindowController,
                                       # HotkeyRegistrar (Carbon), LoginItem (SMAppService), SingleInstance, ActiveDisplay
 prototype/editor/                     # EditorPrototype: dev-only, fake wallpaper system, never shipped
 Resources/App/                        # Info.plist template, AppIcon.iconset

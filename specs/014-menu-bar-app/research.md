@@ -23,18 +23,26 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
 
 ## R2. The menu-bar item and the editor: AppKit status item with SwiftUI content
 
-- **Decision**: an `NSStatusItem` whose button shows the icon and, in Icon and label mode, the label (FR-010); the
-  editor is an `NSPopover` anchored to it, and, when the item is hidden, a floating `NSPanel` near the top of the
-  active display (FR-014). The content of the popover, the panel, the welcome window, Settings, About and
-  Configuration is SwiftUI, hosted with `NSHostingController`. The menu is an `NSMenu` built when it opens, so it always
-  reflects the store.
+- **Decision**: an `NSStatusItem` whose button shows the icon and, in Icon and text mode, the app's fixed text; never the label
+  (FR-010, prototype review round 3).
+  Clicking it opens the main window: an `NSPopover` anchored to the item (FR-013, prototype review 2026-11-19), whose
+  content is read from the store each time it opens, so it always reflects it. "Style and Preview…" replaces the
+  popover's content with the editor (Cancel returns to the main window); the hotkey opens the editor in the same
+  popover, or, when the item is hidden, in a floating `NSPanel` near the top of the active display (FR-014). The
+  Settings window is one `NSWindow` holding a SwiftUI `NavigationSplitView`: a sidebar of panes (General, Create
+  Label, Clean Up, Configuration, Displays, Labels, About) and the selected pane as a grouped `Form` (FR-016); the
+  main window's items and a second launch select the pane to show. All content is SwiftUI, hosted with
+  `NSHostingController`. The popover becomes key while open so its field takes typing; that needs no permission.
 - **Rationale**: SwiftUI's `MenuBarExtra` has no public way to open its window from code, which the hotkey needs, and
   no control over the item's length for long labels. AppKit gives both, with public APIs; SwiftUI keeps the views
   short and previewable.
-- **Alternatives**: `MenuBarExtra` (`.window` style) alone: simpler, but cannot be opened by the hotkey. AppKit views
-  throughout: more code for the same result.
-- **Long labels** (US3 scenario 8): the item's title is the label, shortened in the middle to at most 24 characters
-  with an ellipsis; the menu's first line shows it whole. The width is tuned in prototype stage 1.
+- **Alternatives**: `MenuBarExtra` (`.window` style) alone: simpler, but cannot be opened by the hotkey. An `NSMenu`
+  (the design before 2026-11-19): it cannot hold a text field that takes typing well, nor the space and Clean Up line
+  laid out as the review asked. SwiftUI's `Settings` scene for the window: it cannot be told which pane to open from the
+  main window's items; an `NSWindow` hosting the split view can. AppKit views throughout: more code for the same
+  result.
+- **Long labels** (US3 scenario 6): the item never shows the label, so its width is fixed; the main window's first
+  line shows the label whole, wrapping if needed.
 
 ## R3. The hotkey: Carbon `RegisterEventHotKey`, no permission
 
@@ -52,36 +60,33 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
 
 ## R4. Launch at login: `SMAppService.mainApp`
 
-- **Decision**: `SMAppService.mainApp.register()` and `unregister()`, from the welcome window and Settings (FR-016,
-  FR-017a). Settings reads `status` each time it opens, so a login item turned off in System Settings > General >
+- **Decision**: `SMAppService.mainApp.register()` and `unregister()`, from Settings (FR-016; the welcome window holds no
+  settings since prototype review, 2026-11-16). Settings reads `status` each time it opens, so a login item turned off in System Settings > General >
   Login Items shows as off. macOS shows its own "Login item added" notice; the app adds none.
 - **Rationale**: the public, current API; no helper app, no permission.
 - **Alternatives**: a LaunchAgent plist (deprecated route for apps, and writes outside the app's data); rejected.
 
-## R5. Which Desktop the menu-bar item shows, and when it changes (FR-011, FR-012) — spike
+## R5. Which Desktop the main window and the hotkey are about (FR-011, FR-012) — spike
 
-- **Decision**: the item shows the label of the current Desktop of the **active display**. Signals, all public:
-  - `NSWorkspace.activeSpaceDidChangeNotification` (any Desktop switch),
-  - `NSApplication.didChangeScreenParametersNotification` (displays connected, removed, rearranged),
-  - `NSWorkspace.didActivateApplicationNotification` (the frontmost app, and so often the active display, changed),
-  - a file-system watch on the store's `manifest.json` (a `DispatchSource` on the store folder), for changes made with
-    `dnm` or by another part of the app.
-
-  On any of them the app reads `desktopImageURL(for:)` for the active display and looks the file up in the store: one
-  of our stamps gives its label; anything else gives "no label" (the icon only). The active display is the screen of
-  the frontmost app's frontmost window where macOS reports it (`NSScreen.main` as seen from the app), else the screen
-  under the pointer.
-- **Two cases with their own rule** (spec Edge Cases): with "Displays have separate Spaces" off, the item follows
-  the main display (one Desktop spans every display, as `dnm` treats it); with a full-screen app in front, the item
-  shows the label of the stamp the display reports, if any, else the icon only, and never guesses.
-- **Spike S1** (before the menu-bar story is built): on two displays, check that (a) `NSScreen.main` follows the
-  display with the frontmost window while the app is in the background, and (b) `desktopImageURL(for:)` reports the
-  new Desktop's image within one second of `activeSpaceDidChange` (`dnm` waits up to 3 s for the wallpaper to settle
-  after a switch). Fallbacks: (a) the screen under the pointer; (b) re-read once after 0.5 s and again at 1 s.
+- **Decision** (revised after prototype review round 3, 2026-11-19, when the item stopped showing the label): nothing
+  has to follow Desktop switches in the background. The main window reads, when it opens, `desktopImageURL(for:)` for
+  the screen whose menu bar was clicked (the status item button's window's screen) and looks the file up in the store:
+  one of our stamps gives its label; anything else gives "No label". The counts and sizes it shows are read at the same
+  moment. The hotkey opens the editor for the **active display**: the screen of the frontmost app's frontmost window
+  where macOS reports it (`NSScreen.main` as seen from the app), else the screen under the pointer.
+- **Two cases with their own rule** (spec Edge Cases): with "Displays have separate Spaces" off, the main window is
+  about the main display (one Desktop spans every display, as `dnm` treats it); with a full-screen app in front, it
+  names the label of the stamp the display reports, if any, else "No label", and never guesses.
+- **Spike S1** (before the hotkey and the main window are finished): on two displays, check that (a) `NSScreen.main`
+  follows the display with the frontmost window while the app is in the background, and (b) `desktopImageURL(for:)`
+  reports the new Desktop's image when the main window is opened right after a switch (`dnm` waits up to 3 s for the
+  wallpaper to settle after a switch). Fallbacks: (a) the screen under the pointer; (b) re-read once after 0.5 s while
+  the window is open.
 - **Rationale**: no public interface names the current Desktop; the wallpaper on screen is what `dnm show` already
   relies on, so the app and `dnm` agree.
-- **Alternatives**: polling every second (wasteful, and still needs the same lookup); private Space notifications
-  (constitution I); rejected.
+- **Alternatives**: following every switch with `activeSpaceDidChangeNotification` (the design before round 3; no
+  longer needed, since nothing on screen shows the label until the main window opens); polling every second; private
+  Space notifications (constitution I); rejected.
 
 ## R6. The live preview: the core renderer at preview size — spike
 
@@ -107,7 +112,7 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
   operations as `dnm`; the store's `flock` on `manifest.lock` (`StoreLock`) and atomic owner-only writes already keep
   two runs from interleaving. The app holds the lock only for the length of one operation, never while a window is
   open. The editor works from the store as it is when Apply is pressed (`setLabel` reads it under the lock).
-- **Undo**: the existing per-display undo record and its 60-second window (`Housekeeping.undoWindow`); the menu offers
+- **Undo**: the existing per-display undo record and its 60-second window (`Housekeeping.undoWindow`); the main window offers
   Undo when `checkUndo(on:onScreen:)` passes for the active display. `dnm undo` and the app's Undo are the same call.
 - **Threads**: `SystemWallpaperSystem` must run on the main thread and `Store.exclusive` is per thread, so Apply,
   Remove, Undo and Clean Up run on the main actor, as one call each. The editor shows its working state before the call
@@ -116,21 +121,26 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
   release store. `DNM_STORE_DIR` is honoured, so live checks run the app on a private store (`open --env`).
 - **Format**: format 3, unchanged; nothing new is stored in it (app settings are kept elsewhere, R9).
 
-## R8. About and Help > Configuration from the same source (FR-019)
+## R8. The About, Configuration, Displays and Labels panes from the same source (FR-019)
 
-- **Decision**: the windows show `About.info(dataDirectory:)` and `DesktopLabeler.check(_:)` from the core, the same
-  values `dnm about` and `dnm check` print, laid out as a window. One difference is necessary and is said in the
-  window: the Accessibility row describes `dnm`'s use of the permission and says the app itself does not use it,
-  since `AXIsProcessTrusted()` in the app reports the app, not the terminal that runs `dnm`.
-- **Rationale**: the two never disagree because there is one source; the Accessibility row would otherwise report a
-  different program.
+- **Decision**: the panes take their values from the core, from `About.info(dataDirectory:)` and
+  `DesktopLabeler.check(_:)`, the same source as `dnm about` and `dnm check`, but show only a subset (prototype review,
+  2026-11-16, FR-019): About shows the essentials; Configuration shows the macOS version, Separate Spaces and the
+  displays with their aliases, and the stored labels from the store. The Accessibility row is left out (the app does
+  not use the permission, and `AXIsProcessTrusted()` in the app would report the app, not the terminal that runs
+  `dnm`), as is the Space-shortcut row (not readable through public interfaces). Since prototype review on
+  2026-11-19 these are panes of the Settings window: Configuration (macOS, Separate Spaces, space used, the data
+  folder), Displays (each display with its aliases) and Labels (the labels in use, from the store); the main window
+  shows the count of labels in use and the space used from the same reads.
+- **Rationale**: the values they share never disagree because there is one source; a row the app cannot act on or
+  read is noise to someone who never uses a terminal (FR-019a).
 - **Alternatives**: run the bundled `dnm check --json` and show its output: same result with a second process and its
   failure modes; rejected.
 
 ## R9. App settings: the app's user defaults
 
 - **Decision**: `UserDefaults` in the app's own domain (the bundle ID, `.dev` for development): menu-bar mode, hotkey
-  (on, key code, modifiers), label defaults (style, color, position, size), whether the welcome window was shown, and
+  (key code and modifiers, or none), label defaults (style, color, position, size), whether the welcome window was shown, and
   the age used by Clean Up's list (the `dnm cleanup` default, 30 days, unless changed). Open at login is not stored:
   `SMAppService` is the truth. Keys and defaults are in `contracts/app-settings.md`.
 - **Rationale**: per-user, kept across restarts, outside the label store (spec: app settings are not part of it), and
@@ -141,7 +151,7 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
 - **Decision**: Clean Up shows `cleanupPlan(days:)` and deletes with `carryOut(_:)`, the calls `dnm cleanup` makes,
   after a confirmation sheet that names how many labels and how much space. The red message uses `dnm`'s nudge rule:
   it shows while what Clean Up could free is at least `nudgeThresholdBytes` (50 MB); unlike `dnm`'s note it is not
-  throttled, since it is a state shown in a menu, not a line printed after a command. The text says it in words
+  throttled, since it is a state shown in the main window, not a line printed after a command. The text says it in words
   ("Old labeled images use 63 MB. Clean Up…"), in the system red, with a warning symbol, so color is not the only cue.
 - **Interpretation to confirm**: the spec says "when labeled images use more than 50 MB". The plan reads it as `dnm`'s
   threshold: space Clean Up could free, not the space every label uses (labels in use cannot be cleaned up, so a

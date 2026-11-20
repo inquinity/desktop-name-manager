@@ -36,9 +36,10 @@ product, installed with the app, and both read and write one store: a label set 
   hotkey off.
 - **Editor** (2026-09-27): concept A, a popover from the menu bar with a live preview and every option.
 - **Opening the editor** (2026-09-27): the menu-bar item by default; a hotkey is optional.
-- **Menu-bar item** (2026-09-27): Icon, Icon and label, or Hidden.
-- **Scope, defaults and release** (2026-11-11): the scope above; Icon and label by default; the hotkey off by default,
-  with ⌃⌥⌘L suggested; a Desktop with no label shows the icon only; release 0.4.0. The command-line tool remains part
+- **Menu-bar item** (2026-09-27): Icon, Icon and label, or Hidden. Changed in prototype review round 3 (2026-11-19):
+  Icon and text, Icon, or Hidden; the item never shows the label (FR-010).
+- **Scope, defaults and release** (2026-11-11): the scope above; Icon and label by default; no hotkey by default
+  (prototype review, 2026-11-16); a Desktop with no label shows the icon only; release 0.4.0. The command-line tool remains part
   of the application. Prototyping the interface is part of this feature.
 - **Open questions settled** (maintainer, 2026-11-12):
   - the prototypes come in two stages, web mockups and then a runnable prototype of the editor (FR-001);
@@ -47,30 +48,50 @@ product, installed with the app, and both read and write one store: a label set 
   - a list of the capabilities only one of the app and `dnm` offers is kept up to date; equivalence is the aim, not a
     rule, so it never holds back a new idea (FR-021a).
 - **The new-Desktop default is not a hazard** (KI-1, as decided for `dnm`): the app documents it and never warns.
+- **Prototype review, round 1** (maintainer, 2026-11-16; prototypes/REVIEW.md): the app's windows never refer to the
+  command-line tool (FR-019a); About shows the essentials and links to the rest; Configuration shows only what the app
+  can read, in two tabs; the data folder is in Settings; the welcome window only welcomes; a hotkey exists only once a
+  shortcut is recorded; Clean Up deletes the images the person selects; no window has a Copy button.
+- **Prototype review, round 2** (maintainer, 2026-11-19; prototypes/REVIEW.md): clicking the menu-bar item opens the
+  app's main window, not a menu: it labels this Desktop with the defaults from a field, opens the editor for anything
+  more, shows the space labeled images use with Clean Up, and leads to the other windows (FR-013, FR-013a). Settings,
+  Configuration and About become panes of one window with a sidebar, opened from the main window's Settings…,
+  Configuration… and About items (FR-016, FR-019).
+- **Prototype review, round 3** (maintainer, 2026-11-19; prototypes/REVIEW.md): the menu-bar item never shows the
+  label, since a label such as "Shutdown" beside an icon looks like an app; it shows the icon and a fixed text
+  (FR-010), and the main window names the label. The label field ignores line breaks and control characters, and an
+  empty field just turns Apply off (FR-008). No message says a wallpaper is "not supported yet" (FR-009). The defaults
+  for new labels sit in General, without a second labeling screen; there is no Create Label pane (FR-016).
 
 ## Clarifications
 
 ### Session 2026-11-12
 
 - Q: Should the hotkey open the full editor, or concept B's quick bar (one field and a short "labeled · Undo"
-  notice)? → A: The full editor; there is one editor, and no quick bar (FR-014).
+  notice)? → A: The full editor; there is one editor, and no quick bar (FR-014). Amended in prototype review on
+  2026-11-19: the main window has a field that labels this Desktop with the defaults (FR-013a); the hotkey still
+  opens the full editor, and there is still no notice.
 - Q: Should the menu show only the current Desktop's label, or list every stored label by display, as concept A's
-  menu and `dnm list` do? → A: The current Desktop only; listing labels is Quick View's (M3) (FR-013).
+  menu and `dnm list` do? → A: The current Desktop only; listing labels is Quick View's (M3) (FR-013). Amended in
+  prototype review on 2026-11-16 and 2026-11-19: the main window still shows only the current Desktop's label, with a
+  count of the labels in use that opens the Labels pane, which lists them (FR-019); switching to a Desktop stays
+  Quick View's.
 - Q: After a label is applied or removed, should the app show a short notice with Undo, as concept B does? → A: No
-  notice; the wallpaper and the menu-bar item show the change, and the menu offers Undo for 60 seconds (FR-013).
-- Q: How should the app handle old labeled images building up? → A: A Clean Up section in Settings that lists old
+  notice; the wallpaper and the menu-bar item show the change, and the main window offers Undo for 60 seconds
+  (FR-013).
+- Q: How should the app handle old labeled images building up? → A: A Clean Up pane in Settings that lists old
   labels and deletes them after confirming, as `dnm cleanup` does; and when labeled images pass 50 MB, the app shows a
   red message (FR-016a, FR-016b).
 - Q: On the first launch, should the app show a welcome window or start silently in the menu bar? → A: A welcome
-  window on the first launch only, saying where the app lives, with an "Open at login" choice (ticked) and a button to
-  label this Desktop (FR-017a).
+  window on the first launch only, saying how to start (FR-017a). Its "Open at login" choice and its button to
+  label this Desktop were removed in prototype review on 2026-11-16: a welcome does not configure.
 
 ## User Scenarios & Testing
 
 ### User Story 1 - Prototype the interface and approve it before the build (Priority: P1)
 
-As the maintainer, I want clickable prototypes of the editor, the menu-bar item and its menu, Settings, the About and
-Configuration windows, and the edge-case states, so that I can try the design, change it cheaply, and approve it before
+As the maintainer, I want clickable prototypes of the editor, the menu-bar item and its main window, the Settings
+window with its panes (including Configuration and About), and the edge-case states, so that I can try the design, change it cheaply, and approve it before
 the real app is built.
 
 **Why this priority**: every later story builds a screen the prototype settles. Changing a prototype costs minutes;
@@ -98,13 +119,14 @@ it can change the real wallpaper or the label store.
 
 ### User Story 2 - Label the Desktop on screen from the menu bar (Priority: P1)
 
-As a person with several Desktops, I want to click the app's menu-bar item, type a label, see it on my wallpaper and
-apply it with Return, so that I can label a Desktop without a terminal.
+As a person with several Desktops, I want to click the app's menu-bar item, type a label and press Return, or open the
+editor to see it on my wallpaper and choose its style first, so that I can label a Desktop without a terminal.
 
 **Why this priority**: it is what the app is for; without it there is no app.
 
-**Independent Test**: with a still-image wallpaper, click the menu-bar item, choose "Label this Desktop…", type a label,
-watch the preview, press Return; the Desktop shows the label and `dnm list` reports it.
+**Independent Test**: with a still-image wallpaper, click the menu-bar item, type a label in the main window's field
+and press Return; the Desktop shows the label with the defaults and `dnm list` reports it. Then choose "Style and
+Preview…", change the style, watch the preview, press Return; the Desktop shows the new style.
 
 **Acceptance Scenarios**:
 
@@ -116,46 +138,49 @@ watch the preview, press Return; the Desktop shows the label and `dnm list` repo
    the editor closes, and the change is the same as `dnm set` with the same options would make (one store, one record).
 4. **Given** a labeled Desktop, **When** the editor opens, **Then** the field holds the current label, selected, and the
    options show the label's current style, color, position and size.
-5. **Given** a labeled Desktop, **When** the person clicks Remove Label (in the editor or the menu), **Then** the
+5. **Given** a labeled Desktop, **When** the person clicks Remove Label (in the editor or the main window), **Then** the
    original wallpaper and its placement come back, as `dnm remove` does.
 6. **Given** the editor is open, **When** the person presses Escape, clicks Cancel or clicks outside it, **Then**
    nothing changes.
-7. **Given** a label longer than 30 characters, two lines, or nothing at all, **When** the person types it, **Then** the
-   editor says why it cannot be applied, and Apply is unavailable, with the same rules as `dnm set`.
-8. **Given** a change made in the app within the last 60 seconds, **When** the person chooses Undo in the menu, or runs
-   `dnm undo` for that display, **Then** the change is undone; and a change made with `dnm` can be undone from the app
-   within its window the same way.
+7. **Given** a label longer than 30 characters, **When** the person types it, **Then** the editor says why it cannot
+   be applied and Apply is unavailable; with nothing typed, Apply is unavailable and nothing is said. Line breaks and
+   control characters typed or pasted are ignored (left out of the text); Return applies, and Shift-Return and
+   Option-Return do nothing.
+8. **Given** a change made in the app within the last 60 seconds, **When** the person chooses Undo in the main window,
+   or runs `dnm undo` for that display, **Then** the change is undone; and a change made with `dnm` can be undone from
+   the app within its window the same way.
+9. **Given** the main window on a Desktop with no label, **When** the person types a valid label in its field and
+   presses Return or clicks Label, **Then** the Desktop shows the label with the defaults chosen in General, the
+   main window closes, and the result is the same as `dnm set` with those options; on a labeled Desktop the field
+   holds the label, selected, and a new text keeps the label's style. The field follows the editor's rules (scenario
+   7).
 
 ---
 
-### User Story 3 - See the current Desktop's label in the menu bar (Priority: P2)
+### User Story 3 - Reach the app from the menu bar (Priority: P2)
 
-As a person switching between Desktops, I want the menu bar to show the label of the Desktop I am on, so that I know
-where I am even when windows cover the wallpaper.
+As a person switching between Desktops, I want an item in the menu bar that opens the app and tells me which Desktop
+I am on, so that I know where I am even when windows cover the wallpaper, without the menu bar showing text that could
+be mistaken for an app.
 
 **Why this priority**: the label on the wallpaper is hidden whenever windows fill the screen; the menu bar is always
 visible. It is second to labeling, which it depends on.
 
-**Independent Test**: label two Desktops, switch between them, and watch the menu-bar item follow; switch the menu-bar
-mode in Settings and see it change.
+**Independent Test**: label two Desktops, switch between them, and open the main window on each: it names the right
+label; switch the menu-bar mode in Settings and see the item change.
 
 **Acceptance Scenarios**:
 
-1. **Given** the mode Icon and label (the default) and a labeled Desktop on screen, **When** the menu bar is shown,
-   **Then** the item shows the app's icon and the label.
-2. **Given** a Desktop with no label, or a Desktop whose label `dnm` does not know, **When** the menu bar is shown,
-   **Then** the item shows the icon only.
-3. **Given** the person switches Desktop, **When** the switch ends, **Then** the item shows the new Desktop's label
-   within one second.
-4. **Given** a label is set, changed or removed, in the app or with `dnm`, for the Desktop on screen, **When** the
-   change ends, **Then** the item shows the new state within one second.
-5. **Given** the mode Icon, **When** the menu bar is shown, **Then** the item shows the icon only, whatever the label.
-6. **Given** the mode Hidden, **When** the menu bar is shown, **Then** the app has no menu-bar item, and the hotkey (if
-   on) and launching the app again still work.
-7. **Given** a display is connected, disconnected or rearranged, **When** the change ends, **Then** the item shows the
-   label of the Desktop on the display it follows (FR-012).
-8. **Given** a long label, **When** it is shown in the menu bar, **Then** it is shown whole or shortened with an
-   ellipsis so the menu bar stays usable, and the menu shows it whole.
+1. **Given** the mode Icon and text (the default), **When** the menu bar is shown, **Then** the item shows the app's
+   icon and the app's fixed text, whatever the Desktop's label; it never shows the label.
+2. **Given** the mode Icon, **When** the menu bar is shown, **Then** the item shows the icon only.
+3. **Given** the mode Hidden, **When** the menu bar is shown, **Then** the app has no menu-bar item, and the hotkey (if
+   recorded) and launching the app again still work.
+4. **Given** the person switches Desktop, or a label is set, changed or removed in the app or with `dnm`, **When** the
+   main window is opened, **Then** it names the label of the Desktop now on screen of its display, or "No label".
+5. **Given** several displays, **When** the person clicks the item in one display's menu bar, **Then** the main window
+   opens there and is about that display's Desktop on screen.
+6. **Given** a long label, **When** the main window shows it, **Then** it is shown whole.
 
 ---
 
@@ -166,31 +191,32 @@ Desktop without reaching for the menu bar, and so that I can keep the menu-bar i
 
 **Why this priority**: a convenience over Story 2, off by default.
 
-**Independent Test**: turn the hotkey on in Settings, press it on any Desktop, label the Desktop; turn it off and
-check the shortcut no longer does anything.
+**Independent Test**: record a shortcut in Settings, press it on any Desktop, label the Desktop; clear it and check the
+shortcut no longer does anything.
 
 **Acceptance Scenarios**:
 
-1. **Given** a fresh install, **When** Settings opens, **Then** the hotkey is off, and turning it on suggests ⌃⌥⌘L.
-2. **Given** the hotkey is on, **When** the person presses it in any app, **Then** the editor opens for the Desktop on
+1. **Given** a fresh install, **When** Settings opens, **Then** no shortcut is recorded, so there is no hotkey.
+2. **Given** a recorded shortcut, **When** the person presses it in any app, **Then** the editor opens for the Desktop on
    screen of the active display, as from the menu bar (from the menu-bar item when it is shown; as a floating panel near
    the top of the active display when the item is hidden).
 3. **Given** the person picks a shortcut another app or macOS already uses, **When** the app cannot claim it, **Then**
-   Settings says so and the hotkey stays off; nothing else is changed.
-4. **Given** the hotkey is on, **When** it is used, **Then** no macOS permission is asked for or needed.
+   Settings says so and there is no hotkey; nothing else is changed.
+4. **Given** a recorded shortcut, **When** it is used, **Then** no macOS permission is asked for or needed.
 
 ---
 
-### User Story 5 - Settings, launch at login, About and Configuration (Priority: P3)
+### User Story 5 - Settings, Configuration and About in one window (Priority: P3)
 
 As a person using the app daily, I want to choose how the menu-bar item looks, the hotkey, the options a new label gets,
-and whether the app opens at login, and to see the app's version, acknowledgements and configuration, so that the app
-fits how I work and I can check its state.
+whether the app opens at login and where its data is kept, and to see the app's version, acknowledgements and
+configuration, so that the app fits how I work and I can check its state.
 
 **Why this priority**: the app works with defaults; these make it comfortable and supportable.
 
 **Independent Test**: change each setting and see its effect; quit and relaunch to see them kept; launch the app while
-it runs to reach Settings; compare About and Configuration with `dnm about` and `dnm check`.
+it runs to reach Settings; compare the About and Configuration panes with `dnm about` and `dnm check` for the values
+they share.
 
 **Acceptance Scenarios**:
 
@@ -198,22 +224,25 @@ it runs to reach Settings; compare About and Configuration with `dnm about` and 
    or size, **Then** the change applies at once and is kept after the app quits and the Mac restarts.
 2. **Given** "Open at login" is turned on, **When** the person logs in, **Then** the app starts in the menu bar without
    opening a window.
-3. **Given** the app runs with the menu-bar item hidden and the hotkey off, **When** the person launches the app again
-   (from Finder, Spotlight or the Dock), **Then** Settings opens.
-4. **Given** the About window, **When** it opens, **Then** it shows what `dnm about` shows: name, version and build,
-   license, source link, where data is kept, the permissions statement, and the acknowledgements with their licenses.
-5. **Given** Help > Configuration, **When** it opens, **Then** it shows what `dnm check` shows, as a list, with the same
-   results.
-6. **Given** a new label made in the editor, **When** the editor opens, **Then** its options start at the defaults
-   chosen in Settings, and `dnm`'s own defaults are unchanged (FR-018).
-7. **Given** old labels that `dnm cleanup` would list, **When** the person opens Clean Up in Settings, **Then** the same
-   labels are listed with the space they use, and nothing is deleted until the person confirms.
-8. **Given** old labeled images that Clean Up could free reach 50 MB, **When** the person opens the menu or Clean Up,
+3. **Given** the app runs with the menu-bar item hidden and no hotkey, **When** the person launches the app again
+   (from Finder, Spotlight or the Dock), **Then** the Settings window opens at General.
+4. **Given** the main window, **When** the person chooses Settings…, Configuration… or About Desktop Name Manager,
+   **Then** one window with a sidebar opens at General, Configuration or About; the sidebar reaches every pane.
+5. **Given** the About pane, **When** it opens, **Then** it shows a header card (icon, name, version and build, what
+   the app does), that it needs no permissions and never connects, a link to the source, and the acknowledgements.
+6. **Given** the Configuration, Displays and Labels panes, **When** they open, **Then** they show the macOS version,
+   whether displays have separate Spaces, the space labeled images use and the data folder; each display with its
+   aliases; and the labels in use with their display and size.
+7. **Given** a new label made in the main window or the editor, **Then** its options are the defaults chosen in General,
+   and `dnm`'s own defaults are unchanged (FR-018).
+8. **Given** old labels that `dnm cleanup` would list, **When** the person opens Clean Up in Settings, **Then** the same
+   labels are listed with the space they use; the person selects the ones to delete, and nothing is deleted until the
+   person confirms.
+9. **Given** old labeled images that Clean Up could free reach 50 MB, **When** the person opens the main window or Clean Up,
    **Then** a red message says how much space they use and points to Clean Up; after cleaning up below 50 MB, it is
    gone.
-9. **Given** the app has never run for this user, **When** it is launched, **Then** a welcome window says it lives in
-   the menu bar and offers "Open at login" (ticked) and "Label this Desktop"; when the person continues, the choice is
-   applied, and the window never shows again.
+10. **Given** the app has never run for this user, **When** it is launched, **Then** a welcome window says what the app
+   does and how to start (click its icon in the menu bar); once dismissed, it never shows again.
 
 ### Edge Cases
 
@@ -228,16 +257,17 @@ it runs to reach Settings; compare About and Configuration with `dnm about` and 
 - **The store's format is newer than the app** (a later `dnm` wrote it): the app says so and changes nothing, as `dnm`
   does.
 - **Separate Spaces is off** (one Desktop across displays): labeling works for the main display as `dnm` does; the
-  menu-bar item follows the main display.
-- **A full-screen app is in front**: the menu-bar item shows the label of the Desktop under it if macOS reports one,
-  else the icon only; the editor labels the Desktop behind the full-screen app only if `dnm set` would.
-- **Several displays**: the editor labels the Desktop on screen of the display it was opened on; the menu-bar item
-  follows the active display (FR-012).
+  main window is about the main display.
+- **A full-screen app is in front**: the main window names the label of the Desktop under it if macOS reports one,
+  else "No label"; labeling works on the Desktop behind the full-screen app only if `dnm set` would.
+- **Several displays**: the main window and the editor label the Desktop on screen of the display they were opened
+  on; the hotkey uses the active display (FR-012).
 - **Labeling takes longer than usual** (a very large wallpaper): the editor shows that it is working and cannot be
   applied twice.
 - **The first launch is at login** (Open at login set by a previous install, the app's settings kept): the welcome
   window is not shown again; it is per user, once.
-- **Launching a second copy** of the app: the running one opens Settings; there is never a second menu-bar item.
+- **Launching a second copy** of the app: the running one opens the Settings window; there is never a second menu-bar
+  item.
 - **The app is not running**: `dnm` works as it does today; the app picks up every change the next time it starts.
 - **Moved to the Trash while running**: no special handling; out of scope.
 
@@ -249,9 +279,9 @@ it runs to reach Settings; compare About and Configuration with `dnm about` and 
 
 - **FR-001**: Before the app is built, the feature MUST produce clickable prototypes covering: the editor (empty,
   labeled, typing, an invalid label, a wallpaper that cannot be labeled, working, an error), the menu-bar item in each
-  mode with and without a label, the menu (with and without the over-50 MB message), the hotkey panel, Settings
-  (including Clean Up with old labels, with none, and while confirming), the welcome window, About, Help >
-  Configuration, and the undo offer. They MUST come in two stages: first clickable web mockups of every screen and
+  mode with and without a label, the main window (with and without a label, an invalid label typed, and the over-50
+  MB message), the hotkey panel, the Settings window's panes (General, Clean Up with old labels, with
+  none, and while confirming, Configuration, Displays, Labels and About), the welcome window, and the undo offer. They MUST come in two stages: first clickable web mockups of every screen and
   state, to settle the layout and wording; then a runnable Mac prototype of the editor alone, on sample wallpapers, to
   check the preview's look and speed with the real label rendering.
 - **FR-002**: The maintainer MUST approve the prototypes before the build starts; the approval, its date and the design
@@ -263,8 +293,8 @@ it runs to reach Settings; compare About and Configuration with `dnm about` and 
 
 **The editor**
 
-- **FR-004**: The app MUST offer an editor for the Desktop on screen of one display, opened from the menu-bar item's
-  menu or the hotkey, holding: the label field, a live preview, the style choices, the color, position and size, and
+- **FR-004**: The app MUST offer an editor for the Desktop on screen of one display, opened from the main window's
+  "Style and Preview…" or the hotkey, holding: the label field, a live preview, the style choices, the color, position and size, and
   Apply, Cancel and Remove Label.
 - **FR-005**: The preview MUST show this Desktop's wallpaper with the label as it would be applied, and MUST follow
   every change to the text or options without changing the wallpaper.
@@ -274,57 +304,80 @@ it runs to reach Settings; compare About and Configuration with `dnm about` and 
 - **FR-007**: Applying, removing and undoing MUST behave exactly as `dnm set`, `dnm remove` and `dnm undo` do for the
   same Desktop and options: the same checks, refusals, stored records, undo window and results, and the same image for
   the same label, options and wallpaper.
-- **FR-008**: The editor MUST check the label as typed with `dnm set`'s rules (one line, 1 to 30 characters, emoji
-  allowed) and MUST say in one sentence why a label cannot be applied.
-- **FR-009**: Every message the editor or menu shows MUST be a short sentence in plain words, and an error MUST leave
-  the Desktop as it was.
+- **FR-008**: The editor MUST hold the label to `dnm set`'s rules (one line, 1 to 30 characters, emoji allowed): line
+  breaks and control characters typed or pasted MUST be ignored (left out of the text); an empty field MUST turn Apply
+  off without a message; a label over 30 characters MUST turn Apply off with one sentence saying so. Return applies;
+  Shift-Return and Option-Return MUST do nothing. Applying needs no confirmation, since Undo is offered.
+- **FR-009**: Every message the editor or main window shows MUST be a short sentence in plain words, and an error MUST
+  leave the Desktop as it was. No message may promise future support: a wallpaper the app will not label gets one sentence
+  naming its kind, such as "Dynamic wallpapers are not supported.", never "is not supported yet".
 
-**The menu-bar item and menu**
+**The menu-bar item and the main window**
 
-- **FR-010**: The app MUST show a menu-bar item in one of three modes chosen in Settings: Icon and label (default),
-  Icon, or Hidden; with no label known for the Desktop it follows, the item MUST show the icon only.
-- **FR-011**: The item MUST follow Desktop switches, label changes from either front end, and display changes, showing
-  the new state within one second.
-- **FR-012**: With several displays, the menu-bar item MUST show the label of the active display (the display with the
-  frontmost window), and MUST follow it as the person moves between displays.
-- **FR-013**: The menu MUST hold: the Desktop it is about (its display, and its label or "No label"), Label this
-  Desktop… (with the hotkey shown when on), Remove Label (only with a label), Undo (only within an undo window),
-  Settings…, About, Help > Configuration, and Quit. Applying or removing a label MUST NOT show a separate notice; the
-  wallpaper and the menu-bar item are the confirmation. The menu MUST NOT list other Desktops' labels; that is Quick
-  View's job (M3).
+- **FR-010**: The app MUST show a menu-bar item in one of three modes chosen in Settings: Icon and text (default),
+  Icon, or Hidden. The text is fixed (proposed "DNM"; settled in prototype review) and the item MUST NOT show the
+  Desktop's label, so that no label can look like an app's name.
+- **FR-011**: The main window MUST name the label of its display's Desktop on screen as it is when the window opens,
+  including changes made with `dnm` and Desktop switches since it last opened.
+- **FR-012**: With several displays, the main window MUST be about the display whose menu bar was clicked, and the
+  hotkey MUST open the editor for the active display (the display with the frontmost window).
+- **FR-013**: Clicking the menu-bar item MUST open the app's main window, a panel under the item, holding: the Desktop
+  it is about (its display, and its label or "No label"); the red message when FR-016b holds; the label field of
+  FR-013a; "Style and Preview…", which opens the editor (with the hotkey shown when one is recorded); Remove Label
+  (only with a label); Undo (only within an undo window); the number of labels in use, which opens the Labels pane;
+  the space labeled images use, with Clean Up…; and Settings…, Configuration…, About Desktop Name Manager and Quit.
+  Applying or removing a label MUST NOT show a separate notice; the wallpaper and the menu-bar item are the
+  confirmation. The main window MUST NOT list other Desktops' labels (the Labels pane does, FR-019).
+- **FR-013a**: The main window's field MUST label the Desktop on screen of its display when the person presses Return
+  or clicks Label: a Desktop with no label gets the defaults for new labels chosen in General; on a labeled Desktop the field
+  holds the label, selected, and a new text keeps the label's style. It MUST check the text as the editor does
+  (FR-008), with the same sentences, and behave as Apply does (FR-007).
 
 **Hotkey**
 
-- **FR-014**: The app MUST offer one optional global hotkey that opens the editor, off by default, suggesting ⌃⌥⌘L when
-  turned on, changeable in Settings; when the menu-bar item is hidden, the editor MUST open as a floating panel near the
-  top of the active display. The hotkey opens the same editor as the menu; the app has no second, smaller labeling
-  screen.
-- **FR-015**: If the chosen shortcut cannot be claimed, the app MUST say so in Settings and leave the hotkey off.
+- **FR-014**: The app MUST offer one optional global hotkey that opens the editor. There is a hotkey exactly when a
+  shortcut is recorded in Settings: none is recorded by default, and clearing the shortcut removes the hotkey; when the menu-bar item is hidden, the editor MUST open as a floating panel near the
+  top of the active display. The hotkey opens the full editor, as "Style and Preview…" does.
+- **FR-015**: If the recorded shortcut cannot be claimed, the app MUST say so in Settings and keep no hotkey.
 
 **Settings and app life**
 
-- **FR-016**: Settings MUST hold the menu-bar mode, the hotkey, the defaults for a new label (style, color, position,
-  size) and Open at login (off until the person chooses it, in the welcome window or here), and MUST keep every choice
-  across quits and restarts.
-- **FR-016a**: Settings MUST include a Clean Up section that shows how much space labeled images use, lists the old
+- **FR-016**: Settings, Configuration and About MUST be panes of one window with a sidebar: General, Clean Up,
+  Configuration, Displays, Labels and About. The main window's Settings… opens it at General,
+  Configuration… at Configuration, and About Desktop Name Manager at About. General MUST hold Open at login (off until
+  the person turns it on here), the menu-bar mode, the hotkey, and the defaults for a new label (style, color,
+  position, size), with no sample: seeing a label before applying it is the editor's job. Every choice MUST be kept across quits and
+  restarts.
+- **FR-016a**: The Clean Up pane MUST show how much space labeled images use, lists the old
   labels `dnm cleanup` would list (with the same rules as spec 009, for an age the person can change, 30 days by
-  default as `dnm cleanup --days`), and deletes them only after the
-  person confirms, re-checking the list before deleting, as `dnm cleanup` does. It MUST NOT delete anything by itself.
-  Finding labels by visiting every Desktop (`cleanup --scan`) stays in `dnm`, since it needs Accessibility.
+  default as `dnm cleanup --days`), lets the person select any of them (one, several or all), and deletes the
+  selected ones only after the person confirms, re-checking them before deleting, as `dnm cleanup` does. It MUST NOT
+  delete anything by itself. Finding labels by visiting every Desktop (`cleanup --scan`) stays in `dnm`, since it needs
+  Accessibility; the app does not mention it (FR-019a).
 - **FR-016b**: When the old labeled images Clean Up could free reach 50 MB (the threshold of `dnm`'s nudge, spec
-  009; labels in use are not counted, since Clean Up cannot free them), the app MUST show a red message in the menu and
-  in the Clean Up section, saying how much space they use and pointing to Clean Up. The
+  009; labels in use are not counted, since Clean Up cannot free them), the app MUST show a red message in the main
+  window and in the Clean Up pane, saying how much space they use and pointing to Clean Up. The
   message MUST say it in words as well, so it does not depend on color alone, and MUST go away once the images are
   under the threshold.
-- **FR-017**: Launching the app while it runs MUST open Settings; only one copy MUST run.
-- **FR-017a**: On its first launch only, the app MUST show a welcome window that says the app lives in the menu bar,
-  offers "Open at login" (ticked, applied only when the person continues), and offers to label this Desktop (opening
-  the editor). It MUST NOT show again, whatever the person chose; closing it counts as continuing with the choice shown.
+- **FR-017**: Launching the app while it runs MUST open the Settings window at General; only one copy MUST run.
+- **FR-017a**: On its first launch only (per user), the app MUST show a welcome window that says what the app does
+  and how to start ("To label a Desktop, click <the item> in the menu bar.", with the item drawn as it looks), with one
+  button that dismisses it. It holds no settings and no actions. It MUST
+  NOT show again once dismissed or closed, and a launch at login never shows it.
 - **FR-018**: The app's label defaults MUST apply to labels made in the app only; `dnm`'s defaults, options and output
   MUST NOT change, so scripts keep behaving exactly as documented.
-- **FR-019**: The About window MUST show the content of `dnm about`, and Help > Configuration the content of `dnm
-  check`, each from the same source, so the two never disagree. Each window MUST offer to copy its content as the
-  text `dnm` prints, for support requests.
+- **FR-019**: The About pane MUST show the essentials only: a header card with the app's icon and name, its version
+  and build, and what it does in one line; that it needs no permissions and never connects; a link to the source; and
+  the acknowledgements (a page within the pane: one row per third-party component in the app, with its authors and
+  license, expanding to the license text, as in CodexBar). It has no Updates section, since the app never connects. The
+  Configuration pane MUST show only what the app can read: the macOS version, whether displays have separate Spaces,
+  the space labels in use and old labeled images take (with Clean Up…), and the data folder with a way to show it in
+  Finder. The Displays pane MUST show each display, the main one marked, with its aliases; the Labels pane, the labels
+  in use with their display and size. Values the app shares with `dnm about` and `dnm check` MUST come from the same
+  core source, so they never disagree. No pane has a Copy button.
+- **FR-019a**: The app's windows, menus and messages MUST NOT refer to the command-line tool, Terminal, or `dnm`
+  commands and options; a person who has never used a terminal must find nothing there they cannot act on. The
+  relationship between the two is documented in the README and `docs/app-and-cli.md`.
 
 **The command-line tool and the shared store**
 
@@ -355,7 +408,7 @@ it runs to reach Settings; compare About and Configuration with `dnm about` and 
 
 ### Key Entities
 
-- **App settings**: the menu-bar mode, the hotkey (on or off, and its keys), the defaults for a new label (style,
+- **App settings**: the menu-bar mode, the hotkey (its keys, or none), the defaults for a new label (style,
   color, position, size), the Clean Up age, and whether the welcome window was shown. Belong to the app, kept per
   user; not part of the label store. Open at login is shown with them but not stored: macOS's login-item status is
   read each time.
@@ -375,8 +428,8 @@ it runs to reach Settings; compare About and Configuration with `dnm about` and 
   wallpaper on Apple silicon.
 - **SC-003**: For 100% of labels in the test set, the image applied from the app is identical to the one `dnm set` makes
   with the same text, options and wallpaper.
-- **SC-004**: The menu-bar item shows the right label within one second of a Desktop switch, on two displays, over 20
-  switches with no wrong or stale label.
+- **SC-004**: Opened after a Desktop switch, the main window names the right label, on two displays, over 20 switches
+  with no wrong or stale label.
 - **SC-005**: Every `dnm` contract test from 0.3.0 passes unchanged with the app installed and running.
 - **SC-006**: Running the app and labeling with it asks for no macOS permission on a fresh account.
 - **SC-007**: The maintainer approves the prototypes before the first build task starts, and the review finds every
@@ -388,8 +441,8 @@ it runs to reach Settings; compare About and Configuration with `dnm about` and 
 
 - The app needs the same macOS as `dnm` (26 or later, Apple silicon); the plan records the minimum and the reasons, as
   the constitution asks.
-- The app runs from the menu bar without a Dock icon, and shows one only while a window (the welcome window,
-  Settings, About, Configuration) is open.
+- The app runs from the menu bar without a Dock icon, and shows one only while the welcome window or the Settings
+  window is open (not for the main window or the editor).
 - Labeling Desktops other than the one on screen, and switching Desktops, stay with `dnm --desktop`; the app needs no
   Accessibility permission in M2.
 - Restyling or relabeling other Desktops after a change of defaults is out of scope: a change of defaults affects new

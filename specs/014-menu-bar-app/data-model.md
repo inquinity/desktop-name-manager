@@ -7,15 +7,14 @@ adds. None of it is stored in the label store.
 
 | Field | Type | Default | Rules |
 |---|---|---|---|
-| menuBarMode | `iconAndLabel` \| `icon` \| `hidden` | `iconAndLabel` | FR-010 |
-| hotkeyEnabled | Bool | false | FR-014; true only after a successful registration |
-| hotkey | Shortcut (key code, modifiers) | ⌃⌥⌘L | at least two of ⌃⌥⌘, or ⌘ with ⇧; Escape, Return, Tab, Space alone refused |
+| menuBarMode | `iconAndText` \| `icon` \| `hidden` | `iconAndText` | FR-010 |
+| hotkey | Shortcut (key code, modifiers), optional | none | FR-014; set only after a successful registration (FR-015); at least two of ⌃⌥⌘, or ⌘ with ⇧; Escape, Return, Tab, Space alone refused |
 | defaultLook | automatic \| plain \| halo \| frosted | automatic | FR-006, FR-018; app only |
 | defaultColor | automatic \| light \| dark \| #RRGGBB | automatic | as `dnm set --color` |
 | defaultPosition | the six positions | bottom-left | as `dnm set --position` |
 | defaultSize | small \| medium \| large | medium | as `dnm set --size` |
 | cleanUpDays | Int, 1 to 3650 | 30 (`DesktopLabeler.defaultCleanupDays`) | the age Clean Up lists by |
-| welcomeShown | Bool | false | set true when the welcome window is closed or continued, whatever was chosen (FR-017a) |
+| welcomeShown | Bool | false | set true when the welcome window is dismissed or closed (FR-017a) |
 
 Open at login is not a field: `SMAppService.mainApp.status` is read whenever it is shown (R4).
 
@@ -52,17 +51,32 @@ loading ──► ready ◄──► invalid          (text or options change)
 |---|---|---|
 | activeDisplay | Display or none | R5 |
 | currentLabel | Label or none | from the wallpaper the active display shows and the store |
-| itemTitle | String or none | mode `iconAndLabel` and a label: the label, shortened to 24 characters; else none |
+| itemTitle | String or none | mode `iconAndText`: the app's fixed text; else none. Never the label (FR-010) |
 | undoAvailable | Bool | `checkUndo` passes for the active display |
 | cleanUpWarning | bytes or none | set while `cleanupPlan(days: AppSettings.cleanUpDays)` could free at least 50 MB (FR-016b) |
 
-The Clean Up warning is computed when the menu opens and when Settings' Clean Up section opens, not on every Desktop
-switch (it reads stamp file sizes).
+The Clean Up warning, the space labeled images use and the count of labels in use are computed when the main window
+opens and when the Clean Up, Configuration or Labels pane opens, not on every Desktop switch (they read stamp file
+sizes).
+
+## QuickLabel (in memory; the main window's field, FR-013a)
+
+| Field | Type | Notes |
+|---|---|---|
+| display | the display the main window was opened on | fixed while open |
+| text | String | the current label, selected, or empty; checked as typed with `LabelText`'s rules, as EditorDraft |
+| options | `LabelOptions` | the current label's options if the Desktop has one, else AppSettings' defaults; never shown or changed here |
+| state | `ready`, `invalid`, `applying`, then closed | Label (or Return) is off while `invalid`, or while the text equals the current label |
+
+Applying calls the same `LabelingController` Apply as the editor, so the result, the undo record and the errors are
+the same (FR-007).
 
 ## CleanUpModel (in memory)
 
-The `CleanupPlan` for `cleanUpDays`, its total, and the confirmation step. Deleting calls `carryOut(_:)`, which
-re-checks the list under the store lock (spec 009) and reports what it deleted.
+The `CleanupPlan` for `cleanUpDays`, its total, the person's selection (a subset of its candidates; none at first),
+and the confirmation step. Deleting calls `carryOut(_:)` with a plan holding only the selected candidates (the plan's
+`candidates` are public, so no core change is needed); `carryOut` re-checks them under the store lock (spec 009) and
+reports what it deleted.
 
 ## PrototypeReview (a document, `prototypes/REVIEW.md`)
 
