@@ -275,8 +275,21 @@ Add one entry per review round, newest last:
 - **Checked before recording it**: the mockups hold no personal path, name, display or Desktop identifier, and no
   embedded image (FR-003); `contracts/app-ui.md` matches version 10 of the artifact.
 
+### Round 11: 2026-11-20, stage 2
+
+- **What was shown**: the running `EditorPrototype` (commit 764eace): the real `EditorView` and `EditorDraft` over
+  the core's preview, a fake 5K display and a temporary store, with the maintainer's local samples numbered rather
+  than named. Spike S2 (research.md R6): opening the editor at most 167 ms, a preview at most 27 ms, the preview and
+  four style chips at most 50 ms (SC-002: 250 ms); the automatic style agrees with Apply in 54 of 54 cases.
+- **Decisions** (maintainer, 2026-11-20):
+  - The prototype window clipped its top row; **fixed and confirmed** ("Looks right").
+  - **Gate B approved.**
+- **Changes made**: the prototype's window follows its content's size (commit 764eace); the app's editor window
+  gets the same setting when it is built.
+
 ## Approvals
 
 - **Stage 1 (Gate A)**: approved by the maintainer on 2026-11-19, on version 10 of the artifact
   (<https://claude.ai/artifact/KRA1BURSSodgeypy4wjQri>) after ten review rounds. App code may start (T012 onward).
-- **Stage 2 (Gate B)**: not yet approved.
+- **Stage 2 (Gate B)**: approved by the maintainer on 2026-11-20, on the running `EditorPrototype` (commit
+  764eace) after one review round. The app may be built past the editor (T029 onward).
