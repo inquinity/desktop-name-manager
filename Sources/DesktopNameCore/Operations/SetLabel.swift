@@ -46,6 +46,8 @@ extension DesktopLabeler {
             }
             switch try WallpaperKind.classify(current) {
             case .unsupported(let reason): throw DnmError.unsupportedWallpaper(reason)
+            case .noFile: throw DnmError.noWallpaperFile
+            case .unreadable(let name): throw DnmError.unreadableWallpaper(name)
             case .supported(let url): original = Self.original(from: current, url: url)
             }
             replacing = nil

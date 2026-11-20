@@ -11,8 +11,22 @@ import Testing
         #expect(try WallpaperKind.classify(current(url)) == .supported(url))
     }
 
-    @Test func noFileReportedIsUnsupported() throws {
-        guard case .unsupported = try WallpaperKind.classify(current(nil)) else { Issue.record("expected unsupported"); return }
+    @Test func noFileReportedIsNoFile() throws {
+        #expect(try WallpaperKind.classify(current(nil)) == .noFile)
+    }
+
+    @Test func aFileThatIsNotAPictureIsUnreadable() throws {
+        let h = try LabelerHarness(); defer { h.cleanUp() }
+        let url = h.root.appendingPathComponent("Lake.heic")
+        try Data("not a picture".utf8).write(to: url)
+        #expect(try WallpaperKind.classify(current(url)) == .unreadable(name: "Lake.heic"))
+    }
+
+    @Test func theTwoNewSentences() {
+        #expect(DnmError.noWallpaperFile.errorDescription == "This Desktop has no wallpaper picture to label. Nothing was changed.")
+        #expect(DnmError.unreadableWallpaper("Lake.heic").errorDescription == "Cannot read wallpaper 'Lake.heic'. Nothing was changed.")
+        #expect(DnmError.noWallpaperFile.exitCode == 3)
+        #expect(DnmError.unreadableWallpaper("x").exitCode == 3)
     }
 
     @Test(arguments: ["Tahoe.madesktop", "Aerial.mov", "Loop.mp4"])
