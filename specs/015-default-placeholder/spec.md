@@ -72,8 +72,6 @@ unsupported-wallpaper error (exit code 3), sets no wallpaper, writes no stamp an
    the store and the manifest are unchanged.
 2. **Given** the same Desktop, **When** the person picks a label in the app, **Then** the app shows the same
    unsupported-wallpaper reason and changes nothing (the app uses the same core check; no app-specific code).
-3. **Given** a Desktop for which macOS reports the stand-in location, **When** the person runs `dnm set` with
-   `--json`, **Then** the error carries the same reason and exit code as other unsupported wallpapers.
 
 ---
 
@@ -114,8 +112,8 @@ location (including a copy of the stand-in picture placed elsewhere) is still la
   following links.
 - **macOS moves or renames the stand-in in a later release**: the check no longer matches and the 0.3.0 behavior
   returns for those wallpapers. The live check in the quickstart catches this on each new macOS release.
-- **Aerial wallpapers**: if macOS 27 also reports the stand-in for aerials (not yet observed; the hidden folder holds
-  the Golden Gate video next to the still), they are refused by this same rule. The reason wording covers both.
+- **Aerial wallpapers**: macOS 27 reports the same stand-in for an aerial (live check 2026-11-20), so aerials are
+  refused by this same rule. The reason wording covers both.
 
 ## Requirements *(mandatory)*
 
@@ -175,8 +173,8 @@ Run on macOS 27 after backing up `~/Library/Application Support/com.apple.wallpa
 ## Assumptions
 
 - The stand-in location is the same on every Mac running macOS 27 (it is part of the system volume).
-- System Settings on macOS 27 does not offer the stand-in still as a choice of its own; to be confirmed in the live
-  check.
+- System Settings on macOS 27 does not offer the stand-in still as a choice of its own. Confirmed in the live check
+  (2026-11-20): the plain default still offered there is reported as its own file and is labeled normally.
 - No other location is reported as a stand-in for dynamic wallpapers. If the live check finds one, it is added to
   this spec before the fix ships.
 - Repairing labels already made over the stand-in by 0.3.0 is out of scope (Edge Cases).

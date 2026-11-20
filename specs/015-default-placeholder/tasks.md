@@ -33,4 +33,4 @@ synthetic images only; build and test with `just`.
 - [x] T007 `docs/release-notes/UNRELEASED.md`: the fix, and advice for labels made over the stand-in by 0.3.0.
 - [x] T008 `just test`, `just periphery`; independent review of the change (2026-11-20: no blocking findings; the
   "never opened" test now uses a missing file, and the comparison's limits are noted in the code).
-- [ ] T009 Live check (quickstart.md), with the maintainer's OK for live control; record results.
+- [x] T009 Live check (quickstart.md), with the maintainer's OK for live control; record results (2026-11-20: all pass).

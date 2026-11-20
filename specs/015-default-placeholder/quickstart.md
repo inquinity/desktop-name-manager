@@ -35,3 +35,19 @@ the backup only if the wallpapers are not as they were. Remove the throwaway sto
 ## Record
 
 Date, macOS version, `dnm --version`, and the outcome of each step, in this file under a "Results" heading.
+
+## Results
+
+2026-11-20, macOS 27.2.1, `dnm --version` 0.3.1 build 34 (41c304e), throwaway store, on the second display. The
+built-in display showed a label from another session's throwaway store and was left alone. Wallpapers chosen by the
+maintainer in System Settings; what macOS reported was read with `NSWorkspace.desktopImageURL(for:)`.
+
+| Step | Wallpaper | Reported | `dnm set Test` | Result |
+|---|---|---|---|---|
+| 1 | Golden Gate (dynamic) | the stand-in | refused with the spec 015 reason, exit 3 | pass: wallpaper unchanged, nothing stored |
+| 2 | Macintosh (dynamic) | the stand-in | refused, exit 3 | pass |
+| 2 | an aerial | the stand-in | refused, exit 3 | pass (aerials report the stand-in too) |
+| 3, 4 | the plain still offered in Settings (`Mac Blue.heic`) | its own file | labeled, exit 0; `dnm remove` restored it | pass: a real still is not mistaken for the stand-in |
+
+`Index.plist` was backed up first and not restored (not needed: `dnm remove` restored the only label set; the
+maintainer resets the chosen wallpapers).
