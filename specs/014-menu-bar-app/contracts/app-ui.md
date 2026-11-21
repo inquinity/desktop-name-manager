@@ -127,10 +127,11 @@ The main window's Settings… opens it at General, Configuration… at Configura
     shortcut opens Style and Preview. Choose another."
   - New Labels: Style, Color, Position and Size, used for new labels from the main window and the editor. No sample:
     the editor is where a label is seen before it is applied.
-- **Clean Up**: the red message when FR-016b holds; Space: "Labeled images use" with the size, and "Older than N days"; Old labeled images: the list with a checkbox each and one in the header to select all, their display,
-  reason and size; under it the count and size of the selection (or of the whole list when nothing is selected) and
-  "Delete Selected…", off until something is selected; a confirmation sheet naming the count and size. With nothing
-  old: "No old images."
+- **Clean Up**: the red message when FR-016b holds; Space: "Labeled images use" with the size, and "Older than N days"; "Old labeled images: <count>": the list with a checkbox each, their display,
+  reason and size. A bar pinned under the list, which never scrolls away however long the list is: "Select all", the
+  selection's count and size ("3 selected, 5.8 MB"; the whole list's, "22 images, 53.7 MB", when nothing is selected)
+  and "Delete Selected…", off until something is selected; a confirmation sheet naming the count and size. With
+  nothing old: "No old images." and no bar.
 - **Configuration**: This Mac: macOS (version and chip), Separate Spaces (on or off, with a symbol), Displays (the
   count; opens Displays). Storage: Labels in use (count and size; opens Labels), Old labeled images (size, with Clean
   Up…), Data folder (the path, shortened with `~`, with Show in Finder). Only what the app can read: no Accessibility

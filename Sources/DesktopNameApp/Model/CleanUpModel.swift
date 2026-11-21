@@ -39,6 +39,15 @@ public final class CleanUpModel {
     /// The selected candidates, in the list's order.
     public var selected: [CleanupCandidate] { plan.candidates.filter { selection.contains($0.stampID) } }
     public var selectedBytes: Int64 { selected.reduce(0) { $0 + $1.bytes } }
+    /// The line in the bar under the list: the selection's count and size, or the whole list's when nothing is
+    /// selected.
+    public var summary: String {
+        guard !selection.isEmpty else {
+            let count = plan.candidates.count
+            return "\(count) image\(count == 1 ? "" : "s"), \(StorageSummary.format(totalBytes))"
+        }
+        return "\(selection.count) selected, \(StorageSummary.format(selectedBytes))"
+    }
     /// Delete Selected… is off until something is selected.
     public var canDelete: Bool { !selection.isEmpty }
     /// The header checkbox: all selected.

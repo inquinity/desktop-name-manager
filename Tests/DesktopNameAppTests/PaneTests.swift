@@ -92,14 +92,30 @@ import Testing
         let model = CleanUpModel(labeler: rig.labeler)
         model.refresh(days: 30)
         #expect(!model.canDelete)
+        #expect(model.summary.hasPrefix("1 image, "))   // nothing selected: the whole list
         model.deleteSelected()   // nothing selected: nothing happens
         #expect(try rig.store.readManifest().stamps.count == 2)
         model.selectAll(true)
         #expect(model.allSelected && model.confirmation.hasPrefix("Delete 1 old labeled image ("))
+        #expect(model.summary.hasPrefix("1 selected, "))
         model.deleteSelected()
         #expect(model.deleted?.candidates.map(\.label) == ["Old"])
         #expect(try rig.store.readManifest().stamps.map(\.label.text.value) == ["New"])
         #expect(model.candidates.isEmpty && model.selection.isEmpty)
+    }
+
+    @Test func theSummaryCountsTheSelectionOrTheWholeList() throws {
+        let rig = try AppRig()
+        for text in ["A", "B", "C", "Now"] { try rig.labeler.setLabel(LabelText(text), on: rig.display) }
+        rig.clock.advance(minutes: 31 * 24 * 60)
+        let model = CleanUpModel(labeler: rig.labeler)
+        model.refresh(days: 30)
+        #expect(model.candidates.count == 3 && model.summary.hasPrefix("3 images, "))
+        model.selection.insert(model.candidates[0].stampID)
+        model.selection.insert(model.candidates[1].stampID)
+        #expect(model.summary == "2 selected, \(StorageSummary.format(model.selectedBytes))" && !model.allSelected)
+        model.deleteSelected()
+        #expect(model.candidates.count == 1 && model.summary.hasPrefix("1 image, "))
     }
 
     @Test func anImagePutBackOnScreenMeanwhileIsKept() throws {

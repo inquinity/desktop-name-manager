@@ -181,19 +181,19 @@ struct CleanUpPane: View {
             }
             Section("Space") {
                 LabeledContent("Labeled images use", value: StorageSummary.format(model.storage.spaceUsed))
-                Stepper(value: Binding(get: { model.settings.cleanUpDays }, set: { model.setCleanUpDays($0) }),
-                        in: AppSettings.cleanUpDaysRange) {
-                    LabeledContent("Older than") {
-                        HStack(spacing: 4) {
-                            TextField("Days", value: Binding(get: { model.settings.cleanUpDays }, set: { model.setCleanUpDays($0) }),
-                                      format: .number)
-                                .frame(width: 56)
-                                .multilineTextAlignment(.trailing)
-                            Text("days")
-                        }
+                LabeledContent("Older than") {
+                    HStack(spacing: 4) {
+                        TextField("Days", value: days, format: .number)
+                            .labelsHidden()
+                            .frame(width: 56)
+                            .multilineTextAlignment(.trailing)
+                        Text("days")
+                        Stepper("Days", value: days, in: AppSettings.cleanUpDaysRange).labelsHidden()
                     }
                 }
             }
+            // Above the list, so a failed deletion's sentence is in view however long the list is.
+            PaneMessage(text: cleanUp.message ?? model.message)
             Section {
                 if cleanUp.candidates.isEmpty {
                     Text("No old images.").foregroundStyle(.secondary)
@@ -216,26 +216,14 @@ struct CleanUpPane: View {
                     }
                 }
             } header: {
-                HStack {
-                    Text("Old labeled images")
-                    Spacer()
-                    if !cleanUp.candidates.isEmpty {
-                        Toggle("Select all", isOn: Binding(get: { cleanUp.allSelected }, set: { cleanUp.selectAll($0) }))
-                            .toggleStyle(.checkbox)
-                    }
-                }
-            } footer: {
-                if !cleanUp.candidates.isEmpty {
-                    HStack {
-                        Text(selectionSummary).foregroundStyle(.secondary)
-                        Spacer()
-                        Button("Delete Selected…") { confirming = true }.disabled(!cleanUp.canDelete)
-                    }
-                }
+                Text(cleanUp.candidates.isEmpty ? "Old labeled images" : "Old labeled images: \(cleanUp.candidates.count)")
             }
-            PaneMessage(text: cleanUp.message ?? model.message)
         }
         .formStyle(.grouped)
+        // However long the list, Select all, the selection and Delete Selected… stay in view under it.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if !cleanUp.candidates.isEmpty { actionBar }
+        }
         .confirmationDialog(cleanUp.confirmation, isPresented: $confirming) {
             Button("Delete", role: .destructive) { cleanUp.deleteSelected(); model.paneShown() }
             Button("Cancel", role: .cancel) {}
@@ -244,10 +232,24 @@ struct CleanUpPane: View {
         }
     }
 
-    private var selectionSummary: String {
-        let chosen = cleanUp.selection.isEmpty ? cleanUp.candidates.count : cleanUp.selection.count
-        let bytes = cleanUp.selection.isEmpty ? cleanUp.totalBytes : cleanUp.selectedBytes
-        return "\(chosen) image\(chosen == 1 ? "" : "s"), \(StorageSummary.format(bytes))"
+    private var days: Binding<Int> {
+        Binding(get: { model.settings.cleanUpDays }, set: { model.setCleanUpDays($0) })
+    }
+
+    private var actionBar: some View {
+        VStack(spacing: 0) {
+            Divider()
+            HStack(spacing: 12) {
+                Toggle("Select all", isOn: Binding(get: { cleanUp.allSelected }, set: { cleanUp.selectAll($0) }))
+                    .toggleStyle(.checkbox)
+                Text(cleanUp.summary).foregroundStyle(.secondary).monospacedDigit()
+                Spacer()
+                Button("Delete Selected…") { confirming = true }.disabled(!cleanUp.canDelete)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+        }
+        .background(.bar)
     }
 }
 
