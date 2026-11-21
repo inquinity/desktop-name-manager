@@ -136,13 +136,16 @@ The main window's Settings… opens it at General, Configuration… at Configura
   count; opens Displays). Storage: Labels in use (count and size; opens Labels), Old labeled images (size, with Clean
   Up…), Data folder (the path, shortened with `~`, with Show in Finder). Only what the app can read: no Accessibility
   row (the app does not use it) and no Space-shortcut row (macOS offers no public way to read it).
-- **Displays**: one row per display: its name, "Main display" under the main one, and on the right its aliases as
-  tags, each with × to remove it, then a small "Add alias" field with +; Return adds. Adding and removing use the
-  core's alias operations (`setAlias`, `removeAlias`), so the rules and sentences are `dnm alias`'s: letters,
-  numbers, hyphens and underscores, at most 30, not "main", not only digits ("An alias cannot be only digits.", without
-  the core's `--display` clause), not a connected display's name. A refusal is one red line under the row; an alias
-  already on another display moves, and the row says "<alias> moved here from <display>." No confirmation: removing an
-  alias is undone by adding it again.
+- **Displays**: one section per display, headed by its name ("Main display" under the main one) with an "Add
+  Alias…" button; in it, one row per alias with a remove button (−), or "No aliases." Add Alias… opens a sheet (as
+  Users & Groups' Add User…; decided 2026-11-21 after the inline field proved hard to find): "Add an Alias for
+  <display>", a bordered field, the rules ("Letters, numbers, hyphens and underscores, up to 30. Not only digits."),
+  Cancel and Add (default, Return; off while the field is empty). Adding and removing use the core's alias operations
+  (`setAlias`, `removeAlias`), so the rules and sentences are `dnm alias`'s: not "main", not only digits ("An alias
+  cannot be only digits.", without the core's `--display` clause), not a connected display's name. A refusal is one
+  red line in the sheet, which stays open; an alias already on another display moves, and its new section says
+  "<alias> moved here from <display>." A remove that fails shows one red line in that display's section. No confirmation: removing an alias is undone by
+  adding it again.
 - **Labels**: the labels in use, with their display and size, and their count and total under them.
 - **About**: a header card with the app icon, "Desktop Name Manager", "Version 0.4.0 (34)", and the one-line
   tagline "Labels for your Desktops, right in the wallpaper." (no build date); Privacy: "Needs no permissions" and "Never connects", each with a check

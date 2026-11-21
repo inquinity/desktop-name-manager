@@ -150,7 +150,7 @@ import Testing
         let model = DisplaysModel(labeler: rig.labeler)
         model.refresh()
         #expect(model.rows.map(\.display.name) == ["Studio Display", "Side Display"])
-        model.add("desk", to: MenuBarStateTests.main)
+        #expect(model.add("desk", to: MenuBarStateTests.main) == nil)
         #expect(model.rows[0].aliases == ["desk"] && model.note == nil)
         model.add("desk", to: MenuBarStateTests.side)
         #expect(model.rows[0].aliases.isEmpty && model.rows[1].aliases == ["desk"])
@@ -164,13 +164,12 @@ import Testing
         let rig = try AppRig(displays: [MenuBarStateTests.main, MenuBarStateTests.side])
         let model = DisplaysModel(labeler: rig.labeler)
         model.refresh()
-        model.add("123", to: MenuBarStateTests.main)
-        #expect(model.note?.text == "An alias cannot be only digits." && model.note?.isError == true)
+        // A refusal goes back to the Add Alias sheet; the pane's rows show none.
+        #expect(model.add("123", to: MenuBarStateTests.main) == "An alias cannot be only digits." && model.note == nil)
         for name in ["Side Display", "main", String(repeating: "a", count: 31)] {
-            model.add(name, to: MenuBarStateTests.main)
-            let note = model.note?.text ?? ""
-            #expect(model.note?.isError == true && !note.isEmpty, "\(name)")
-            #expect(!note.contains("--") && !note.contains("dnm"), "\(note)")
+            let refusal = model.add(name, to: MenuBarStateTests.main) ?? ""
+            #expect(!refusal.isEmpty, "\(name)")
+            #expect(!refusal.contains("--") && !refusal.contains("dnm"), "\(refusal)")
         }
         #expect(try rig.labeler.aliases().isEmpty)
     }

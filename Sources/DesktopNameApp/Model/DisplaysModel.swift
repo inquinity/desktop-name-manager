@@ -41,10 +41,13 @@ public final class DisplaysModel {
         }
     }
 
-    /// Adds `name` to `display`. An alias already on another display moves here, and the row says so.
-    public func add(_ name: String, to display: Display) {
+    /// Adds `name` to `display` and returns nil, or returns the refusal sentence for the Add Alias sheet to show and
+    /// changes nothing. An alias already on another display moves here, and the row says so.
+    @discardableResult
+    public func add(_ name: String, to display: Display) -> String? {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty else { return nil }
+        let refusal: String?
         do {
             let result = try labeler.setAlias(trimmed, on: display)
             if case .moved(let from) = result.change {
@@ -52,11 +55,16 @@ public final class DisplaysModel {
             } else {
                 note = nil
             }
+            refusal = nil
         } catch {
-            note = (display.uuid, MessageWording.sentence(for: error), true)
+            refusal = MessageWording.sentence(for: error)
         }
         refresh()
+        return refusal
     }
+
+    /// The rules, under the Add Alias sheet's field (the core's `DisplayAlias` checks them).
+    public static let aliasRules = "Letters, numbers, hyphens and underscores, up to \(DisplayAlias.maxLength). Not only digits."
 
     public func remove(_ name: String, from display: Display) {
         do {

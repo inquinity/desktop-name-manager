@@ -318,59 +318,88 @@ struct LinkRow: View {
 
 struct DisplaysPane: View {
     @Bindable var model: DisplaysModel
+    /// The display whose Add Alias sheet is open.
+    @State private var adding: DisplaysModel.Row?
 
     var body: some View {
         Form {
             ForEach(model.rows) { row in
                 Section {
-                    DisplayRow(row: row, model: model)
+                    ForEach(row.aliases, id: \.self) { alias in
+                        HStack {
+                            Text(alias)
+                            Spacer()
+                            Button { model.remove(alias, from: row.display) } label: { Image(systemName: "minus.circle") }
+                                .buttonStyle(.borderless)
+                                .help("Remove alias \(alias)")
+                                .accessibilityLabel("Remove alias \(alias)")
+                        }
+                    }
                     if let note = model.note, note.displayUUID == row.display.uuid {
                         if note.isError { MessageLine(text: note.text) } else { Text(note.text).foregroundStyle(.secondary) }
                     }
+                } header: {
+                    HStack(alignment: .firstTextBaseline) {
+                        VStack(alignment: .leading) {
+                            Text(row.display.name)
+                            if row.display.isMain { Text("Main display").font(.caption).foregroundStyle(.secondary) }
+                        }
+                        Spacer()
+                        Button("Add Alias…") { adding = row }
+                            .accessibilityHint("Adds an alias for \(row.display.name)")
+                    }
+                } footer: {
+                    if row.aliases.isEmpty { Text("No aliases.").foregroundStyle(.secondary) }
                 }
             }
             if let note = model.note, note.displayUUID.isEmpty { MessageLine(text: note.text) }
         }
         .formStyle(.grouped)
+        .sheet(item: $adding) { row in
+            AddAliasSheet(display: row.display, model: model)
+        }
     }
 }
 
-struct DisplayRow: View {
-    let row: DisplaysModel.Row
+/// "Add Alias…" (contracts/app-ui.md §Displays): a bordered field, the rules, and a refusal in the sheet itself;
+/// the sheet closes only once the alias is added.
+struct AddAliasSheet: View {
+    let display: Display
     let model: DisplaysModel
-    @State private var newAlias = ""
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var refusal: String?
+    @FocusState private var focused: Bool
+
+    private var isEmpty: Bool { name.trimmingCharacters(in: .whitespaces).isEmpty }
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading) {
-                Text(row.display.name)
-                if row.display.isMain { Text("Main display").font(.caption).foregroundStyle(.secondary) }
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Add an Alias for \(display.name)").font(.headline)
+            TextField("Alias", text: $name, prompt: Text("Alias"))
+                .labelsHidden()
+                .textFieldStyle(.roundedBorder)
+                .focused($focused)
+                .onChange(of: name) { refusal = nil }
+            Text(DisplaysModel.aliasRules).font(.caption).foregroundStyle(.secondary)
+            if let refusal { MessageLine(text: refusal) }
+            HStack {
+                Spacer()
+                Button("Cancel", role: .cancel) { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Button("Add", action: add)
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(isEmpty)
             }
-            Spacer()
-            ForEach(row.aliases, id: \.self) { alias in
-                HStack(spacing: 2) {
-                    Text(alias)
-                    Button { model.remove(alias, from: row.display) } label: { Image(systemName: "xmark.circle.fill") }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel("Remove alias \(alias)")
-                }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(Capsule().fill(Color.secondary.opacity(0.15)))
-            }
-            TextField("Add alias", text: $newAlias)
-                .frame(width: 90)
-                .onSubmit(add)
-                .accessibilityLabel("Add alias to \(row.display.name)")
-            Button(action: add) { Image(systemName: "plus") }
-                .disabled(newAlias.trimmingCharacters(in: .whitespaces).isEmpty)
-                .accessibilityLabel("Add alias")
         }
+        .padding(20)
+        .frame(width: 360)
+        .defaultFocus($focused, true)
     }
 
     private func add() {
-        model.add(newAlias, to: row.display)
-        if model.note?.isError != true { newAlias = "" }
+        guard !isEmpty else { return }
+        if let sentence = model.add(name, to: display) { refusal = sentence } else { dismiss() }
     }
 }
 
