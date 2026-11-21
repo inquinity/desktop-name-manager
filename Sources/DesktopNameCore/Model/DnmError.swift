@@ -4,7 +4,7 @@ import Foundation
 public enum DnmError: Error, Equatable, Sendable {
     /// Bad label, bad option value, unknown or ambiguous `--display` (exit 2).
     case invalidInput(String)
-    /// A wallpaper the tool will not change: dynamic, catalog, video, shuffle or none (exit 3).
+    /// A wallpaper the tool will not change: dynamic, catalog, video, shuffle, the macOS stand-in or none (exit 3).
     case unsupportedWallpaper(String)
     /// The system reports no wallpaper file for the Desktop (exit 3).
     case noWallpaperFile

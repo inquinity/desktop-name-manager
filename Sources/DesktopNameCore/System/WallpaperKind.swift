@@ -11,11 +11,26 @@ public enum WallpaperKind: Equatable, Sendable {
     /// The file is there but is not a picture ImageIO can read; carries its file name.
     case unreadable(name: String)
 
+    /// Where macOS reports a stand-in still instead of the real wallpaper (spec 015). On macOS 27 an Apple dynamic
+    /// wallpaper is reported as this file, an ordinary still that cannot be told apart by its contents.
+    /// Knowing this undocumented location is a maintainer-approved deviation from constitution principle I
+    /// (spec 015 Q1, plan Complexity Tracking): it is only compared with what the public reader reports, never
+    /// opened, listed or followed. Revisit on each macOS release.
+    static let standInLocations = [URL(fileURLWithPath: "/System/Library/CoreServices/DefaultDesktop.heic")]
+
     /// Classifies what a display currently shows.
+    /// - Parameter standIns: locations refused as stand-ins; tests replace it (spec 015 FR-007).
     /// - Throws: `.accessDenied` or `.originalMissing` when the file cannot be read, with the system's wording.
-    static func classify(_ current: CurrentWallpaper) throws -> WallpaperKind {
+    static func classify(_ current: CurrentWallpaper, standIns: [URL] = standInLocations) throws -> WallpaperKind {
         guard let url = current.url else {
             return .noFile
+        }
+        // Compared by location only, before anything is read (spec 015 FR-003, FR-004): normalized, links not followed.
+        // A different spelling macOS does not report (another letter case, a file reference URL) is not matched and
+        // falls through to the 0.3.0 behavior.
+        let path = url.standardizedFileURL.path
+        if standIns.contains(where: { $0.standardizedFileURL.path == path }) {
+            return .unsupported(reason: "macOS reports the default wallpaper when dynamic or unsupported wallpapers are selected")
         }
         if url.pathExtension.lowercased() == "madesktop" {
             return .unsupported(reason: "it is an Apple catalog wallpaper")
