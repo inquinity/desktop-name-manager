@@ -22,7 +22,7 @@ brackets appear only when their condition holds.
 
 1. The Desktop it is about: the display's name, small, and under it the label in full, or "No label".
 2. The label field, placeholder "Label this Desktop", focused; it holds the current label, selected, or is empty. Beside
-   it "Label" (default, Return), off while the text is invalid or unchanged. One sentence under it when the text is
+   it "Apply" (default, Return), off while the text is invalid or unchanged. One sentence under it when the text is
    too long (the editor's sentence); the field follows the editor's input rules. A Desktop with no label gets the
    defaults for new labels from General; a labeled Desktop keeps its label's style and gets the new text. On success the main window closes.
 3. "Style and Preview…": opens the editor in the same panel.
@@ -38,10 +38,19 @@ brackets appear only when their condition holds.
 11. "About Desktop Name Manager" (at About)
 12. "Quit" ⌘Q
 
-The hotkey opens the same main window for the active display (FR-012, FR-014): under the item when it is shown, else
-as a floating panel near the top of that display. It only opens (not a toggle): pressing it while the main window is
-open for the active display leaves the window as it is and gives it the keyboard; a window open for another display
-moves to the active one.
+Two optional hotkeys (FR-014): the main hotkey opens this main window, the editor hotkey opens the editor directly.
+Each opens for the active display (`NSScreen.main`, else the screen under the pointer): under the item when it is
+shown on that display, else as a floating panel near the top of that display.
+
+| Press | Nothing open | Main window open | Editor open |
+|---|---|---|---|
+| Main hotkey | main window, active display | moves to the next display | main window, same display |
+| Editor hotkey | editor, active display | editor, same display | moves to the next display |
+
+"Next" is left to right by position, wrapping. With one display, or "Displays have separate Spaces" off, a window
+that would move stays and takes the keyboard. A moved window is about that display's Desktop: its label, Undo, and
+an editor started fresh from its label. A hotkey never hides the window. Cancel in an editor the editor hotkey opened
+with nothing open (or moved) closes the window; switched to from the main window, it goes back there.
 
 The main window never lists other Desktops' labels (the Labels pane does). It opens on the display whose menu bar was
 clicked and labels that display's Desktop on screen.
@@ -108,9 +117,14 @@ The main window's Settings… opens it at General, Configuration… at Configura
 
 - **General**:
   - System: "Open at login" (a switch, off by default); "Menu bar shows" (Icon and text / Icon / Nothing (hidden)).
-  - Hotkey: "Open the main window" with a shortcut recorder, empty by default ("Record Shortcut"), with a clear button (×)
-    once a shortcut is recorded; there is a hotkey exactly when a shortcut is recorded, so there is no on/off switch.
-    A one-line error when it cannot be claimed: "Another app is using this shortcut. Choose another."
+    "Nothing (hidden)" is refused, with its sentence, until the main window's hotkey works, and that shortcut cannot
+    be cleared while the item is hidden (FR-014a).
+  - Hotkeys: "Open the main window" and "Open Style and Preview", each with a shortcut recorder, empty by default
+    ("Record Shortcut"), with a clear button (×) once a shortcut is recorded; there is a hotkey exactly when its
+    shortcut is recorded, so there is no on/off switch. A one-line error under a recorder when macOS refuses the
+    shortcut: "Another app is using this shortcut. Choose another." (macOS does not report other apps' shortcuts, so
+    this is rare); or when it is the other hotkey's: "This shortcut opens the main window. Choose another." / "This
+    shortcut opens Style and Preview. Choose another."
   - New Labels: Style, Color, Position and Size, used for new labels from the main window and the editor. No sample:
     the editor is where a label is seen before it is applied.
 - **Clean Up**: the red message when FR-016b holds; Space: "Labeled images use" with the size, and "Older than N days"; Old labeled images: the list with a checkbox each and one in the header to select all, their display,

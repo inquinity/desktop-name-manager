@@ -8,7 +8,8 @@ adds. None of it is stored in the label store.
 | Field | Type | Default | Rules |
 |---|---|---|---|
 | menuBarMode | `iconAndText` \| `icon` \| `hidden` | `iconAndText` | FR-010 |
-| hotkey | Shortcut (key code, modifiers), optional | none | FR-014; set only after a successful registration (FR-015); at least two of ⌃⌥⌘, or ⌘ with ⇧; Escape, Return, Tab, Space alone refused |
+| hotkey | Shortcut (key code, modifiers), optional | none | FR-014; opens the main window; set only after a successful registration (FR-015); at least two of ⌃⌥⌘, or ⌘ with ⇧; Escape, Return, Tab, Space alone refused |
+| editorHotkey | Shortcut (key code, modifiers), optional | none | FR-014; opens the editor ("Style and Preview"); the same rules as hotkey, and never equal to it |
 | defaultLook | automatic \| plain \| halo \| frosted | automatic | FR-006, FR-018; app only |
 | defaultColor | automatic \| light \| dark \| #RRGGBB | automatic | as `dnm set --color` |
 | defaultPosition | the six positions | bottom-left | as `dnm set --position` |

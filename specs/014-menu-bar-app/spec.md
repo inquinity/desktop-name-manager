@@ -95,9 +95,24 @@ product, installed with the app, and both read and write one store: a label set 
 
 ### Session 2026-11-20
 
-- Q: When the main window is already open, should pressing the hotkey close it (a toggle)? → A: No; the hotkey
-  only opens the main window; pressing it while the window is open for the active display leaves it open as it is,
-  and a window open for another display moves to the active one (FR-014).
+- Q: When the main window is already open, what should pressing the hotkey do? → A: (Decided after using the app,
+  replacing an earlier answer the same day that the hotkey only opens it.) There are two optional hotkeys, one for the
+  main window and one for "Style and Preview" (the editor). Pressing a hotkey whose page is open moves that window to
+  the next display, left to right and wrapping; with one display (or "Displays have separate Spaces" off) it stays and
+  takes the keyboard. A hotkey never hides the window; Escape and a click outside do. Pressing the other hotkey
+  switches the page on the same display. The editor moved to another display starts fresh from that display's label
+  (FR-014).
+- Q: What does Cancel do in an editor the editor hotkey opened? → A: It closes the window; from the main window
+  (by "Style and Preview…" or by the editor hotkey) it goes back there (FR-014).
+- Q: The main window's button says "Label" and the editor's says "Apply": which one? → A: "Apply" in both
+  (FR-013a).
+- Q: Must there always be a way to Settings? → A: Yes: the menu-bar item may be hidden only while the main window's
+  hotkey works; Settings refuses to hide the item without one and to clear that shortcut while the item is hidden,
+  and a launch that finds the item hidden with no working main hotkey shows it again (FR-014a). Launching the app
+  again also opens Settings (FR-017).
+- Finding (live check, 2026-11-20, macOS 27): `RegisterEventHotKey` accepted a shortcut another process already held
+  with the exclusive option, and a shortcut macOS reserves (⇧⌘3) never reaches the recorder. FR-015's sentence can
+  therefore show only when macOS refuses a registration; the app cannot detect another app's shortcut (FR-015).
 
 ## User Scenarios & Testing
 
@@ -197,10 +212,10 @@ label; switch the menu-bar mode in Settings and see the item change.
 
 ---
 
-### User Story 4 - Open the main window with a hotkey (Priority: P3)
+### User Story 4 - Open the main window or the editor with a hotkey (Priority: P3)
 
-As a person who labels often, I want an optional keyboard shortcut that opens the main window, so that I can label a
-Desktop without reaching for the menu bar, and so that I can keep the menu-bar item hidden.
+As a person who labels often, I want optional keyboard shortcuts that open the main window or the editor, so that I
+can label a Desktop without reaching for the menu bar, and so that I can keep the menu-bar item hidden.
 
 **Why this priority**: a convenience over Story 2, off by default.
 
@@ -215,8 +230,13 @@ shortcut no longer does anything.
    floating panel near the top of the active display when the item is hidden), and "Style and Preview…" leads on to
    the editor.
 3. **Given** the person picks a shortcut another app or macOS already uses, **When** the app cannot claim it, **Then**
-   Settings says so and there is no hotkey; nothing else is changed.
+   Settings says so and the previous shortcut (or none) stays; nothing else is changed.
 4. **Given** a recorded shortcut, **When** it is used, **Then** no macOS permission is asked for or needed.
+5. **Given** the main window open after its hotkey, **When** the person presses that hotkey again with two displays,
+   **Then** the window moves to the other display and is about that display's Desktop; with one display it stays.
+6. **Given** both shortcuts recorded and the main window open, **When** the person presses the editor's hotkey,
+   **Then** the editor replaces the main window on the same display, and the reverse; Cancel in an editor the editor
+   hotkey opened closes the window.
 
 ---
 
@@ -275,7 +295,8 @@ they share.
 - **A full-screen app is in front**: the main window names the label of the Desktop under it if macOS reports one,
   else "No label"; labeling works on the Desktop behind the full-screen app only if `dnm set` would.
 - **Several displays**: the main window and the editor label the Desktop on screen of the display they were opened
-  on; the hotkey opens the main window for the active display (FR-012).
+  on; a hotkey opens its page for the active display, and pressing it again moves the window to the next display
+  (FR-012, FR-014).
 - **Labeling takes longer than usual** (a very large wallpaper): the editor shows that it is working and cannot be
   applied twice.
 - **The first launch is at login** (Open at login set by a previous install, the app's settings kept): the welcome
@@ -343,19 +364,33 @@ they share.
   Applying or removing a label MUST NOT show a separate notice; the wallpaper and the menu-bar item are the
   confirmation. The main window MUST NOT list other Desktops' labels (the Labels pane does, FR-019).
 - **FR-013a**: The main window's field MUST label the Desktop on screen of its display when the person presses Return
-  or clicks Label: a Desktop with no label gets the defaults for new labels chosen in General; on a labeled Desktop the field
+  or clicks Apply: a Desktop with no label gets the defaults for new labels chosen in General; on a labeled Desktop the field
   holds the label, selected, and a new text keeps the label's style. It MUST check the text as the editor does
   (FR-008), with the same sentences, and behave as Apply does (FR-007).
 
 **Hotkey**
 
-- **FR-014**: The app MUST offer one optional global hotkey that opens the main window, as a click on the menu-bar
-  item does. There is a hotkey exactly when a shortcut is recorded in Settings: none is recorded by default, and
-  clearing the shortcut removes the hotkey; when the menu-bar item is hidden, the main window MUST open as a floating
-  panel near the top of the active display, and its "Style and Preview…" opens the editor in that panel. The hotkey
-  only opens the main window; it is not a toggle: pressing it while the window is open for the active display leaves
-  it open as it is, and a window open for another display moves to the active one.
-- **FR-015**: If the recorded shortcut cannot be claimed, the app MUST say so in Settings and keep no hotkey.
+- **FR-014**: The app MUST offer two optional global hotkeys: one opens the main window, as a click on the menu-bar
+  item does, and one opens the editor ("Style and Preview") directly. There is a hotkey exactly when its shortcut is
+  recorded in Settings: none is recorded by default, clearing a shortcut removes that hotkey, and the two shortcuts
+  MUST differ. A hotkey opens its page for the active display (the screen of the window with the keyboard focus, else
+  the screen under the pointer; FR-012). When the menu-bar item is hidden, or the item is not on the display chosen,
+  the window MUST open as a floating panel near the top of that display. Pressing a hotkey whose page is open MUST
+  move that window to the next display, left to right and wrapping, about that display's Desktop on screen (the
+  editor starts fresh from that display's label); with one display, or with "Displays have separate Spaces" off, the
+  window stays and takes the keyboard. A hotkey MUST NOT hide the window (Escape and a click outside close it).
+  Pressing the other hotkey MUST switch the page on the same display. In an editor the editor hotkey opened with
+  nothing open (or moved), Cancel closes the window; switched to from the main window, Cancel goes back there.
+- **FR-014a**: There MUST always be a way to Settings: the menu-bar item may be hidden only while the main window's
+  hotkey is recorded and claimed. Choosing "Nothing (hidden)" without it MUST be refused with "Record a shortcut to
+  open the main window first: with the item hidden, it is the way to Settings."; clearing the main window's shortcut
+  while the item is hidden MUST be refused with "With the menu bar item hidden, this shortcut is the way to Settings.
+  Show the item first."; at launch, a hidden item with no main hotkey, or one macOS refuses, MUST be shown again
+  (Icon and text).
+- **FR-015**: If a newly recorded shortcut cannot be claimed, the app MUST say so in Settings and keep that hotkey's
+  previous shortcut (or none). macOS does not report a shortcut another app holds (finding, 2026-11-20), so this
+  covers only a registration macOS refuses. A shortcut already recorded for the other hotkey MUST be refused with
+  "This shortcut opens the main window. Choose another." or "This shortcut opens Style and Preview. Choose another."
 
 **Settings and app life**
 

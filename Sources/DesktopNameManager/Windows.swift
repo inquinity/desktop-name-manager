@@ -36,6 +36,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
         window = nil
         dock.windowClosed()
+        model.hotkey.endRecording()   // a recorder left recording must not keep the hotkeys let go
     }
 }
 

@@ -18,6 +18,8 @@ public final class AppSettings {
         static let menuBarMode = "menuBarMode"
         static let hotkeyKeyCode = "hotkeyKeyCode"
         static let hotkeyModifiers = "hotkeyModifiers"
+        static let editorHotkeyKeyCode = "editorHotkeyKeyCode"
+        static let editorHotkeyModifiers = "editorHotkeyModifiers"
         static let defaultLook = "defaultLook"
         static let defaultColor = "defaultColor"
         static let defaultPosition = "defaultPosition"
@@ -34,16 +36,27 @@ public final class AppSettings {
     public var menuBarMode: MenuBarMode {
         didSet { defaults.set(menuBarMode.rawValue, forKey: Key.menuBarMode) }
     }
-    /// The hotkey, or none. Set only after it was registered (FR-015); clearing it removes both keys.
+    /// The main window's hotkey, or none. Set only after it was registered (FR-015); clearing it removes both keys.
     public var hotkey: Shortcut? {
-        didSet {
-            if let hotkey {
-                defaults.set(Int(hotkey.keyCode), forKey: Key.hotkeyKeyCode)
-                defaults.set(Int(hotkey.modifiers), forKey: Key.hotkeyModifiers)
-            } else {
-                defaults.removeObject(forKey: Key.hotkeyKeyCode)
-                defaults.removeObject(forKey: Key.hotkeyModifiers)
-            }
+        didSet { Self.write(hotkey, code: Key.hotkeyKeyCode, modifiers: Key.hotkeyModifiers, to: defaults) }
+    }
+    /// The editor's hotkey ("Style and Preview"), or none; never the same as `hotkey` (FR-014).
+    public var editorHotkey: Shortcut? {
+        didSet { Self.write(editorHotkey, code: Key.editorHotkeyKeyCode, modifiers: Key.editorHotkeyModifiers, to: defaults) }
+    }
+
+    /// The shortcut of one hotkey.
+    public func shortcut(for kind: HotkeyKind) -> Shortcut? {
+        switch kind {
+        case .main: hotkey
+        case .editor: editorHotkey
+        }
+    }
+
+    public func setShortcut(_ shortcut: Shortcut?, for kind: HotkeyKind) {
+        switch kind {
+        case .main: hotkey = shortcut
+        case .editor: editorHotkey = shortcut
         }
     }
     /// The defaults for new labels from the main window and the editor (FR-018). nil is Automatic.
@@ -77,7 +90,10 @@ public final class AppSettings {
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         menuBarMode = (defaults.string(forKey: Key.menuBarMode)).flatMap(MenuBarMode.init(rawValue:)) ?? .iconAndText
-        hotkey = Self.readHotkey(defaults)
+        let main = Self.readHotkey(defaults, code: Key.hotkeyKeyCode, modifiers: Key.hotkeyModifiers)
+        hotkey = main
+        let editor = Self.readHotkey(defaults, code: Key.editorHotkeyKeyCode, modifiers: Key.editorHotkeyModifiers)
+        editorHotkey = editor == main ? nil : editor
         defaultLook = Self.readLook(defaults.string(forKey: Key.defaultLook))
         defaultColor = Self.readColor(defaults.string(forKey: Key.defaultColor))
         defaultPosition = defaults.string(forKey: Key.defaultPosition).flatMap(Position.init(rawValue:)) ?? .default
@@ -94,12 +110,22 @@ public final class AppSettings {
 
     // MARK: - Reading
 
-    private static func readHotkey(_ defaults: UserDefaults) -> Shortcut? {
-        guard let code = defaults.object(forKey: Key.hotkeyKeyCode) as? Int,
-              let modifiers = defaults.object(forKey: Key.hotkeyModifiers) as? Int,
+    private static func readHotkey(_ defaults: UserDefaults, code codeKey: String, modifiers modifiersKey: String) -> Shortcut? {
+        guard let code = defaults.object(forKey: codeKey) as? Int,
+              let modifiers = defaults.object(forKey: modifiersKey) as? Int,
               let keyCode = UInt32(exactly: code), let mask = UInt32(exactly: modifiers) else { return nil }
         let shortcut = Shortcut(keyCode: keyCode, modifiers: mask)
         return shortcut.problem == nil ? shortcut : nil
+    }
+
+    private static func write(_ shortcut: Shortcut?, code: String, modifiers: String, to defaults: UserDefaults) {
+        if let shortcut {
+            defaults.set(Int(shortcut.keyCode), forKey: code)
+            defaults.set(Int(shortcut.modifiers), forKey: modifiers)
+        } else {
+            defaults.removeObject(forKey: code)
+            defaults.removeObject(forKey: modifiers)
+        }
     }
 
     private static func readLook(_ value: String?) -> Look? {

@@ -63,14 +63,14 @@ final class FakeLoginItem: LoginItem {
 @MainActor
 final class FakeRegistrar: HotkeyRegistering {
     var heldElsewhere: Set<Shortcut> = []
-    private(set) var registered: Shortcut?
+    private(set) var registered: [HotkeyKind: Shortcut] = [:]
 
-    func register(_ shortcut: Shortcut) -> Bool {
-        registered = nil
+    func register(_ shortcut: Shortcut, for kind: HotkeyKind) -> Bool {
+        registered[kind] = nil
         guard !heldElsewhere.contains(shortcut) else { return false }
-        registered = shortcut
+        registered[kind] = shortcut
         return true
     }
 
-    func unregister() { registered = nil }
+    func unregister(_ kind: HotkeyKind) { registered[kind] = nil }
 }

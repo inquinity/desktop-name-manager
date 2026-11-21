@@ -64,7 +64,7 @@ public struct MainView: View {
                 .onSubmit { Task { await model.quick.apply() } }
                 .disabled(model.quick.state == .applying)
                 .accessibilityLabel("Label")
-            Button("Label") { Task { await model.quick.apply() } }
+            Button("Apply") { Task { await model.quick.apply() } }
                 .keyboardShortcut(.defaultAction)
                 .disabled(!model.quick.canApply)
         }

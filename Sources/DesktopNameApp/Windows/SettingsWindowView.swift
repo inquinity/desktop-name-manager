@@ -65,15 +65,18 @@ struct GeneralPane: View {
                     Text("Icon").tag(MenuBarMode.icon)
                     Text("Nothing (hidden)").tag(MenuBarMode.hidden)
                 }
+                .id(model.menuBarRefusals)
                 PaneMessage(text: model.message)
             }
-            Section("Hotkey") {
-                LabeledContent("Open the main window") {
-                    ShortcutRecorder(shortcut: model.hotkey.shortcut, onRecord: { model.hotkey.record($0) },
-                                     onClear: { model.hotkey.clear() },
-                                     onRecordingChange: { model.hotkey.recording($0) })
+            Section("Hotkeys") {
+                ForEach(HotkeyKind.allCases, id: \.self) { kind in
+                    LabeledContent(kind == .main ? "Open the main window" : "Open Style and Preview") {
+                        ShortcutRecorder(shortcut: model.hotkey.shortcut(for: kind), onRecord: { model.hotkey.record($0, for: kind) },
+                                         onClear: { model.hotkey.clear(kind) },
+                                         onRecordingChange: { model.hotkey.recording($0) })
+                    }
+                    PaneMessage(text: model.hotkey.message(for: kind))
                 }
-                PaneMessage(text: model.hotkey.message)
             }
             Section("New Labels") {
                 Picker("Style", selection: Binding(get: { model.settings.defaultLook }, set: { model.settings.defaultLook = $0 })) {

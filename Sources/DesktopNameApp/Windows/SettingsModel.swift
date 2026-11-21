@@ -21,6 +21,8 @@ public final class SettingsModel {
     public private(set) var opensAtLogin = false
     /// One sentence when Open at login could not be changed, or a pane could not be read.
     public private(set) var message: String?
+    /// Counts refused "Nothing (hidden)" choices; the picker is rebuilt on each so it shows the kept value.
+    public private(set) var menuBarRefusals = 0
     /// Acknowledgements are open in the About pane.
     public var showingAcknowledgements = false
 
@@ -81,7 +83,16 @@ public final class SettingsModel {
         opensAtLogin = loginItem.isEnabled
     }
 
+    /// FR-014a: the item can be hidden only while the main window's hotkey works; it is then the way to Settings.
+    public static let hideNeedsHotkey = "Record a shortcut to open the main window first: with the item hidden, it is the way to Settings."
+
     public func setMenuBarMode(_ mode: MenuBarMode) {
+        if mode == .hidden, !hotkey.opensMainWindow {
+            message = Self.hideNeedsHotkey
+            menuBarRefusals += 1   // the picker redraws with the kept value even when the sentence is unchanged
+            return
+        }
+        if message == Self.hideNeedsHotkey { message = nil }
         settings.menuBarMode = mode
         onMenuBarModeChange?(mode)
     }

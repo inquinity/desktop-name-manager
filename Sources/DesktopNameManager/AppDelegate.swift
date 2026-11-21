@@ -30,10 +30,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        registrar.onPress = { [unowned self] kind in presenter.hotkey(kind, itemButton: statusItem.visibleButton) }
+        hotkey.registerStored()
+        hotkey.keepAWayToSettings()   // a hidden item needs a working main hotkey (FR-014a)
         statusItem.apply(settings.menuBarMode)
         settingsWindow.model.onMenuBarModeChange = { [unowned self] mode in statusItem.apply(mode) }
-        registrar.onPress = { [unowned self] in presenter.openFromHotkey(itemButton: statusItem.visibleButton) }
-        hotkey.registerStored()
+        hotkey.onMenuBarModeForced = { [unowned self] in statusItem.apply(settings.menuBarMode) }
 
         let state = WelcomeState(settings: settings)
         if state.shouldShow(loginStart: LoginStart.detected(loginItemEnabled: loginItem.isEnabled)) {
@@ -53,7 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        registrar.unregister()
+        for kind in HotkeyKind.allCases { registrar.unregister(kind) }
     }
 }
 

@@ -50,7 +50,9 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
 - **Decision**: register the one hotkey with `RegisterEventHotKey` (Carbon Event Manager, public and documented,
   still supported on macOS 26 and 27). Settings has a small shortcut recorder built for this app: it captures one key
   with at least two of ⌃⌥⌘ (or ⌘ plus ⇧), shows it, and registers it. If registration fails (`eventHotKeyExistsErr`,
-  another app holds it), Settings says so and the hotkey stays off (FR-015).
+  another app holds it), Settings says so and the previous shortcut stays (FR-015). Live on macOS 27 (2026-11-20),
+  macOS accepted a shortcut another process held with the exclusive option, so another app's shortcut is not
+  detected; two hotkeys (main window, editor) register under their own IDs (FR-014).
 - **Rationale**: the only public way to get a system-wide shortcut without Accessibility or Input Monitoring
   (FR-023). Global event monitors (`NSEvent.addGlobalMonitorForEvents`) need Accessibility; rejected.
 - **Alternatives**: the `KeyboardShortcuts` package (MIT), which wraps the same call and adds a recorder: a new

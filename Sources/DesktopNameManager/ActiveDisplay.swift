@@ -11,6 +11,26 @@ enum ActiveDisplay {
         NSScreen.main ?? underPointer()
     }
 
+    /// The screen after the one showing `display`, left to right and wrapping (FR-014), or nil when the window would
+    /// not move: one display, or "Displays have separate Spaces" off (one Desktop spans them all).
+    static func nextScreen(after display: Display) -> NSScreen? {
+        guard NSScreen.screensHaveSeparateSpaces else { return nil }
+        let screens = NSScreen.screens
+        guard let current = screens.firstIndex(where: { SystemWallpaperSystem.display(for: $0).uuid == display.uuid }),
+              let next = ScreenOrder.next(after: current, frames: screens.map(\.frame)) else { return nil }
+        return screens[next]
+    }
+
+    /// True when both are the same physical screen.
+    static func same(_ first: NSScreen?, _ second: NSScreen?) -> Bool {
+        guard let first, let second else { return false }
+        return number(of: first) != nil && number(of: first) == number(of: second)
+    }
+
+    private static func number(of screen: NSScreen) -> NSNumber? {
+        screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber
+    }
+
     static func underPointer() -> NSScreen? {
         let point = NSEvent.mouseLocation
         return NSScreen.screens.first { NSMouseInRect(point, $0.frame, false) }

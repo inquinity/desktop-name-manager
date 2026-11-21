@@ -32,8 +32,9 @@ struct PanelView: View {
     }
 }
 
-/// Shows the main window and the editor (spec 014, T034, T040, T045): in an `NSPopover` under the menu-bar item, or,
-/// when the item is hidden and the hotkey is pressed, in a floating panel near the top of the active display. One main
+/// Shows the main window and the editor (spec 014, T034, T040, T045, T063): in an `NSPopover` under the menu-bar item,
+/// or, when a hotkey opens it and the item is hidden or not on the display chosen, in a floating panel near the top of
+/// that display. One main
 /// window or editor at a time. Escape and a click outside close it with no change.
 @MainActor
 final class PopoverPresenter: NSObject, NSPopoverDelegate, NSWindowDelegate {
@@ -54,6 +55,8 @@ final class PopoverPresenter: NSObject, NSPopoverDelegate, NSWindowDelegate {
     private var panel: NSPanel?
     private var watcher: StoreWatcher?
     private var display: Display?
+    /// True while the editor shown was opened by the editor hotkey (its Cancel closes the window).
+    private var editorClosesWindow = false
     /// While the floating panel is shown: a switch to another app closes it, even after the color panel took the
     /// keyboard (the panel then gets no resign-key of its own).
     private var deactivation: NSObjectProtocol?
@@ -75,30 +78,52 @@ final class PopoverPresenter: NSObject, NSPopoverDelegate, NSWindowDelegate {
         showMain(about: button.window?.screen, under: button)
     }
 
-    /// The hotkey: the main window for the active display, under the item when it is shown, else in a floating panel.
-    /// It only opens (FR-014): a window already open for that display stays as it is and takes the keyboard; one open
-    /// for another display moves to the active one.
-    func openFromHotkey(itemButton: NSStatusBarButton?) {
-        let screen = ActiveDisplay.forHotkey()
-        if isShown {
-            if let open = display, open.uuid == ActiveDisplay.display(for: screen, system: controller.labeler.system)?.uuid {
-                NSApp.activate()
-                (popover?.contentViewController?.view.window ?? panel)?.makeKey()
-                return
-            }
-            close()
+    /// A hotkey (FR-014, the table in contracts/app-ui.md). Nothing open: its page for the active display. Its own
+    /// page open: the window moves to the next display (it stays with one display). The other page open: that page
+    /// is swapped in on the same display. A hotkey never hides the window.
+    func hotkey(_ kind: HotkeyKind, itemButton: NSStatusBarButton?) {
+        guard isShown, let display else {
+            open(kind, on: ActiveDisplay.forHotkey(), itemButton: itemButton)
+            return
         }
-        if let itemButton {
-            showMain(about: screen, under: itemButton)
+        if showing != kind {
+            // Switched to from the main window, the editor's Cancel goes back there.
+            keepPanelTop()
+            if kind == .editor { openEditor(closesWindowOnCancel: false) } else { showMainPage(for: display) }
+            focus()
+        } else if let next = ActiveDisplay.nextScreen(after: display),
+                  ActiveDisplay.display(for: next, system: controller.labeler.system) != nil {   // never a hide
+            close()
+            open(kind, on: next, itemButton: itemButton)
         } else {
-            showMain(about: screen, under: nil)
+            focus()
         }
     }
 
-    private func showMain(about screen: NSScreen?, under button: NSStatusBarButton?) {
+    /// The page shown now.
+    private var showing: HotkeyKind? {
+        switch content.page {
+        case .main?: .main
+        case .editor?: .editor
+        case nil: nil
+        }
+    }
+
+    /// Under the item when it is shown on `screen`; else (hidden, or on another display's menu bar) in the panel.
+    private func open(_ kind: HotkeyKind, on screen: NSScreen?, itemButton: NSStatusBarButton?) {
+        let button = itemButton.flatMap { ActiveDisplay.same($0.window?.screen, screen) ? $0 : nil }
+        showMain(about: screen, under: button, page: kind)
+    }
+
+    private func focus() {
+        NSApp.activate()
+        (popover?.contentViewController?.view.window ?? panel)?.makeKey()
+    }
+
+    private func showMain(about screen: NSScreen?, under button: NSStatusBarButton?, page: HotkeyKind = .main) {
         guard let display = ActiveDisplay.display(for: screen, system: controller.labeler.system) else { return }
         self.display = display
-        showMainPage(for: display)
+        if page == .editor { openEditor(closesWindowOnCancel: true) } else { showMainPage(for: display) }
         watch()
         if let button {
             let popover = NSPopover()
@@ -116,29 +141,52 @@ final class PopoverPresenter: NSObject, NSPopoverDelegate, NSWindowDelegate {
     }
 
     private func showMainPage(for display: Display) {
-        content.page = .main(MainWindowModel(display: display, controller: controller, settings: settings, actions: MainWindowActions(
-            openEditor: { [unowned self] in openEditor() },
-            openSettings: { [unowned self] pane in close(); openSettings(pane) },
+        var model: MainWindowModel?
+        // The actions act only while their own main window is the page shown: one a hotkey swapped out does nothing.
+        let isCurrent: () -> Bool = { [unowned self] in
+            if case .main(let shown)? = content.page, let model { return shown === model }
+            return false
+        }
+        model = MainWindowModel(display: display, controller: controller, settings: settings, actions: MainWindowActions(
+            openEditor: { [unowned self] in if isCurrent() { openEditor(closesWindowOnCancel: false) } },
+            openSettings: { [unowned self] pane in if isCurrent() { close(); openSettings(pane) } },
             quit: { NSApp.terminate(nil) },
-            close: { [unowned self] in close() })))
+            close: { [unowned self] in if isCurrent() { close() } }))
+        setPage(model.map(PanelContent.Page.main))
     }
 
-    /// "Style and Preview…": the editor replaces the main window in the same panel.
-    private func openEditor() {
+    /// Shows `page` and lets the one it replaces go: a pending change in it is not made (FR-014's page switch).
+    private func setPage(_ page: PanelContent.Page?) {
+        let old = content.page
+        content.page = page
+        switch old {
+        case .editor(let draft)? where draft.state != .closed: draft.cancel()
+        case .main(let model)?: model.close()
+        default: break
+        }
+    }
+
+    /// "Style and Preview…": the editor replaces the main window in the same panel. Opened by the editor hotkey with
+    /// nothing open (or moved to another display), its Cancel closes the window rather than going back to a main
+    /// window the person never saw.
+    private func openEditor(closesWindowOnCancel: Bool) {
+        editorClosesWindow = closesWindowOnCancel
         keepPanelTop()
         guard let display else { return }
         let current = try? controller.labeler.currentLabel(on: display)
         let draft = EditorDraft(display: display, currentLabel: current, defaults: settings.newLabelOptions, actions: EditorActions(
             apply: { [controller] text, options in try controller.apply(text, options: options, on: display) },
             remove: { [controller] in try controller.remove(on: display) }))
-        content.page = .editor(draft)
+        setPage(.editor(draft))
         // The picture loads off the main thread; the editor shows `loading` until it arrives (T034).
         Task { await draft.load { [controller] in try controller.labeler.previewOrigin(on: display) } }
     }
 
-    /// Apply and Remove close the panel; Cancel and Escape go back to the main window.
+    /// Apply and Remove close the panel; Cancel and Escape go back to the main window, or close an editor the hotkey
+    /// opened.
     private func editorClosed(_ draft: EditorDraft) {
-        if draft.changed {
+        guard case .editor(let shown)? = content.page, shown === draft else { return }   // swapped out meanwhile
+        if draft.changed || editorClosesWindow {
             close()
         } else if let display, content.page != nil {
             keepPanelTop()
@@ -233,12 +281,7 @@ final class PopoverPresenter: NSObject, NSPopoverDelegate, NSWindowDelegate {
         watcher?.stop()
         watcher = nil
         display = nil   // a late editor or main-window callback then shows nothing
-        switch content.page {
-        case .editor(let draft)? where draft.state != .closed: draft.cancel()
-        case .main(let model)?: model.close()
-        default: break
-        }
-        content.page = nil
+        setPage(nil)
     }
 
     // MARK: - Following the store
