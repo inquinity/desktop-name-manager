@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Spec 012: `cleanup --scan` with the fake switcher and wallpaper system. Nothing switches a real Desktop.
 @MainActor

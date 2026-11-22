@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Spec 009: what makes two label requests "the same", so that an existing image can be used again.
 @Suite struct ReuseKeyTests {

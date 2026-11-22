@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+  <!-- The menu-bar glyph (a template image: black on transparent; macOS tints it). Spec 014, Gate A. -->
+  <rect x="1.5" y="3" width="13" height="10" rx="2.5" stroke="#000000" stroke-width="1.4"/>
+  <path d="M4.3 10.1h4.4" stroke="#000000" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

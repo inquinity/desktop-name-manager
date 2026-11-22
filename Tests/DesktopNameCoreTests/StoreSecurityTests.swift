@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Findings from the first security pass (review-notes.md): the manifest is data on disk that another
 /// process of the same user could edit, so nothing in it may steer a delete or write outside the store.

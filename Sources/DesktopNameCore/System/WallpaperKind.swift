@@ -6,6 +6,10 @@ import UniformTypeIdentifiers
 public enum WallpaperKind: Equatable, Sendable {
     case supported(URL)
     case unsupported(reason: String)
+    /// The system reports no wallpaper file: a solid color, a full-screen app's Space, or a type with no file.
+    case noFile
+    /// The file is there but is not a picture ImageIO can read; carries its file name.
+    case unreadable(name: String)
 
     /// Where macOS reports a stand-in still instead of the real wallpaper (spec 015). On macOS 27 an Apple dynamic
     /// wallpaper is reported as this file, an ordinary still that cannot be told apart by its contents.
@@ -19,7 +23,7 @@ public enum WallpaperKind: Equatable, Sendable {
     /// - Throws: `.accessDenied` or `.originalMissing` when the file cannot be read, with the system's wording.
     static func classify(_ current: CurrentWallpaper, standIns: [URL] = standInLocations) throws -> WallpaperKind {
         guard let url = current.url else {
-            return .unsupported(reason: "the system reports no wallpaper file for this Desktop (it may be a solid color, a full-screen app, or a wallpaper type that is not supported)")
+            return .noFile
         }
         // Compared by location only, before anything is read (spec 015 FR-003, FR-004): normalized, links not followed.
         // A different spelling macOS does not report (another letter case, a file reference URL) is not matched and
@@ -45,8 +49,8 @@ public enum WallpaperKind: Equatable, Sendable {
         } catch {
             throw Backdrop.mapReadError(error, url: url)
         }
-        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else {
-            return .unsupported(reason: "\(url.lastPathComponent) is not an image the tool can read")
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil), CGImageSourceGetType(source) != nil else {
+            return .unreadable(name: url.lastPathComponent)
         }
         if CGImageSourceGetCount(source) > 1 {
             return .unsupported(reason: "it holds several images (a dynamic wallpaper)")

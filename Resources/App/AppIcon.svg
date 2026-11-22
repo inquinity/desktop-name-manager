@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 100 100">
+  <!-- The app icon approved in prototype review (spec 014, Gate A): a Desktop with a label tag in its corner. -->
+  <defs>
+    <linearGradient id="ai-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f86a6"/><stop offset="1" stop-color="#1f3d55"/></linearGradient>
+    <linearGradient id="ai-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe0ee"/><stop offset="1" stop-color="#f6e7cf"/></linearGradient>
+  </defs>
+  <rect x="4" y="4" width="92" height="92" rx="22" fill="url(#ai-bg)"/>
+  <rect x="16" y="22" width="68" height="52" rx="7" fill="url(#ai-sky)"/>
+  <path d="M16 58 L33 48 L46 54 L62 43 L84 55 L84 67 a7 7 0 0 1 -7 7 L23 74 a7 7 0 0 1 -7 -7Z" fill="#5f8698"/>
+  <rect x="16" y="22" width="68" height="6" rx="3" fill="#ffffff" opacity=".55"/>
+  <rect x="22" y="61" width="30" height="9" rx="4.5" fill="#ffffff"/>
+  <rect x="26" y="64.2" width="18" height="2.6" rx="1.3" fill="#1f3d55"/>
+</svg>

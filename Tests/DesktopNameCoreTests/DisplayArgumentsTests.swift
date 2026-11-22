@@ -1,5 +1,6 @@
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Every invocation in specs 008 and 010, against the one function that reads a command line (spec 008 SC-001, spec 010
 /// SC-001). A result names the displays in order, joined with ", ".

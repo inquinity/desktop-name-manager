@@ -6,6 +6,10 @@ public enum DnmError: Error, Equatable, Sendable {
     case invalidInput(String)
     /// A wallpaper the tool will not change: dynamic, catalog, video, shuffle, the macOS stand-in or none (exit 3).
     case unsupportedWallpaper(String)
+    /// The system reports no wallpaper file for the Desktop (exit 3).
+    case noWallpaperFile
+    /// The wallpaper file is not a picture the tool can read; carries its file name (exit 3).
+    case unreadableWallpaper(String)
     /// macOS denied access to a file the tool needs; carries the system's message (exit 1).
     case accessDenied(String)
     /// The recorded original image cannot be found (exit 1).
@@ -27,7 +31,7 @@ public enum DnmError: Error, Equatable, Sendable {
     public var exitCode: Int32 {
         switch self {
         case .invalidInput: 2
-        case .unsupportedWallpaper: 3
+        case .unsupportedWallpaper, .noWallpaperFile, .unreadableWallpaper: 3
         case .partWay(_, let exitCode): exitCode
         case .interrupted: 130
         default: 1
@@ -39,7 +43,9 @@ extension DnmError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .invalidInput(let message): message
-        case .unsupportedWallpaper(let reason): "This wallpaper is not supported yet: \(reason). Nothing was changed."
+        case .unsupportedWallpaper(let reason): "This wallpaper is not supported: \(reason). Nothing was changed."
+        case .noWallpaperFile: "This Desktop has no wallpaper picture to label. Nothing was changed."
+        case .unreadableWallpaper(let name): "Cannot read wallpaper '\(name)'. Nothing was changed."
         case .accessDenied(let message): "macOS denied access: \(message). Nothing was changed."
         case .originalMissing(let name): "The original wallpaper \(name) can no longer be found. Choose a wallpaper in System Settings > Wallpaper. Nothing was changed."
         case .cannotUndo(let reason): "Cannot undo: \(reason)."

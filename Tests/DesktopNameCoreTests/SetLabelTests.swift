@@ -2,6 +2,7 @@ import Foundation
 import ImageIO
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 @Suite struct SetLabelTests {
     @Test func labelsOnlyTheTargetDisplay() throws {

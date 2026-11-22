@@ -13,7 +13,8 @@ import Testing
         while directory.path != "/" {
             if FileManager.default.fileExists(atPath: directory.appendingPathComponent("Package.swift").path) {
                 let candidate = directory.appendingPathComponent("wallpaper-samples", isDirectory: true)
-                return FileManager.default.fileExists(atPath: candidate.path) ? candidate : nil
+                // Resolved, so a link to the folder (as in a git worktree) works too.
+                return FileManager.default.fileExists(atPath: candidate.path) ? candidate.resolvingSymlinksInPath() : nil
             }
             directory = directory.deletingLastPathComponent()
         }

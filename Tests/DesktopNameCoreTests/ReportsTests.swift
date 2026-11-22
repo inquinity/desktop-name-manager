@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 @Suite struct ReportsTests {
     func object(_ json: String) throws -> [String: Any] {

@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Spec 009: `set` uses an existing labeled image when asked for the same thing, so a deleted and recreated Desktop
 /// adds nothing to the store.

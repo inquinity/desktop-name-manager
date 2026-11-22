@@ -30,26 +30,7 @@ extension DesktopLabeler {
         let current = try system.currentWallpaper(on: display)
         let manifest = try store.readManifest()
 
-        // Where the unlabeled picture comes from: our own stamp's recorded original, or the wallpaper itself.
-        let replacing: Stamp?
-        let original: Original
-        if let ours = stamp(for: current.url, in: manifest) {
-            original = ours.original
-            // Any of our labels showing here counts, whatever its record says: macOS gives new Desktops a
-            // copy of the first Desktop's image, so one labeled image can be on several Desktops.
-            replacing = ours
-        } else {
-            // A file named like ours that this store does not know (another store, a lost manifest) must not
-            // become an "original": it would stack labels and be deleted by that store's cleanup.
-            if let url = current.url, Housekeeping.isOurFileName(url.lastPathComponent) {
-                throw DnmError.failure("The wallpaper \(url.lastPathComponent) was made by this tool but is not in this store (another build or a lost manifest). Choose a wallpaper in System Settings > Wallpaper, then run again. Nothing was changed.")
-            }
-            switch try WallpaperKind.classify(current) {
-            case .unsupported(let reason): throw DnmError.unsupportedWallpaper(reason)
-            case .supported(let url): original = Self.original(from: current, url: url)
-            }
-            replacing = nil
-        }
+        let (original, replacing) = try labelingSource(current, in: manifest)
 
         // Render from the recorded original, never from a previous stamp, so labels do not stack.
         let baseURL = try Self.resolve(original)
@@ -108,6 +89,28 @@ extension DesktopLabeler {
             throw error
         }
         return SetLabelResult(label: rendered.label, displayName: display.name, replaced: replacing != nil)
+    }
+
+    /// Where the unlabeled picture comes from: our own stamp's recorded original, or the wallpaper itself, and the
+    /// stamp a new label would replace. Throws for a wallpaper that cannot be labeled. `setLabel` and the app's
+    /// preview both use this, so the preview is of the image `setLabel` would stamp.
+    func labelingSource(_ current: CurrentWallpaper, in manifest: Manifest) throws -> (original: Original, replacing: Stamp?) {
+        if let ours = stamp(for: current.url, in: manifest) {
+            // Any of our labels showing here counts, whatever its record says: macOS gives new Desktops a
+            // copy of the first Desktop's image, so one labeled image can be on several Desktops.
+            return (ours.original, ours)
+        }
+        // A file named like ours that this store does not know (another store, a lost manifest) must not
+        // become an "original": it would stack labels and be deleted by that store's cleanup.
+        if let url = current.url, Housekeeping.isOurFileName(url.lastPathComponent) {
+            throw DnmError.failure("The wallpaper \(url.lastPathComponent) was made by this tool but is not in this store (another build or a lost manifest). Choose a wallpaper in System Settings > Wallpaper, then run again. Nothing was changed.")
+        }
+        switch try WallpaperKind.classify(current) {
+        case .unsupported(let reason): throw DnmError.unsupportedWallpaper(reason)
+        case .noFile: throw DnmError.noWallpaperFile
+        case .unreadable(let name): throw DnmError.unreadableWallpaper(name)
+        case .supported(let url): return (Self.original(from: current, url: url), nil)
+        }
     }
 
     /// Puts an existing label's image on the Desktop instead of making a new one: the label of a deleted Desktop (still

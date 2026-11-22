@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Spec 009: `cleanup` finds labeled images that no Desktop is known to show, and deletes exactly what was shown.
 @Suite struct CleanupTests {

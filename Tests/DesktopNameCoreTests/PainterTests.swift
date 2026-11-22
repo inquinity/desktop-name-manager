@@ -2,6 +2,7 @@ import CoreGraphics
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 @Suite struct PainterTests {
     let geometry = DisplayGeometry(pointWidth: 800, pointHeight: 500, scale: 1, insetTop: 30, insetLeft: 0, insetBottom: 60, insetRight: 0)

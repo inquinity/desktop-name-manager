@@ -14,6 +14,7 @@ Desktop Name Manager.app/
     ├── Helpers/dnm                    # the command-line tool, identical to the standalone build
     └── Resources/
         ├── AppIcon.icns
+        ├── MenuBarGlyph.svg           # the menu-bar item's template image
         └── Licenses/                  # the license files of every shipped component (constitution)
 ```
 

@@ -97,8 +97,10 @@ import Testing
     @Test(.enabled(if: HygieneScanTests.repositoryRoot != nil))
     func noImagesAreTrackedOutsideDocs() throws {
         let imageExtensions: Set<String> = ["jpg", "jpeg", "png", "heic", "tif", "tiff", "gif"]
-        let offenders = try Self.trackedFiles().filter {
-            imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) && !$0.hasPrefix("docs/")
+        // The app icon's sizes are rendered from Resources/App/AppIcon.svg, drawn for the project (spec 014, Gate A).
+        let allowed = ["docs/", "Resources/App/AppIcon.iconset/"]
+        let offenders = try Self.trackedFiles().filter { file in
+            imageExtensions.contains((file as NSString).pathExtension.lowercased()) && !allowed.contains { file.hasPrefix($0) }
         }
         #expect(offenders.isEmpty, "Tracked images (personal wallpapers must stay in wallpaper-samples/): \(offenders)")
     }

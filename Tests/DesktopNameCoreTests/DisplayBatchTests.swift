@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Spec 010: one change on several displays, in order, stopping at the first failure (FR-006, FR-009, SC-002).
 @Suite struct DisplayBatchTests {
@@ -45,7 +46,7 @@ import Testing
             Issue.record("expected an error")
         } catch let error as DnmError {
             #expect(error.exitCode == 3)
-            #expect(error.errorDescription == "On DP: This wallpaper is not supported yet: dynamic. Nothing was changed on DP. Changed before this: Built-in Display. To put it back within 60 seconds: dnm undo main.")
+            #expect(error.errorDescription == "On DP: This wallpaper is not supported: dynamic. Nothing was changed on DP. Changed before this: Built-in Display. To put it back within 60 seconds: dnm undo main.")
         } catch { Issue.record("wrong error: \(error)") }
         #expect(attempted == ["Built-in Display", "DP"], "the third display is never attempted")
     }

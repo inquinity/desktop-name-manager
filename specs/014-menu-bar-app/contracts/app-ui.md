@@ -1,4 +1,4 @@
-# Contract: the app's screens, menu and messages (spec 014)
+# Contract: the app's screens, windows and messages (spec 014)
 
 What the person sees and can do. Layout and visual details are settled by the prototypes (FR-001, FR-002); this
 contract fixes the content, the behavior and the wording rules the prototypes and the build must both follow. Text in
@@ -6,37 +6,59 @@ quotes is the proposed wording; the approved prototype may change wording, and `
 
 ## Menu-bar item (FR-010 to FR-012)
 
-| Mode | Desktop with a label | Desktop without a label (or a label this store does not know) |
-|---|---|---|
-| Icon and label (default) | icon + label (shortened to 24 characters with "…") | icon |
-| Icon | icon | icon |
-| Hidden | no item | no item |
+| Mode | The item |
+|---|---|
+| Icon and text (default) | icon + "dnm" (prototype review round 6) |
+| Icon | icon |
+| Hidden | no item |
 
-It follows the active display (research R5). Its accessibility label is "Desktop Name Manager: <label>" or
-"Desktop Name Manager: no label".
+The item never shows the Desktop's label (prototype review round 3, 2026-11-19): a label beside an icon reads as an
+app's name. It does not change with Desktop switches. Its accessibility label is "Desktop Name Manager".
 
-## Menu (FR-013, FR-016b)
+## Main window (FR-013, FR-013a, FR-016b)
 
-In order; items in brackets appear only when their condition holds.
+A panel under the menu-bar item (an `NSPopover`, research R2), opened by clicking the item. In order; items in
+brackets appear only when their condition holds.
 
-1. "<Display name> · <label>" or "<Display name> · No label" (disabled, informational; the label in full)
-2. [red] "⚠︎ Old labeled images use <size>. Clean Up…" (when FR-016b holds; opens Settings at Clean Up)
-3. separator
-4. "Label this Desktop…" (shows the hotkey when it is on)
-5. [labeled] "Remove Label"
-6. [undo available] "Undo <Label|Remove> on <display>" (`checkUndo` passes; 60-second window)
-7. separator
-8. "Settings…" ⌘,
-9. "About Desktop Name Manager"
-10. "Help" ▸ "Configuration…"
-11. separator
-12. "Quit Desktop Name Manager" ⌘Q
+1. The Desktop it is about: the display's name, small, and under it the label in full, or "No label".
+2. The label field, placeholder "Label this Desktop", focused; it holds the current label, selected, or is empty. Beside
+   it "Apply" (default, Return), off while the text is invalid or unchanged. One sentence under it when the text is
+   too long (the editor's sentence); the field follows the editor's input rules. A Desktop with no label gets the
+   defaults for new labels from General; a labeled Desktop keeps its label's style and gets the new text. On success the main window closes.
+3. "Style and Preview…": opens the editor in the same panel.
+4. [labeled] "Remove Label"
+5. [undo available] "Undo <Label|Remove> on <display>" (`checkUndo` passes; 60-second window)
+6. "Labels in use" with "<n> on <m> displays ›": opens the Labels pane.
+7. One storage row: "Space used: <size>" and under it "<size> in old images", with "Clean Up…" (opens the Clean Up
+   pane). When FR-016b holds, the second line is red, with a warning symbol ("⚠︎ 63.4 MB in old images"); there is no
+   separate banner.
+8. separator
+9. "Settings…" ⌘, (opens the Settings window at General)
+10. "Configuration…" (at Configuration)
+11. "About Desktop Name Manager" (at About)
+12. "Quit" ⌘Q
 
-The menu never lists other Desktops' labels (clarification 2026-11-12).
+Two optional hotkeys (FR-014): the main hotkey opens this main window, the editor hotkey opens the editor directly.
+Each opens for the active display (`NSScreen.main`, else the screen under the pointer): under the item when it is
+shown on that display, else as a floating panel near the top of that display.
+
+| Press | Nothing open | Main window open | Editor open |
+|---|---|---|---|
+| Main hotkey | main window, active display | moves to the next display | main window, same display |
+| Editor hotkey | editor, active display | editor, same display | moves to the next display |
+
+"Next" is left to right by position, wrapping. With one display, or "Displays have separate Spaces" off, a window
+that would move stays and takes the keyboard. A moved window is about that display's Desktop: its label, Undo, and
+an editor started fresh from its label. A hotkey never hides the window. Cancel in an editor the editor hotkey opened
+with nothing open (or moved) closes the window; switched to from the main window, it goes back there.
+
+The main window never lists other Desktops' labels (the Labels pane does). It opens on the display whose menu bar was
+clicked and labels that display's Desktop on screen.
 
 ## Editor (FR-004 to FR-009)
 
-Opened from the menu, from the hotkey, or from the welcome window, for the Desktop on screen of one display.
+Opened from the main window's "Style and Preview…" (in the same panel; Cancel returns to the main window), for the
+Desktop on screen of one display.
 
 - Header: "Label this Desktop" and the display's name.
 - Label field: focused; holds the current label, selected, or is empty.
@@ -49,23 +71,25 @@ Opened from the menu, from the hotkey, or from the welcome window, for the Deskt
 - Buttons: [labeled] "Remove Label", "Cancel", "Apply" (default, Return).
 - Escape, Cancel and a click outside close it with no change (no confirmation).
 
-Whether position, size and color sit behind a "More options" fold, as in concept A, is decided in prototype review.
+Color, position and size are always shown; there is no "More options" fold (prototype review round 9).
 
 ### Editor messages (FR-008, FR-009)
 
+Input rules (prototype review round 3): line breaks and control characters (including tabs and text-direction marks)
+typed or pasted are left out of the text, so they never need a message; Return applies; Shift-Return and Option-Return
+do nothing; an empty field turns Apply off with no message. Applying asks for no confirmation; Undo is offered.
+
 One sentence, under the field, shown instead of enabling Apply. The core's own sentences are used where they exist
-(`LabelText`, `DnmError`), so the app and `dnm` say the same thing:
+(`LabelText`, `DnmError`), so the app and `dnm` say the same thing, except where the app's wording differs:
 
 | Case | Message |
 |---|---|
-| Empty | "A label needs at least one visible character." |
-| Line break | "A label must be a single line (no line breaks)." |
-| Control characters | "A label cannot contain control characters (such as escape, tab or text-direction marks)." |
+| Empty | none (Apply off) |
 | Too long | "A label can have at most 30 characters; this one has N." |
-| Unsupported wallpaper | "This wallpaper is not supported yet: <reason>. Nothing was changed." (no Apply) |
+| Unsupported wallpaper | One sentence naming the kind, with no reason clause and no "yet" (no Apply): "Dynamic wallpapers are not supported." Likewise "Shuffling wallpapers…", "Aerial wallpapers…" and "Apple catalog wallpapers are not supported." A file that is not a readable picture: "Cannot read wallpaper ‘<file name>’." No wallpaper file (a solid color, a full-screen app's Space, or a type with no file): "This Desktop has no wallpaper picture to label." The core has the same two sentences, followed by "Nothing was changed." (`DnmError.unreadableWallpaper`, `.noWallpaperFile`) |
 | Original missing (Remove) | the core's `originalMissing` sentence |
-| Store newer than the app | the core's `newerManifest` sentence, with "Update the app." for "Update the tool." |
-| A stamp from another store | the core's sentence, with "then try again" for "then run again" |
+| Store newer than the app | the core's `newerManifest` sentence, with "this app" for "this tool" and "Update the app." for "Update the tool." |
+| A stamp from another store | the core's sentence, with "this app" for "this tool" and "then try again" for "then run again" |
 | Any other failure | the core's sentence; the Desktop is left as it was |
 
 A sentence from the core that names a `dnm` option or command is shown with the app's wording for the same action; the
@@ -73,31 +97,69 @@ list of such substitutions is part of the tasks and is tested.
 
 ## Welcome window (FR-017a)
 
-First launch only (per user). Content: what the app does in one sentence; where it lives ("in the menu bar, near the
-clock"); "Open at login" checkbox, ticked; buttons "Label This Desktop" (opens the editor) and "Done". Closing the
-window counts as Done. Either way the login choice is applied and the window never shows again.
+Shown once: on the first launch for this user, never at a login start, and never again once dismissed. Content: the
+app icon and name; what the app does in one sentence; how to start ("To label a Desktop, click <the item> in the menu
+bar.", with the item drawn as it looks in the menu bar);
+one button, "OK" (default, Return). Closing the window counts as OK. It holds no settings and no actions; Open at login
+is in Settings only.
 
-## Settings (FR-015, FR-016, FR-016a)
+## Settings window (FR-015, FR-016, FR-016a, FR-019)
 
-Sections:
+One window with a sidebar, as in System Settings: the sidebar lists the panes with an icon each, and the pane on the
+right has its title at the top and its controls in grouped, rounded sections, a title on the left of each row and
+its control or value on the right. No explanatory lines under rows, except the two promises in About.
 
-- **General**: Menu bar shows (Icon and label / Icon / Hidden); Hotkey (off/on, the recorder, and a one-line error when
-  it cannot be claimed: "Another app is using this shortcut. Choose another."); Open at login.
-- **New labels**: default style, color, position and size, with a line: "These apply to labels made in the app;
-  `dnm` keeps its own defaults."
-- **Clean Up**: space used by labeled images; the list of old labels with their display, reason, date and size (as
-  `dnm cleanup` lists them); the age ("Older than N days"); "Delete N Labels…" with a confirmation naming the count and
-  size; the red message when FR-016b holds; a line saying that finding labels of deleted Desktops by visiting each one
-  is `dnm cleanup --scan`.
+Sidebar, in order (a gap between groups): General, Clean Up; Configuration, Displays, Labels; About.
 
-Launching the app again while it runs opens Settings (FR-017).
+The main window's Settings… opens it at General, Configuration… at Configuration, About Desktop Name Manager at About,
+"Labels in use" at Labels, and Clean Up… at Clean Up. Launching the app again while it runs opens it at General
+(FR-017). It shows the Dock icon while open.
 
-## About and Help > Configuration (FR-019)
+- **General**:
+  - System: "Open at login" (a switch, off by default); "Menu bar shows" (Icon and text / Icon / Nothing (hidden)).
+    "Nothing (hidden)" is refused, with its sentence, until the main window's hotkey works, and that shortcut cannot
+    be cleared while the item is hidden (FR-014a).
+  - Hotkeys: "Open the main window" and "Open Style and Preview", each with a shortcut recorder, empty by default
+    ("Record Shortcut"), with a clear button (×) once a shortcut is recorded; there is a hotkey exactly when its
+    shortcut is recorded, so there is no on/off switch. A one-line error under a recorder when macOS refuses the
+    shortcut: "Another app is using this shortcut. Choose another." (macOS does not report other apps' shortcuts, so
+    this is rare); or when it is the other hotkey's: "This shortcut opens the main window. Choose another." / "This
+    shortcut opens Style and Preview. Choose another."
+  - New Labels: Style, Color, Position and Size, used for new labels from the main window and the editor. No sample:
+    the editor is where a label is seen before it is applied.
+- **Clean Up**: the red message when FR-016b holds; Space: "Labeled images use" with the size, and "Older than N days"; "Old labeled images: <count>": the list with a checkbox each, their display,
+  reason and size. A bar pinned under the list, which never scrolls away however long the list is: "Select all", the
+  selection's count and size ("3 selected, 5.8 MB"; the whole list's, "22 images, 53.7 MB", when nothing is selected)
+  and "Delete Selected…", off until something is selected; a confirmation sheet naming the count and size. With
+  nothing old: "No old images." and no bar.
+- **Configuration**: This Mac: macOS (version and chip), Separate Spaces (on or off, with a symbol), Displays (the
+  count; opens Displays). Storage: Labels in use (count and size; opens Labels), Old labeled images (size, with Clean
+  Up…), Data folder (the path, shortened with `~`, with Show in Finder). Only what the app can read: no Accessibility
+  row (the app does not use it) and no Space-shortcut row (macOS offers no public way to read it).
+- **Displays**: one section per display, headed by its name ("Main display" under the main one) with an "Add
+  Alias…" button; in it, one row per alias with a remove button (−), or "No aliases." Add Alias… opens a sheet (as
+  Users & Groups' Add User…; decided 2026-11-21 after the inline field proved hard to find): "Add an Alias for
+  <display>", a bordered field, the rules ("Letters, numbers, hyphens and underscores, up to 30. Not only digits."),
+  Cancel and Add (default, Return; off while the field is empty). Adding and removing use the core's alias operations
+  (`setAlias`, `removeAlias`), so the rules and sentences are `dnm alias`'s: not "main", not only digits ("An alias
+  cannot be only digits.", without the core's `--display` clause), not a connected display's name. A refusal is one
+  red line in the sheet, which stays open; an alias already on another display moves, and its new section says
+  "<alias> moved here from <display>." A remove that fails shows one red line in that display's section. No confirmation: removing an alias is undone by
+  adding it again.
+- **Labels**: the labels in use, with their display and size, and their count and total under them.
+- **About**: a header card with the app icon, "Desktop Name Manager", "Version 0.4.0 (34)", and the one-line
+  tagline "Labels for your Desktops, right in the wallpaper." (no build date); Privacy: "Needs no permissions" and "Never connects", each with a check
+  symbol and one line; Links: "GitHub ↗" (the source repository) and "Acknowledgements ›", which turns the pane to the
+  acknowledgements with a back button. As in CodexBar: one row per third-party component shipped in the app bundle
+  (transitive ones included), each with a disclosure arrow, its name, its authors, and its license identifier on the
+  right (for example "Apache-2.0"); the arrow shows the full license text from the bundle's `Licenses/`, which
+  scrolls. No links in the rows. No Updates section (the app
+  never connects), no license line, no Copy button.
 
-About: the content of `dnm about` (name, version line, license, source link, data folder, permissions statement,
-acknowledgements with license links). Configuration: the rows of `dnm check` with their state symbol; the
-Accessibility row explains that it concerns the app running `dnm`, and that this app does not use the permission
-(research R8). Both have a "Copy" button that copies the text as `dnm` prints it.
+## Wording (FR-019a)
+
+No window or message names the command-line tool, Terminal, or a `dnm` command or option. Where a core sentence
+names one, the app shows its own wording for the same action (see Editor messages).
 
 ## Keyboard and VoiceOver (FR-027)
 

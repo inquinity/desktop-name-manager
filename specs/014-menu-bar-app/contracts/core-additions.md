@@ -57,3 +57,38 @@ public final class StoreWatcher {
 ```
 
 Tests: a transaction in the same process triggers one call; a burst of writes triggers one call; stopping ends calls.
+
+## 4. Added while building the app (Phases 5 to 8)
+
+Each is additive; `dnm` calls none of them except through the unchanged paths noted.
+
+```swift
+public struct PreviewOrigin: Sendable { /* opaque: the Desktop's original and the display's geometry */ }
+
+extension DesktopLabeler {
+    public let system: WallpaperSystem                   // was internal; the app lists displays and watches the store
+    public let store: Store
+
+    /// The cheap half of `previewSource(on:maxPixelWidth:)`, run where the wallpaper system may be read (the main
+    /// thread); `previewSource(on:)` is now this followed by the static half, so its results are unchanged.
+    public func previewOrigin(on display: Display) throws -> PreviewOrigin
+    /// The expensive half, safe off the main thread (T034: the editor no longer loads its picture on the main thread).
+    public static func previewSource(from origin: PreviewOrigin, maxPixelWidth: Int) throws -> PreviewSource
+
+    /// `setAlias(_:display:)` for a display itself (the Displays pane, where two displays may share a name); the same
+    /// rules and sentences. `setAlias(_:display:)` now resolves the display and shares the rest with it.
+    public func setAlias(_ rawName: String, on display: Display) throws -> SetAliasResult
+}
+
+extension SystemWallpaperSystem {
+    /// The display a screen shows, as `displays()` reports it (the menu bar that was clicked).
+    @MainActor public static func display(for screen: NSScreen) -> Display
+}
+
+public struct CleanupPlan {
+    public init(days: Int?, candidates: [CleanupCandidate])   // a plan of the selected candidates, for carryOut
+}
+public struct CleanupCandidate {
+    public internal(set) var stampID: UUID                    // identifies a row in the Clean Up pane's selection
+}
+```

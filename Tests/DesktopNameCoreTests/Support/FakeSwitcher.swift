@@ -1,6 +1,7 @@
 import CoreGraphics
 import Foundation
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Displays' Desktops as positions, moved by the fake shortcuts.
 ///

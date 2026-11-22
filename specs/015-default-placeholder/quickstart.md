@@ -18,7 +18,7 @@ Use the `dnm` built from this branch (`just build`) and quote `dnm --version` in
 ## Steps
 
 1. In System Settings > Wallpaper, choose **Golden Gate** (dynamic) for the current Desktop. Run `dnm set Test` and
-   `echo $?`. Expect "This wallpaper is not supported yet: macOS reports the default wallpaper when dynamic or
+   `echo $?`. Expect "This wallpaper is not supported: macOS reports the default wallpaper when dynamic or
    unsupported wallpapers are selected. Nothing was changed.", exit code 3, and the dynamic wallpaper still showing.
 2. Repeat with **Macintosh** (dynamic) and, if offered, an aerial wallpaper. Note whether each is refused by this
    reason or another one (an aerial may report its video and be refused as a video).

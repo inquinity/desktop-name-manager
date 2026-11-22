@@ -61,23 +61,32 @@ Expected: all pass; `build.noindex/app/Desktop Name Manager.app` exists with the
    Desktop from the app, note the stamp file, remove, label it with `dnm set` with the same text and options: `dnm`
    reuses the same image (spec 009 reuse), which shows they are identical.
 5. **Undo both ways** (US2 scenario 8, live): label in the app, run `dnm undo`; label with `dnm set`, choose Undo in the
-   app's menu within 60 s. Both undo; after 60 s the menu no longer offers Undo.
+   app's main window within 60 s. Both undo; after 60 s the main window no longer offers Undo. Also label a Desktop
+   from the main window's field (US2 scenario 9): it gets the defaults for new labels from General, and `dnm show` reports them.
 6. **Unsupported wallpaper** (Edge Cases, live): on a dynamic wallpaper, open the editor: the sentence explains why,
    no Apply, nothing changes.
-7. **Menu-bar label follows** (US3, SC-004, live, two displays; spike S1): label two Desktops on each display; switch
-   Desktops 20 times across both displays and move between displays; the item shows the right label within a second
-   every time; Icon and Hidden modes behave as contracts/app-ui.md says; a label set with `dnm` appears within a
-   second.
-8. **Hotkey** (US4, live): turn it on (⌃⌥⌘L); press it in another app; the editor opens on the active display; hide
-   the menu-bar item and press it again: a floating panel opens; pick a shortcut another app holds: Settings says so.
+7. **The main window names the Desktop** (US3, SC-004, live, two displays; spike S1): label two Desktops on each
+   display; switch Desktops 20 times across both displays, opening the main window from each display's menu bar after
+   each switch; it names the right label every time; a label set with `dnm` shows the next time it opens; the item
+   shows only the icon and the fixed text, never a label; Icon and Hidden modes behave as contracts/app-ui.md says.
+8. **Hotkeys** (US4, live): record ⌃⌥⌘L for the main window and ⌃⌥⌘E for Style and Preview; recording ⌃⌥⌘L for
+   the editor is refused with its sentence. In another app, press ⌃⌥⌘L: the main window opens on the active display;
+   press it again: it moves to the other display (with one display it stays); press ⌃⌥⌘E: the editor replaces it on
+   the same display, and Cancel goes back to the main window; close it, press ⌃⌥⌘E: the editor opens and Cancel
+   closes it; press ⌃⌥⌘E twice: it moves. Hide the menu-bar item: the hotkeys open a floating panel, and "Style and
+   Preview…" turns it into the editor. Escape closes each; no hotkey ever hides a window.
 9. **Welcome and login** (US5, live): `defaults delete com.altmansoftwaredesign.desktop-name-manager.dev`, launch:
-   the welcome window shows once; with "Open at login" ticked, log out and in: the app is in the menu bar with no
-   window; launching it again opens Settings.
+   the welcome window shows once; turn on Open at login in Settings, log out and in: the app is in the menu bar with
+   no window and no welcome window; launching it again opens the Settings window at General.
 10. **Clean Up** (US5 scenarios 7 and 8): with a test store holding old labels (made with `dnm` and an earlier date
-    through the test support), Clean Up lists what `dnm cleanup` lists; deleting asks first; above 50 MB the red
-    message shows in the menu and in Clean Up, and goes away after cleaning.
-11. **About and Configuration** (FR-019): compare with `dnm about` and `dnm check`; only the Accessibility row's
-    explanation differs, as research R8 says.
+    through the test support), Clean Up lists what `dnm cleanup` lists; Delete Selected is off until something is
+    selected, deletes only the selection, and asks first; above 50 MB the red
+    message shows in the main window and in Clean Up, and goes away after cleaning.
+11. **The Settings window** (FR-016, FR-019): Settings…, Configuration… and About Desktop Name Manager open it at
+    General, Configuration and About; the version, macOS version, Separate Spaces, displays and aliases match `dnm
+    about` and `dnm check`; an alias added or removed in Displays shows in `dnm alias` at once, and "main" or
+    "123" is refused with one line; the Labels pane lists what `dnm list` lists for the Desktops on screen and stored; no
+    window or message names `dnm` or Terminal (FR-019a).
 12. **No permission, no network** (SC-006, SC-008, live): on a fresh user account, run scenarios 3 and 8: no
     permission prompt appears; `nettop -p <app pid>` shows no connection throughout.
 13. **VoiceOver** (FR-027, live): with VoiceOver on, label a Desktop using only the keyboard.

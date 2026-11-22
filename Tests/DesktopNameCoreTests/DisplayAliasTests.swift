@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Spec 006: alias names and the manifest's schema versions.
 @Suite struct DisplayAliasTests {

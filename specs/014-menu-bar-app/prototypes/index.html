@@ -1,0 +1,1111 @@
+<title>Desktop Name Manager Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!--
+  Prototype stage 1 for spec 014 (FR-001 to FR-003): clickable mockups of the menu-bar app.
+  Self-contained: inline CSS and JS, no external assets; every wallpaper is drawn here in SVG, and every
+  display name is synthetic ("Built-in Display", "DP1"). Nothing here touches a real wallpaper or store.
+-->
+<style>
+/* Layout: a review tool. A state index on the left, a scaled 1280 x 800 Mac screen on the right, and a
+   caption below the screen with what the state shows, its requirements and the open review questions. */
+:root {
+  --bg: #eef0ed;
+  --panel: #ffffff;
+  --fg: #1b2220;
+  --muted: #5a6560;
+  --line: #d6dcd8;
+  --accent: #1d6b5f;
+  --accent-ink: #ffffff;
+  --accent-soft: #dcebe7;
+  --question: #8a4b00;
+  --question-soft: #fbefdc;
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121715; --panel: #1a201e; --fg: #e4eae7; --muted: #98a59f; --line: #2c3532;
+    --accent: #6cc0ae; --accent-ink: #0d1412; --accent-soft: #1f3530;
+    --question: #f2b866; --question-soft: #3a2c17;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121715; --panel: #1a201e; --fg: #e4eae7; --muted: #98a59f; --line: #2c3532;
+  --accent: #6cc0ae; --accent-ink: #0d1412; --accent-soft: #1f3530;
+  --question: #f2b866; --question-soft: #3a2c17;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.5 var(--font-ui); }
+.wrap {
+  max-width: 1520px; margin: 0 auto;
+  padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 18px;
+}
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.eyebrow { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0; }
+h1 { font-size: 22px; line-height: 1.2; margin: 2px 0 0; text-wrap: balance; }
+.top p.lede { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.ctl { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.seg { display: inline-flex; padding: 2px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); }
+.seg button {
+  font: inherit; font-size: 12px; color: var(--fg); background: transparent; border: 0; border-radius: 6px;
+  padding: 4px 10px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.seg button:focus-visible, .nav a:focus-visible, .pager button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 22px; align-items: start; }
+.nav { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: flex; flex-direction: column; gap: 14px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; max-height: calc(100vh - 24px); overflow: auto; }
+.nav h2 { font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 0 0 4px; }
+.nav ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.nav a { display: flex; gap: 8px; align-items: baseline; padding: 4px 8px; border-radius: 6px; color: var(--fg); text-decoration: none; font-size: 13px; }
+.nav a .n { font-family: var(--font-mono); font-size: 11px; color: var(--muted); min-width: 2ch; font-variant-numeric: tabular-nums; }
+.nav a:hover { background: var(--accent-soft); }
+.nav a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+.nav a[aria-current="page"] .n { color: var(--accent-ink); }
+.nav a .q { margin-left: auto; font-size: 10px; color: var(--question); }
+.nav a[aria-current="page"] .q { color: var(--accent-ink); }
+
+.main { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.stage { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1280 / 800; border-radius: 12px; overflow: hidden;
+  background: #000; box-shadow: 0 0 0 1px var(--line), 0 16px 40px rgba(0, 0, 0, .18); }
+.caption { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 320px); gap: 18px; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+.caption h3 { margin: 0; font-size: 17px; text-wrap: balance; }
+.caption p { margin: 6px 0 0; max-width: 72ch; }
+.reqs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.reqs span { font-family: var(--font-mono); font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--fg); }
+.questions { background: var(--question-soft); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.questions h4 { margin: 0 0 4px; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--question); }
+.questions ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.questions.none { background: transparent; border: 1px dashed var(--line); color: var(--muted); font-size: 13px; }
+.pager { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12px; color: var(--muted); }
+.pager button { font: inherit; font-size: 12px; color: var(--fg); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; padding: 5px 12px; cursor: pointer; }
+.pager button:disabled { opacity: .4; cursor: default; }
+.pager, .stage, .nav { -webkit-user-select: none; user-select: none; }
+.stage input { -webkit-user-select: text; user-select: text; }
+.foot { color: var(--muted); font-size: 12px; max-width: 90ch; }
+code { font-family: var(--font-mono); font-size: .92em; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .nav { position: static; max-height: none; }
+  .nav ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .caption { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- The Mac screen (1280 x 800 points, scaled to fit) ---------- */
+.screen {
+  position: absolute; left: 0; top: 0; width: 1280px; height: 800px; transform-origin: 0 0; transform: scale(var(--s, 1));
+  overflow: hidden; font: 13px/1.35 var(--font-ui); color: var(--w-fg);
+  --w-bg: rgba(243, 243, 246, .93); --w-solid: #ececef; --w-fg: #1d1d1f; --w-sec: #6e6e73; --w-sep: rgba(0, 0, 0, .1);
+  --w-field: #ffffff; --w-ctl: #e2e2e7; --w-ctl-on: #ffffff; --w-acc: #0a64d6; --w-acc-ink: #ffffff; --w-danger: #c4262e;
+  --w-menu: rgba(246, 246, 248, .88); --w-ok: #1f8a3b; --w-warn-bg: rgba(196, 38, 46, .1);
+}
+.screen[data-mac="dark"] {
+  --w-bg: rgba(42, 42, 46, .92); --w-solid: #2a2a2e; --w-fg: #f5f5f7; --w-sec: #a1a1a6; --w-sep: rgba(255, 255, 255, .13);
+  --w-field: #1d1d20; --w-ctl: #3a3a3f; --w-ctl-on: #5d5d63; --w-acc: #0a84ff; --w-acc-ink: #ffffff; --w-danger: #ff6961;
+  --w-menu: rgba(38, 38, 42, .88); --w-ok: #4cd964; --w-warn-bg: rgba(255, 105, 97, .14);
+}
+.screen svg.wp { position: absolute; inset: 0; width: 100%; height: 100%; }
+.screen button, .screen input, .screen select { font: inherit; color: inherit; }
+.screen :focus-visible { outline: 3px solid color-mix(in srgb, var(--w-acc) 55%, transparent); outline-offset: 1px; }
+
+.mbar { position: absolute; left: 0; top: 0; right: 0; height: 28px; display: flex; align-items: center; gap: 18px; padding: 0 14px;
+  font-size: 13px; z-index: 5; }
+.mbar.on-dark { color: #ffffff; background: rgba(0, 0, 0, .18); }
+.mbar.on-light { color: #1d1d1f; background: rgba(255, 255, 255, .28); }
+.mbar .app { font-weight: 700; }
+.mbar .grow { flex: 1; }
+.mbar .sys { display: flex; align-items: center; gap: 14px; }
+.mbi-wrap { position: relative; display: flex; }
+.mbi { display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent;
+  cursor: pointer; white-space: nowrap; }
+.mbi[aria-expanded="true"] { background: rgba(255, 255, 255, .3); }
+.on-light .mbi[aria-expanded="true"] { background: rgba(0, 0, 0, .12); }
+.mbi.ring { box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px var(--w-acc); animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 2px #ffffff, 0 0 0 9px color-mix(in srgb, var(--w-acc) 40%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .mbi.ring { animation: none; } .spin { animation: none !important; } }
+
+.dock { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); display: flex; gap: 9px; padding: 8px 11px;
+  border-radius: 22px; background: rgba(255, 255, 255, .2); border: 1px solid rgba(255, 255, 255, .25); }
+.dock .t { position: relative; width: 50px; height: 50px; border-radius: 12px; }
+.dock .t.run::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: rgba(255, 255, 255, .85); }
+
+/* Menu */
+.menu { position: absolute; top: calc(100% + 4px); right: 0; width: 318px; padding: 5px; border-radius: 11px; background: var(--w-menu);
+  color: var(--w-fg); border: 1px solid var(--w-sep); box-shadow: 0 14px 40px rgba(0, 0, 0, .32); backdrop-filter: blur(30px) saturate(1.6);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6); z-index: 8; }
+.menu .mi { display: flex; align-items: center; gap: 8px; width: 100%; padding: 3px 10px; min-height: 24px; border: 0; border-radius: 6px;
+  background: transparent; text-align: left; cursor: pointer; position: relative; }
+.menu .mi:hover:not([aria-disabled="true"]), .menu .mi:focus-visible { background: var(--w-acc); color: var(--w-acc-ink); outline: none; }
+.menu .mi[aria-disabled="true"] { color: var(--w-sec); cursor: default; }
+.menu .mi .k { margin-left: auto; color: var(--w-sec); letter-spacing: .04em; }
+.menu .mi:hover .k { color: inherit; }
+.menu .mi.warn { color: var(--w-danger); font-weight: 600; }
+.menu .mi.warn:hover { color: var(--w-acc-ink); background: var(--w-danger); }
+.menu hr { border: 0; height: 1px; background: var(--w-sep); margin: 5px 10px; }
+.menu .sub { display: none; position: absolute; right: calc(100% + 2px); top: -5px; width: 190px; padding: 5px; border-radius: 10px;
+  background: var(--w-menu); border: 1px solid var(--w-sep); box-shadow: 0 10px 30px rgba(0, 0, 0, .3); color: var(--w-fg); }
+.menu .has-sub:hover .sub, .menu .has-sub:focus-within .sub { display: block; }
+
+/* Windows, popover and panel */
+.win { position: absolute; background: var(--w-bg); color: var(--w-fg); border: 1px solid var(--w-sep); border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .42); backdrop-filter: blur(30px) saturate(1.6); -webkit-backdrop-filter: blur(30px) saturate(1.6); z-index: 7; }
+.popover { top: calc(100% + 8px); right: -64px; width: 404px; }
+.panel { top: 70px; left: 50%; transform: translateX(-50%); width: 404px; }
+.editor { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.ed-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.ed-head h2 { margin: 0; font-size: 13px; font-weight: 600; }
+.sec { color: var(--w-sec); font-size: 11px; }
+.field { width: 100%; height: 34px; padding: 0 10px; font-size: 15px !important; border-radius: 8px; border: 1px solid var(--w-sep);
+  background: var(--w-field); }
+.field:focus { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--w-acc) 40%, transparent); border-color: var(--w-acc); }
+.field:disabled { opacity: .55; }
+.msg { display: flex; gap: 6px; margin: -4px 0 0; font-size: 12px; color: var(--w-danger); }
+.msg.info { color: var(--w-sec); }
+.preview { position: relative; width: 372px; height: 233px; border-radius: 10px; overflow: hidden; border: 1px solid var(--w-sep); }
+.preview .pbar { position: absolute; left: 0; right: 0; top: 0; height: 8px; background: rgba(0, 0, 0, .18); }
+.preview .pdock { position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); width: 120px; height: 17px; border-radius: 6px; background: rgba(255, 255, 255, .2); }
+.preview .veil { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0, 0, 0, .35); color: #ffffff; font-size: 12px; font-weight: 600; text-align: center; padding: 0 30px; }
+.cap { font-size: 11px; font-weight: 600; color: var(--w-sec); }
+.chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.chip { display: flex; flex-direction: column; gap: 4px; padding: 3px; border-radius: 10px; border: 2px solid transparent; background: transparent; cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--w-acc); }
+.chip .sw { position: relative; height: 40px; border-radius: 7px; overflow: hidden; display: grid; place-items: center; }
+.chip .sw svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.chip .nm { font-size: 11px; text-align: center; }
+.note { margin: 0; font-size: 11px; color: var(--w-sec); }
+.disclose { align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 0; border: 0; background: transparent; font-size: 12px; font-weight: 600; cursor: pointer; }
+.disclose svg { transition: transform .15s; }
+.disclose[aria-expanded="true"] svg { transform: rotate(90deg); }
+.opts { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px 12px; align-items: center; }
+.opts > span, .opts > label { font-size: 12px; color: var(--w-sec); }
+.mseg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 7px; background: var(--w-ctl); width: max-content; }
+.mseg button { height: 22px; padding: 0 10px; border: 0; border-radius: 5px; font-size: 12px; background: transparent; cursor: pointer; }
+.mseg button[aria-pressed="true"] { background: var(--w-ctl-on); box-shadow: 0 1px 2px rgba(0, 0, 0, .2); }
+.mseg button:disabled { opacity: .5; cursor: default; }
+.colorrow { display: flex; align-items: center; gap: 8px; }
+.well { width: 26px; height: 22px; padding: 0; border: 1px solid var(--w-sep); border-radius: 5px; background: transparent; cursor: pointer; }
+.posgrid { display: grid; grid-template-columns: repeat(3, 34px); grid-template-rows: 20px 20px; gap: 26px 6px; padding: 6px; border-radius: 8px;
+  background: var(--w-ctl); width: max-content; }
+.posgrid button { border: 0; border-radius: 5px; background: var(--w-ctl-on); cursor: pointer; }
+.posgrid button[aria-pressed="true"] { background: var(--w-acc); }
+.ed-foot { display: flex; align-items: center; gap: 8px; padding-top: 12px; border-top: 1px solid var(--w-sep); }
+.ed-foot .grow { flex: 1; }
+.btn { height: 26px; padding: 0 14px; border-radius: 7px; border: 1px solid var(--w-sep); background: var(--w-ctl-on); font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.btn.primary { background: var(--w-acc); color: var(--w-acc-ink); border-color: transparent; font-weight: 600; }
+.btn.danger { background: var(--w-danger); color: #ffffff; border-color: transparent; font-weight: 600; }
+.btn.link { border: 0; background: transparent; color: var(--w-danger); padding: 0 6px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .45); border-top-color: #ffffff; animation: sp .8s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+.titled { display: flex; flex-direction: column; overflow: hidden; }
+.tbar { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-bottom: 1px solid var(--w-sep); position: relative; }
+.tbar .ttl { position: absolute; left: 0; right: 0; text-align: center; font-weight: 600; pointer-events: none; }
+.lights { display: flex; gap: 8px; z-index: 1; }
+.lights i { width: 12px; height: 12px; border-radius: 50%; background: var(--w-ctl); display: block; }
+.lights button { width: 12px; height: 12px; border-radius: 50%; border: 0; padding: 0; background: #ff5f57; cursor: pointer; }
+.tabs { display: flex; justify-content: center; gap: 4px; padding: 8px 0 6px; border-bottom: 1px solid var(--w-sep); }
+.tab { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 92px; padding: 5px 0; border: 0; border-radius: 8px; background: transparent; font-size: 11px; cursor: pointer; color: var(--w-sec); }
+.tab[aria-selected="true"] { background: var(--w-ctl); color: var(--w-acc); }
+.body { padding: 18px 22px 20px; display: flex; flex-direction: column; gap: 14px; }
+.form { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px 12px; align-items: start; }
+.form > .lab { text-align: right; padding-top: 3px; }
+.stack { display: flex; flex-direction: column; gap: 6px; }
+.recorder { display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 6px 0 10px; border-radius: 7px; border: 1px solid var(--w-sep); background: var(--w-field); width: max-content; letter-spacing: .05em; }
+.recorder button { width: 16px; height: 16px; border-radius: 50%; border: 0; background: var(--w-ctl); font-size: 11px; line-height: 16px; padding: 0; cursor: pointer; }
+.hint { font-size: 11px; color: var(--w-sec); }
+.err { font-size: 12px; color: var(--w-danger); }
+.select { height: 26px; border-radius: 7px; border: 1px solid var(--w-sep); background: var(--w-ctl-on); padding: 0 8px; width: max-content; }
+.banner { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 8px; background: var(--w-warn-bg); color: var(--w-danger); font-weight: 600; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.tbl th { text-align: left; font-weight: 600; color: var(--w-sec); padding: 4px 8px; border-bottom: 1px solid var(--w-sep); }
+.tbl td { padding: 5px 8px; border-bottom: 1px solid var(--w-sep); }
+.tbl td.r, .tbl th.r { text-align: right; }
+.tblwrap { max-height: 220px; overflow: auto; border: 1px solid var(--w-sep); border-radius: 8px; background: var(--w-field); }
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.row .grow { flex: 1; }
+.num { width: 54px; height: 24px; border-radius: 6px; border: 1px solid var(--w-sep); background: var(--w-field); padding: 0 6px; text-align: right; }
+.sheetveil { position: absolute; inset: 38px 0 0; background: rgba(0, 0, 0, .18); display: flex; justify-content: center; }
+.sheet { margin-top: 0; width: 360px; padding: 18px; border-radius: 0 0 12px 12px; background: var(--w-solid); box-shadow: 0 12px 30px rgba(0, 0, 0, .3);
+  display: flex; flex-direction: column; gap: 10px; height: max-content; }
+.sheet h3 { margin: 0; font-size: 13px; }
+.sheet p { margin: 0; font-size: 12px; }
+.check { display: grid; grid-template-columns: 26px 128px minmax(0, 1fr); gap: 8px 6px; font-size: 12px; }
+.check .sym { font-weight: 700; text-align: center; }
+.check .ok { color: var(--w-ok); }
+.check .unk { color: var(--w-sec); }
+.check .nm { font-weight: 600; }
+.mono { font-family: var(--font-mono); font-size: 11px; }
+.about { align-items: center; text-align: center; }
+.about p { margin: 0; }
+.about .ver { font-size: 12px; }
+.about .what { font-size: 13px; max-width: 34ch; }
+.perms { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
+.perm { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--w-ctl); }
+.perm svg { flex: none; color: var(--w-ok); margin-top: 1px; }
+.perm strong { display: block; font-size: 12px; }
+.perm span { font-size: 11px; color: var(--w-sec); }
+.alink { border: 0; background: transparent; padding: 0; color: var(--w-acc); font-size: 13px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.acks { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 10px; font-size: 12px; }
+.acks .item { padding: 10px 12px; border-radius: 10px; background: var(--w-ctl); display: flex; flex-direction: column; gap: 2px; }
+.ack { border-bottom: 1px solid var(--w-sep, rgba(127,127,127,.2)); }
+.ack:last-child { border-bottom: 0; }
+.ack summary { list-style: none; display: flex; align-items: baseline; gap: 8px; padding: 9px 10px; cursor: pointer; font-size: 13px; }
+.ack summary::-webkit-details-marker { display: none; }
+.ack summary .tri { flex: none; width: 10px; color: var(--w-sec); transition: transform .15s; display: inline-block; }
+.ack[open] summary .tri { transform: rotate(90deg); }
+.ack summary .au { color: var(--w-sec); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ack summary .li { flex: none; color: var(--w-sec); font-size: 11px; }
+.ack pre { margin: 0 10px 10px 28px; padding: 8px 10px; border-radius: 8px; background: var(--w-ctl); font-size: 10.5px; line-height: 1.45; white-space: pre-wrap; max-height: 140px; overflow: auto; user-select: text; }
+.dlist { display: flex; flex-direction: column; gap: 6px; }
+.dlist .d { display: flex; flex-direction: column; gap: 1px; }
+.dlist .d .sec { font-size: 11px; }
+.recorder .rec-empty { width: auto; height: auto; border-radius: 0; background: transparent; color: var(--w-sec); font-size: 12px; letter-spacing: 0; line-height: normal; }
+.tbl td.ck, .tbl th.ck { width: 22px; padding-right: 0; }
+.tbl tr.on td { background: var(--w-ctl); }
+.path { word-break: break-all; }
+.iconsheet { display: grid; grid-template-columns: auto auto; gap: 26px 40px; align-items: center; justify-items: center; }
+.glyphbar { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 6px; font-size: 13px; }
+
+/* Main window: the panel that drops from the menu-bar item */
+.screen { --w-grp: rgba(0, 0, 0, .045); --w-side: rgba(232, 232, 236, .96); }
+.screen[data-mac="dark"] { --w-grp: rgba(255, 255, 255, .06); --w-side: rgba(50, 50, 55, .96); }
+.mainwin { top: calc(100% + 6px); right: -64px; width: 340px; padding: 12px; display: flex; flex-direction: column; gap: 10px; border-radius: 14px; }
+.mainwin.floatmain { top: 70px; right: auto; left: 50%; transform: translateX(-50%); }
+.mw-head { display: flex; flex-direction: column; gap: 1px; padding: 2px 4px 0; }
+.mw-head .disp { font-size: 11px; color: var(--w-sec); }
+.mw-head .lab { font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
+.mw-head .lab.none { color: var(--w-sec); font-weight: 500; }
+.qrow { display: flex; gap: 6px; }
+.qrow .field { height: 28px; font-size: 13px !important; }
+.qrow .btn { height: 28px; }
+.mw-grp { display: flex; flex-direction: column; padding: 3px; border-radius: 10px; background: var(--w-grp); }
+.mainwin .mi { display: flex; align-items: center; gap: 8px; width: 100%; padding: 3px 9px; min-height: 26px; border: 0; border-radius: 6px;
+  background: transparent; text-align: left; cursor: pointer; }
+.mainwin .mi:hover:not([aria-disabled="true"]), .mainwin .mi:focus-visible { background: var(--w-acc); color: var(--w-acc-ink); outline: none; }
+.mainwin .mi .k { margin-left: auto; color: var(--w-sec); letter-spacing: .04em; }
+.mainwin .mi:hover .k { color: inherit; }
+.mainwin .mi.warn { color: var(--w-danger); font-weight: 600; }
+.mainwin .mi.warn:hover { color: #ffffff; background: var(--w-danger); }
+.mainwin hr { border: 0; height: 1px; background: var(--w-sep); margin: 0 6px; }
+.mw-info { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 2px 9px; font-size: 12px; }
+.mw-info .v { margin-left: auto; color: var(--w-sec); font-variant-numeric: tabular-nums; }
+.btn.sm { height: 22px; padding: 0 10px; font-size: 12px; }
+
+/* Settings window: sidebar and grouped panes */
+.setwin { left: 50%; top: 56px; width: 840px; height: 580px; transform: translateX(-50%); display: grid; grid-template-columns: 214px minmax(0, 1fr);
+  overflow: hidden; background: var(--w-solid); }
+.side { background: var(--w-side); border-right: 1px solid var(--w-sep); padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+.side .lights { margin: 2px 4px 16px; }
+.side .sh { font-size: 11px; font-weight: 600; color: var(--w-sec); margin: 12px 8px 4px; }
+.si { display: flex; align-items: center; gap: 9px; height: 30px; padding: 0 8px; border: 0; border-radius: 7px; background: transparent; text-align: left;
+  font-size: 13px; cursor: pointer; }
+.si .ic { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; color: #ffffff; flex: none; }
+.si[aria-current="page"] { background: var(--w-acc); color: var(--w-acc-ink); }
+.pane { position: relative; overflow: auto; padding: 0 26px 26px; }
+.ptitle { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 10px; height: 54px; font-size: 17px; font-weight: 700;
+  background: var(--w-solid); }
+.back { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--w-sep); background: var(--w-ctl-on); cursor: pointer; font-size: 15px; line-height: 1; }
+.gh { margin: 16px 4px 8px; font-size: 13px; font-weight: 700; }
+.gh:first-of-type { margin-top: 4px; }
+.grp { background: var(--w-grp); border-radius: 12px; padding: 0 14px; }
+.srow { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 8px 0; border-bottom: 1px solid var(--w-sep); }
+.srow:last-child { border-bottom: 0; }
+.drow { flex-wrap: wrap; }
+.atags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: flex-end; }
+.atag { display: inline-flex; align-items: center; gap: 2px; height: 22px; padding: 0 4px 0 9px; border-radius: 11px; background: var(--w-ctl); font-size: 12px; }
+.atag button, .aadd button { border: 0; background: transparent; color: var(--w-sec); font-size: 13px; width: 18px; height: 18px; border-radius: 9px; cursor: pointer; padding: 0; line-height: 1; }
+.atag button:hover, .aadd button:not(:disabled):hover { background: var(--w-sep); color: inherit; }
+.aadd { display: inline-flex; align-items: center; gap: 2px; }
+.aadd input { width: 84px; height: 22px; border-radius: 6px; border: 1px solid var(--w-sep); background: transparent; color: inherit; font: inherit; font-size: 12px; padding: 0 6px; user-select: text; }
+.aadd button:disabled { opacity: .35; cursor: default; }
+.amsg { flex-basis: 100%; margin: 4px 0 0; font-size: 11px; color: var(--w-sec); text-align: right; }
+.amsg.bad { color: var(--w-danger); }
+.srow .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.srow .t small { color: var(--w-sec); font-size: 11px; }
+.srow .v { color: var(--w-sec); font-variant-numeric: tabular-nums; text-align: right; }
+.srow.link { cursor: pointer; }
+.toggle { position: relative; flex: none; width: 38px; height: 22px; border-radius: 11px; border: 0; background: rgba(120, 120, 128, .32); cursor: pointer; }
+.toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .3); transition: left .15s; }
+.toggle[aria-checked="true"] { background: var(--w-acc); }
+.toggle[aria-checked="true"]::after { left: 18px; }
+.hero { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 22px 14px 20px; text-align: center; }
+.hero h2 { margin: 8px 0 0; font-size: 18px; }
+.hero p { margin: 0; }
+.hero .ver { font-size: 13px; color: var(--w-sec); }
+.hero .built { font-size: 11px; color: var(--w-sec); }
+.hero .tag { font-size: 12px; margin-top: 4px; }
+.ok-ic { color: var(--w-ok); flex: none; }
+.ext { color: var(--w-sec); }
+.sample { position: relative; width: 320px; max-width: 100%; aspect-ratio: 16 / 10; border-radius: 9px; overflow: hidden; border: 1px solid var(--w-sep); margin: 4px auto 14px; }
+.setwin .sheetveil { inset: 0; z-index: 3; align-items: flex-start; }
+.setwin .sheet { border-radius: 0 0 12px 12px; }
+.grp .tbl td, .grp .tbl th { background: transparent; }
+.grp .tbl tr:last-child td { border-bottom: 0; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">Spec 014 · Prototype stage 1 · Version 10, for review round 10</p>
+      <h1>Desktop Name Manager: menu-bar app mockups</h1>
+      <p class="lede">Every screen FR-001 asks for, as a clickable mockup. Pick a state from the list, or use the Mac screen itself:
+        the menu-bar item opens the main window, which labels this Desktop and opens Settings, Configuration and About in one
+        window with a sidebar. Wallpapers and display names are synthetic.</p>
+    </div>
+    <div class="controls" role="group" aria-label="Mockup options">
+      <div class="ctl"><span id="lbl-wp">Wallpaper</span><div class="seg" aria-labelledby="lbl-wp" data-ctl="wp">
+        <button data-v="light">Light</button><button data-v="dark">Dark</button><button data-v="busy">Busy</button></div></div>
+      <div class="ctl"><span id="lbl-mac">Mac appearance</span><div class="seg" aria-labelledby="lbl-mac" data-ctl="mac">
+        <button data-v="light">Light</button><button data-v="dark">Dark</button></div></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="nav" id="nav" aria-label="Mockup states"></nav>
+    <div class="main">
+      <div class="stage" id="stage"><div class="screen" id="screen" data-mac="light"></div></div>
+      <div class="pager">
+        <button type="button" id="prev">← Previous</button>
+        <span id="count" aria-live="polite"></span>
+        <button type="button" id="next">Next →</button>
+      </div>
+      <section class="caption" id="caption" aria-live="polite"></section>
+      <p class="foot">A mockup, not the app. Colors and spacing follow macOS loosely; the build uses the system's own controls. The automatic style's
+        choices here are a fixed table for illustration; in the app they come from the core (the same choice <code>dnm set</code> makes).</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- Synthetic wallpapers (SVG, 1280 x 800) ----------
+  function rng(seed) { return function () { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
+  var WP = {};
+  WP.light = '<defs><linearGradient id="wpL-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9dcea"/><stop offset=".65" stop-color="#f5ede1"/></linearGradient>' +
+    '<linearGradient id="wpL-gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ece6da"/><stop offset="1" stop-color="#d9cfbe"/></linearGradient></defs>' +
+    '<rect width="1280" height="800" fill="url(#wpL-sky)"/><circle cx="1030" cy="165" r="74" fill="#fff8e4"/>' +
+    '<path d="M0 470 L120 420 L260 445 L420 380 L560 430 L700 395 L860 440 L1010 385 L1160 425 L1280 400 L1280 540 L0 540Z" fill="#b8c6cf" opacity=".75"/>' +
+    '<path d="M0 500 L180 470 L340 495 L520 455 L700 490 L900 462 L1080 492 L1280 470 L1280 545 L0 545Z" fill="#a5b4bc"/>' +
+    '<rect y="530" width="1280" height="270" fill="url(#wpL-gr)"/>' +
+    '<path d="M0 610 L1280 590 M0 680 L1280 655 M0 750 L1280 735" stroke="#ffffff" stroke-width="2" opacity=".45"/>';
+  WP.dark = (function () {
+    var r = rng(11), s = '<defs><linearGradient id="wpD-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a1222"/><stop offset="1" stop-color="#26354d"/></linearGradient></defs>' +
+      '<rect width="1280" height="800" fill="url(#wpD-sky)"/>';
+    for (var i = 0; i < 110; i++) s += '<circle cx="' + (r() * 1280).toFixed(0) + '" cy="' + (r() * 430).toFixed(0) + '" r="' + (0.6 + r() * 1.3).toFixed(1) + '" fill="#ffffff" opacity="' + (0.35 + r() * 0.6).toFixed(2) + '"/>';
+    s += '<circle cx="1050" cy="150" r="46" fill="#f1ead2"/><circle cx="1070" cy="138" r="44" fill="#0e182b"/>' +
+      '<path d="M0 520 L150 420 L300 480 L470 360 L640 470 L790 400 L960 490 L1120 410 L1280 470 L1280 800 L0 800Z" fill="#141e2f"/>' +
+      '<path d="M0 600 L200 520 L380 590 L560 510 L760 600 L940 540 L1130 600 L1280 560 L1280 800 L0 800Z" fill="#0a111d"/>';
+    return s;
+  })();
+  WP.busy = (function () {
+    var r = rng(7), pal = ['#e4572e', '#f3a712', '#29335c', '#669bbc', '#a8c686', '#f2efe6', '#1b1b1e', '#c03e6e'], s = '', c = 80;
+    for (var y = 0; y < 800; y += c) for (var x = 0; x < 1280; x += c) {
+      var a = pal[(r() * pal.length) | 0], b = pal[(r() * pal.length) | 0];
+      s += '<rect x="' + x + '" y="' + y + '" width="' + c + '" height="' + c + '" fill="' + a + '"/>';
+      s += r() < 0.5 ? '<polygon points="' + x + ',' + y + ' ' + (x + c) + ',' + y + ' ' + x + ',' + (y + c) + '" fill="' + b + '"/>'
+                     : '<polygon points="' + (x + c) + ',' + y + ' ' + (x + c) + ',' + (y + c) + ' ' + x + ',' + (y + c) + '" fill="' + b + '"/>';
+      if (r() < 0.22) s += '<circle cx="' + (x + c / 2) + '" cy="' + (y + c / 2) + '" r="' + (c * 0.2) + '" fill="' + pal[(r() * pal.length) | 0] + '"/>';
+    }
+    return s;
+  })();
+  WP.dynamic = '<defs><linearGradient id="wpY-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b4a7a"/><stop offset=".55" stop-color="#f28f6b"/><stop offset="1" stop-color="#f7c58b"/></linearGradient></defs>' +
+    '<rect width="1280" height="800" fill="url(#wpY-sky)"/><circle cx="640" cy="560" r="120" fill="#ffe2a8" opacity=".9"/>' +
+    '<path d="M0 560 L1280 560 L1280 800 L0 800Z" fill="#3d2c47" opacity=".85"/>';
+  function wpSvg(kind, box, cls) {
+    return '<svg class="' + (cls || '') + '" viewBox="' + (box || '0 0 1280 800') + '" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' + WP[kind] + '</svg>';
+  }
+
+  // ---------- Label look ----------
+  var POS = ['top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'];
+  var POS_NAME = { 'top-left': 'Top left', 'top': 'Top', 'top-right': 'Top right', 'bottom-left': 'Bottom left', 'bottom': 'Bottom', 'bottom-right': 'Bottom right' };
+  var SIZE_PX = { small: 20, medium: 28, large: 40 };
+  var LOOK_NAME = { auto: 'Automatic', plain: 'Plain', halo: 'Halo', frosted: 'Frosted' };
+  // Illustration only: the app asks the core for the automatic choice.
+  var AUTO = {
+    light: { 'top-left': ['plain', 'dark'], 'top': ['plain', 'dark'], 'top-right': ['halo', 'dark'], 'bottom-left': ['plain', 'dark'], 'bottom': ['plain', 'dark'], 'bottom-right': ['plain', 'dark'] },
+    dark: { 'top-left': ['halo', 'light'], 'top': ['plain', 'light'], 'top-right': ['halo', 'light'], 'bottom-left': ['plain', 'light'], 'bottom': ['plain', 'light'], 'bottom-right': ['plain', 'light'] },
+    busy: { 'top-left': ['frosted', 'light'], 'top': ['frosted', 'light'], 'top-right': ['frosted', 'light'], 'bottom-left': ['frosted', 'light'], 'bottom': ['halo', 'light'], 'bottom-right': ['frosted', 'light'] },
+    dynamic: { 'top-left': ['plain', 'light'], 'top': ['plain', 'light'], 'top-right': ['plain', 'light'], 'bottom-left': ['plain', 'light'], 'bottom': ['plain', 'light'], 'bottom-right': ['plain', 'light'] }
+  };
+  function lum(hex) {
+    var n = parseInt(hex.slice(1), 16), c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  function resolve(d, wp) {
+    var a = AUTO[wp][d.pos], look = d.look === 'auto' ? a[0] : d.look, tone, fill;
+    if (d.color === 'auto') tone = a[1]; else if (d.color === 'custom') tone = lum(d.custom) > 0.4 ? 'light' : 'dark'; else tone = d.color;
+    fill = d.color === 'custom' ? d.custom : (tone === 'light' ? 'rgba(255,255,255,.95)' : 'rgba(0,0,0,.84)');
+    return { look: look, tone: tone, fill: fill, auto: a[0] };
+  }
+  function lookCss(r, px) {
+    var n = function (v) { return Math.max(1, Math.round(v)); };
+    var css = 'font-size:' + px.toFixed(1) + 'px;font-weight:600;line-height:1.2;white-space:nowrap;letter-spacing:.01em;color:' + r.fill + ';';
+    var light = r.tone === 'light';
+    if (r.look === 'plain') return css + 'text-shadow:0 1px ' + n(px * 0.35) + 'px ' + (light ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.55)') + ';';
+    if (r.look === 'halo') return css + 'text-shadow:0 0 ' + n(px * 0.5) + 'px ' + (light ? 'rgba(0,0,0,.9)' : 'rgba(255,255,255,.95)') + ',0 0 ' + n(px * 0.18) + 'px ' + (light ? 'rgba(0,0,0,.9)' : 'rgba(255,255,255,.95)') + ';';
+    var b = n(px * 0.5);
+    return css + 'padding:' + n(px * 0.28) + 'px ' + n(px * 0.6) + 'px;border-radius:' + n(px * 0.45) + 'px;' +
+      (light ? 'background:rgba(16,20,24,.34);border:1px solid rgba(255,255,255,.18);' : 'background:rgba(255,255,255,.5);border:1px solid rgba(0,0,0,.08);') +
+      'backdrop-filter:blur(' + b + 'px) saturate(1.4);-webkit-backdrop-filter:blur(' + b + 'px) saturate(1.4);';
+  }
+  function posCss(pos, k) {
+    var side = Math.round(40 * k) + 'px', top = Math.round(70 * k) + 'px', bottom = Math.round(108 * k) + 'px';
+    switch (pos) {
+      case 'top-left': return 'left:' + side + ';top:' + top + ';';
+      case 'top': return 'left:50%;top:' + top + ';transform:translateX(-50%);';
+      case 'top-right': return 'right:' + side + ';top:' + top + ';';
+      case 'bottom-left': return 'left:' + side + ';bottom:' + bottom + ';';
+      case 'bottom': return 'left:50%;bottom:' + bottom + ';transform:translateX(-50%);';
+      default: return 'right:' + side + ';bottom:' + bottom + ';';
+    }
+  }
+  function labelEl(d, wp, k) {
+    if (!d.text) return '';
+    return '<div style="position:absolute;' + posCss(d.pos, k) + lookCss(resolve(d, wp), SIZE_PX[d.size] * k) + '">' + esc(d.text) + '</div>';
+  }
+
+  // ---------- Text rules (the same sentences as LabelText in the core) ----------
+  function graphemes(t) {
+    if (window.Intl && Intl.Segmenter) { var n = 0, it = new Intl.Segmenter().segment(t); for (var _ of it) n++; return n; }
+    return Array.from(t).length;
+  }
+  function clip(t, max) {
+    if (window.Intl && Intl.Segmenter) {
+      var parts = Array.from(new Intl.Segmenter().segment(t), function (s) { return s.segment; });
+      return parts.length > max ? parts.slice(0, max - 1).join('') + '…' : t;
+    }
+    var a = Array.from(t); return a.length > max ? a.slice(0, max - 1).join('') + '…' : t;
+  }
+  var BAD = /[\u0000-\u001f\u007f-\u009f\u0085\u200e\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069]/g;
+  function checkText(raw) {
+    var t = raw.trim();
+    if (!t) return 'A label needs at least one visible character.';
+    if (/[\n\r\u0085\u2028\u2029]/.test(t)) return 'A label must be a single line (no line breaks).';
+    if (/[\u0000-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069]/.test(t)) return 'A label cannot contain control characters (such as escape, tab or text-direction marks).';
+    var n = graphemes(t);
+    if (n > 30) return 'A label can have at most 30 characters; this one has ' + n + '.';
+    return null;
+  }
+  // A text field cannot hold a line break or a tab, so the mockup shows them as visible marks.
+  function shown(raw) { return raw.replace(/\n/g, '⏎').replace(/\t/g, '⇥'); }
+  function unshown(v) { return v.replace(/⏎/g, '\n').replace(/⇥/g, '\t'); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  // ---------- State ----------
+  var S = { wp: 'light', mac: 'light', variant: 'open', mbtext: 'dnm' };
+  function reset() {
+    Object.assign(S, {
+      label: null, raw: '', look: 'auto', color: 'auto', custom: '#ffd166', pos: 'bottom-left', size: 'medium',
+      edOpen: false, panel: false, edState: 'ready', err: null, touched: false, selectAll: false, more: false, unsupported: false,
+      menuOpen: false, mainPanel: false, mode: 'both', undo: null, prev: null, over: false, hotkey: false, win: null,
+      tab: 'general', hotkeyTaken: false, cleanup: 'list', ring: false, login: false, sel: [], aboutView: 'main',
+      q: '', qTouched: false, focusId: null, aliases: [['laptop'], ['desk', 'left']], aliasDraft: ['', ''], aliasMsg: null,
+      defaults: { look: 'auto', color: 'auto', pos: 'bottom-left', size: 'medium' }
+    });
+  }
+  var MAIL = { text: 'Q4 budget', look: 'auto', color: 'auto', custom: '#ffd166', pos: 'bottom-left', size: 'medium' };
+  var LONG = 'Weekly planning and review';
+  function openEditorFrom(label) {
+    var d = label || S.defaults;
+    S.raw = label ? label.text : ''; S.look = d.look; S.color = d.color; S.custom = label ? label.custom : S.custom; S.pos = d.pos; S.size = d.size;
+    S.selectAll = !!label; S.touched = false; S.edState = 'ready'; S.err = null; S.focusId = 'ed-text';
+  }
+  function openMain() { S.menuOpen = true; S.q = S.label ? S.label.text : ''; S.qTouched = false; S.selectAll = !!S.label; S.focusId = 'q-text'; }
+  function openPane(p) { S.menuOpen = false; S.mainPanel = false; S.win = 'settings'; S.tab = p; S.aboutView = 'main'; }
+
+  // ---------- The states (the index) ----------
+  var STATES = [
+    { g: 'Editor', id: 'editor-empty', name: 'Desktop with no label', reqs: ['FR-001', 'FR-004', 'FR-005', 'FR-006'],
+      desc: 'Opened from "Style and Preview…" in the main window, on a Desktop with no label. The field is empty and focused; Apply stays off until the text is valid. Type to see the preview follow.',
+      set: function () { S.edOpen = true; openEditorFrom(null); } },
+    { g: 'Editor', id: 'editor-labeled', name: 'Desktop with a label', reqs: ['FR-004', 'FR-006', 'FR-007'],
+      desc: 'This Desktop already shows "Q4 budget". The field holds it, selected, so typing replaces it. The preview shows the original wallpaper with the label as it would be applied; Remove Label appears.',
+      set: function () { S.label = Object.assign({}, MAIL); S.edOpen = true; openEditorFrom(S.label); } },
+    { g: 'Editor', id: 'editor-typing', name: 'Typing, with live preview', reqs: ['FR-005', 'FR-006', 'FR-008'],
+      desc: 'The preview follows every keystroke and every option. The automatic style says which look it picks for this spot. Try the other wallpapers above: the automatic choice changes with them.',
+      set: function () { S.edOpen = true; openEditorFrom(null); S.raw = 'Status Rep'; S.touched = true; S.pos = 'top-left'; S.more = true; } },
+    { g: 'Editor', id: 'editor-invalid-empty', name: 'Invalid: empty', reqs: ['FR-008', 'FR-009'],
+      desc: 'The text was removed. Apply is off, with no message: an empty field needs no explanation.',
+      set: function () { S.edOpen = true; openEditorFrom(null); S.touched = true; } },
+    { g: 'Editor', id: 'editor-invalid-long', name: 'Invalid: too long', reqs: ['FR-008', 'FR-009'],
+      desc: 'More than 30 characters (each emoji counts as one). The sentence gives the count as it changes.',
+      set: function () { S.edOpen = true; openEditorFrom(null); S.raw = 'Quarterly planning and budget review'; S.touched = true; } },
+    { g: 'Editor', id: 'editor-unsupported', name: 'Unsupported wallpaper', reqs: ['FR-009', 'Edge cases'],
+      desc: 'A dynamic wallpaper. The editor says why in one sentence, offers no Apply, and nothing changes. The sentence names the kind of wallpaper and promises nothing: "Dynamic wallpapers are not supported."',
+      set: function () { S.unsupported = true; S.edOpen = true; openEditorFrom(null); S.edState = 'unsupported'; } },
+    { g: 'Editor', id: 'editor-unreadable', name: 'Unreadable wallpaper', reqs: ['FR-009', 'Edge cases'],
+      desc: 'The wallpaper file is there but is not a picture the app can read. One sentence names the file; no Apply, and nothing changes.',
+      set: function () { S.unsupported = 'unreadable'; S.edOpen = true; openEditorFrom(null); S.edState = 'unsupported'; } },
+    { g: 'Editor', id: 'editor-nofile', name: 'No wallpaper file', reqs: ['FR-009', 'Edge cases'],
+      desc: 'macOS reports no wallpaper file: a solid color, a full-screen app\'s Space, or a type with no file. The app cannot tell which, so the sentence says what is missing and promises nothing.',
+      set: function () { S.unsupported = 'nofile'; S.edOpen = true; openEditorFrom(null); S.edState = 'unsupported'; } },
+    { g: 'Editor', id: 'editor-working', name: 'Working', reqs: ['FR-007', 'FR-026'],
+      desc: 'After Apply. Under a second on a 5K wallpaper (FR-026), so the progress shows only on the button; the editor closes when the label is on the Desktop.',
+      set: function () { S.edOpen = true; openEditorFrom(null); S.raw = 'Q4 budget'; S.edState = 'working'; } },
+    { g: 'Editor', id: 'editor-error', name: 'Error', reqs: ['FR-009'],
+      desc: 'A failure leaves the Desktop as it was and says so. The sentence is the core\'s, with the app\'s wording where the core names dnm: "this app" for "this tool", "try again" for "run again".',
+      set: function () {
+        S.edOpen = true; openEditorFrom(null); S.raw = 'Q4 budget'; S.edState = 'error';
+        S.err = 'The wallpaper Lake.heic was made by this app but is not in this store (another build or a lost manifest). Choose a wallpaper in System Settings > Wallpaper, then try again. Nothing was changed.';
+      } },
+
+    { g: 'Main window', id: 'main-unlabeled', name: 'No label', reqs: ['FR-010', 'FR-013', 'FR-013a'],
+      desc: 'Clicking the menu-bar item opens the main window. The item shows the icon and a fixed text, never the label, so a label such as "Shutdown" cannot look like an app. It names the display and its Desktop\'s label, and its field labels this Desktop at once with the default style from General: type and press Return. "Style and Preview…" opens the editor for anything else. Below: the labels in use, the space they take with Clean Up, and the way to Settings, Configuration and About.',
+      set: function () { openMain(); } },
+    { g: 'Main window', id: 'main-labeled', name: 'Labeled, with Undo', reqs: ['FR-010', 'FR-011', 'FR-013', 'FR-013a'],
+      desc: 'A labeled Desktop: the field holds the label, selected, so typing replaces it and Return relabels the Desktop, keeping the label\'s style. Remove Label appears, and Undo for 60 seconds after a change.',
+      set: function () { S.label = Object.assign({}, MAIL); S.undo = 'label'; openMain(); } },
+    { g: 'Main window', id: 'main-invalid', name: 'Invalid label typed', reqs: ['FR-008', 'FR-013a'],
+      desc: 'Line breaks and control characters are ignored as they are typed or pasted, so the only sentence left is the length. Label stays off; Return does nothing until the text fits.',
+      set: function () { openMain(); S.q = 'Quarterly planning and budget review'; S.qTouched = true; S.selectAll = false; } },
+    { g: 'Main window', id: 'main-over', name: 'Old images over 50 MB', reqs: ['FR-016b', 'FR-027'],
+      desc: 'One storage line: the space labeled images use, and under it how much of that is old images. At 50 MB of old images the second line turns red, with a warning symbol and the words; Clean Up… is beside it. No separate banner, no second Clean Up.',
+      set: function () { S.label = Object.assign({}, MAIL); S.over = true; S.cleanup = 'over'; openMain(); } },
+    { g: 'Main window', id: 'menu-icon', name: 'Icon mode', reqs: ['FR-010'],
+      desc: 'Icon mode: the menu-bar item is the icon alone, without the text. The main window names the label.',
+      set: function () { S.label = Object.assign({}, MAIL); S.mode = 'icon'; openMain(); } },
+    { g: 'Main window', id: 'menu-hidden', name: 'Hidden', reqs: ['FR-010', 'FR-014', 'FR-017'],
+      desc: 'No menu-bar item. The hotkey still opens the main window, as a floating panel (see "Hotkey, item hidden"); opening the app again shows Settings at General, where the item can be turned back on.',
+      set: function () { S.label = Object.assign({}, MAIL); S.mode = 'hidden'; } },
+
+    { g: 'Hotkey and welcome', id: 'hotkey-panel', name: 'Hotkey, item hidden', reqs: ['FR-012', 'FR-014'],
+      desc: 'The hotkey opens the main window for the active display: under the menu-bar item when it is shown (as a click does), or, with the item hidden, as this floating panel near the top of the display. "Style and Preview…" turns the panel into the editor.',
+      set: function () { S.mode = 'hidden'; S.hotkey = true; openMain(); S.menuOpen = false; S.mainPanel = true; } },
+    { g: 'Hotkey and welcome', id: 'welcome', name: 'Welcome window', reqs: ['FR-017a'],
+      desc: 'Shown once: the first time the app is opened by this user, and never again (a login start never shows it). It says what the app does and how to start: click its icon in the menu bar, shown as it looks there. OK or closing it dismisses it.',
+      set: function () { S.win = 'welcome'; S.ring = true; } },
+
+    { g: 'Settings', id: 'prefs-general', name: 'General', reqs: ['FR-010', 'FR-014', 'FR-016', 'FR-017'],
+      desc: '"Settings…" opens this window at General: Open at login, what the menu bar shows, the hotkey, and the defaults for new labels (no sample: the editor is where a label is seen). There is no hotkey until a shortcut is recorded; × clears it. Every pane is in the sidebar, as in System Settings.',
+      set: function () { S.label = Object.assign({}, MAIL); S.win = 'settings'; S.tab = 'general'; } },
+    { g: 'Settings', id: 'prefs-hotkey-taken', name: 'Hotkey already in use', reqs: ['FR-015'],
+      desc: 'The recorded shortcut belongs to another app, so there is no hotkey and the pane says why in one line.',
+      set: function () { S.win = 'settings'; S.tab = 'general'; S.hotkeyTaken = true; } },
+    { g: 'Settings', id: 'prefs-cleanup', name: 'Clean Up: old labels', reqs: ['FR-016a'],
+      desc: 'Old labeled images: label, display, why it is old, size, for an age that can be changed (30 days by default). Select the ones to delete; Delete Selected stays off until something is selected.',
+      set: function () { S.win = 'settings'; S.tab = 'cleanup'; S.cleanup = 'list'; } },
+    { g: 'Settings', id: 'prefs-cleanup-none', name: 'Clean Up: nothing old', reqs: ['FR-016a'],
+      desc: 'Nothing is older than the age: "No old images."',
+      set: function () { S.win = 'settings'; S.tab = 'cleanup'; S.cleanup = 'none'; } },
+    { g: 'Settings', id: 'prefs-cleanup-confirm', name: 'Clean Up: confirming', reqs: ['FR-016a', 'FR-009'],
+      desc: 'Deleting the selected images asks first, with the count and the size, and says what a Desktop not on screen would show afterwards.',
+      set: function () { S.win = 'settings'; S.tab = 'cleanup'; S.cleanup = 'confirm'; S.sel = [0, 2]; } },
+    { g: 'Settings', id: 'prefs-cleanup-over', name: 'Clean Up: over 50 MB', reqs: ['FR-016a', 'FR-016b'],
+      desc: 'The red message, in words and with a symbol, above a longer list. It goes away once enough old images are deleted.',
+      set: function () { S.win = 'settings'; S.tab = 'cleanup'; S.cleanup = 'over'; S.over = true; } },
+
+    { g: 'This Mac and About', id: 'configuration', name: 'Configuration', reqs: ['FR-019'],
+      desc: '"Configuration…" opens the window here: the macOS version, Separate Spaces, the space labeled images use (with Clean Up), and the data folder.',
+      set: function () { S.win = 'settings'; S.tab = 'config'; } },
+    { g: 'This Mac and About', id: 'displays', name: 'Displays', reqs: ['FR-019'],
+      desc: 'Each display, the main one marked, with its aliases, which can be added and removed here (as dnm alias does).',
+      set: function () { S.win = 'settings'; S.tab = 'displays'; } },
+    { g: 'This Mac and About', id: 'displays-alias-error', name: 'Displays: alias refused', reqs: ['FR-019'],
+      desc: 'Add an alias by typing it and pressing Return or +; × removes one. The core\'s rules apply (letters, numbers, hyphens and underscores; at most 30; not "main", not only digits, not a display\'s name), with its sentences. An alias already on the other display moves here, and the pane says so.',
+      set: function () { S.win = 'settings'; S.tab = 'displays'; S.aliasDraft = ['main', '']; S.aliasMsg = [0, 'main is reserved and cannot be used as an alias.', true]; } },
+    { g: 'This Mac and About', id: 'labels', name: 'Labels', reqs: ['FR-019'],
+      desc: 'The labels in use, by display, with their size. The main window\'s "Labels in use" line opens this pane.',
+      set: function () { S.win = 'settings'; S.tab = 'labels'; } },
+    { g: 'This Mac and About', id: 'about', name: 'About', reqs: ['FR-019', 'FR-023', 'FR-024'],
+      desc: '"About Desktop Name Manager" opens the window here: a header card (icon, name, version and build, one line on what it does; no build date), the two promises, and links. No Updates section: the app never connects, so it cannot check.',
+      set: function () { S.win = 'settings'; S.tab = 'about'; } },
+    { g: 'This Mac and About', id: 'about-ack', name: 'About: acknowledgements', reqs: ['FR-019'],
+      desc: 'As in CodexBar: one row per third-party component shipped in the app, with its name, its authors and its license on the right. The disclosure arrow shows the full license text. The back button returns.',
+      set: function () { S.win = 'settings'; S.tab = 'about'; S.aboutView = 'ack'; } },
+    { g: 'This Mac and About', id: 'app-icon', name: 'App icon draft', reqs: ['FR-001'],
+      desc: 'A draft icon: a Desktop with a label tag in its corner, and the menu-bar glyph drawn from it. Used in every mockup.',
+      set: function () { S.win = 'icon'; } }
+  ];
+  var current = 0;
+
+  // ---------- Pieces ----------
+  var ICON_GLYPH = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.5" y="3" width="13" height="10" rx="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M4.3 10.1h4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  function appIcon(size) {
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 100" aria-hidden="true"><defs>' +
+      '<linearGradient id="ai-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f86a6"/><stop offset="1" stop-color="#1f3d55"/></linearGradient>' +
+      '<linearGradient id="ai-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe0ee"/><stop offset="1" stop-color="#f6e7cf"/></linearGradient></defs>' +
+      '<rect x="4" y="4" width="92" height="92" rx="22" fill="url(#ai-bg)"/>' +
+      '<rect x="16" y="22" width="68" height="52" rx="7" fill="url(#ai-sky)"/>' +
+      '<path d="M16 58 L33 48 L46 54 L62 43 L84 55 L84 67 a7 7 0 0 1 -7 7 L23 74 a7 7 0 0 1 -7 -7Z" fill="#5f8698"/>' +
+      '<rect x="16" y="22" width="68" height="6" rx="3" fill="#ffffff" opacity=".55"/>' +
+      '<rect x="22" y="61" width="30" height="9" rx="4.5" fill="#ffffff"/><rect x="26" y="64.2" width="18" height="2.6" rx="1.3" fill="#1f3d55"/>' +
+      '</svg>';
+  }
+  var DOCK_COLORS = ['#6b8fb5', '#d98c5f', '#7aa874', '#c7b36a', '#8f7fc2', '#5f9ea0'];
+  function dock() {
+    var running = S.win === 'settings' || S.win === 'welcome' || S.win === 'icon';
+    var s = '<div class="dock" aria-hidden="true">';
+    DOCK_COLORS.forEach(function (c) { s += '<div class="t" style="background:' + c + '"></div>'; });
+    if (running) s += '<div class="t run" style="display:grid;place-items:center">' + appIcon(54) + '</div>';
+    return s + '</div>';
+  }
+  function deskWp() { return S.unsupported ? 'dynamic' : S.wp; }
+  function onLight() { return deskWp() === 'light'; }
+
+  function menubar() {
+    var item = '';
+    if (S.mode !== 'hidden') {
+      var text = S.mode === 'both' ? '<span>' + esc(S.mbtext) + '</span>' : '';
+      var al = 'Desktop Name Manager';
+      item = '<span class="mbi-wrap"><button class="mbi' + (S.ring ? ' ring' : '') + '" data-act="item" aria-haspopup="dialog" aria-expanded="' + (S.menuOpen || S.edOpen) + '" aria-label="' + esc(al) + '">' + ICON_GLYPH + text + '</button>' +
+        (S.menuOpen ? mainWin() : '') + (S.edOpen && !S.panel ? '<section class="win popover editor" role="dialog" aria-label="Label this Desktop">' + editor() + '</section>' : '') + '</span>';
+    }
+    return '<div class="mbar ' + (onLight() ? 'on-light' : 'on-dark') + '"><span class="app">Finder</span><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>' +
+      '<span class="grow"></span><span class="sys">' + item +
+      '<svg width="17" height="13" viewBox="0 0 17 13" fill="none" aria-hidden="true"><path d="M1.5 4.6a10 10 0 0 1 14 0M4 7.2a6.4 6.4 0 0 1 9 0M6.6 9.8a2.7 2.7 0 0 1 3.8 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' +
+      '<svg width="16" height="14" viewBox="0 0 16 14" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="14" height="4.5" rx="2.25" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="8" width="14" height="4.5" rx="2.25" stroke="currentColor" stroke-width="1.3"/><circle cx="11.8" cy="3.75" r="1.3" fill="currentColor"/><circle cx="4.2" cy="10.25" r="1.3" fill="currentColor"/></svg>' +
+      '<span>Sun 15 Nov 10:24</span></span></div>';
+  }
+  function mainWin(floating) {
+    var lab = S.label ? S.label.text : null, problem = checkText(S.q), changed = !S.label || S.q.trim() !== S.label.text;
+    var s = '<section class="win mainwin' + (floating ? ' floatmain' : '') + '" role="dialog" aria-label="Desktop Name Manager">' +
+      '<div class="mw-head"><span class="disp">Built-in Display</span><span class="lab' + (lab ? '' : ' none') + '">' + (lab ? esc(lab) : 'No label') + '</span></div>';
+    s += '<div class="qrow"><label for="q-text" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Label this Desktop</label>' +
+      '<input id="q-text" class="field" type="text" autocomplete="off" spellcheck="false" placeholder="Label this Desktop" value="' + esc(shown(S.q)) + '">' +
+      '<button type="button" class="btn primary" data-act="q-apply"' + (problem || !changed ? ' disabled' : '') + '>Label</button></div>';
+    if (problem && S.qTouched && S.q.trim()) s += '<p class="msg" role="status" style="margin:-4px 2px 0"><span aria-hidden="true">⚠︎</span>' + esc(problem) + '</p>';
+    s += '<div class="mw-grp"><button class="mi" data-act="open-editor">Style and Preview…' + '</button>';
+    if (S.label) s += '<button class="mi" data-act="remove">Remove Label</button>';
+    if (S.undo) s += '<button class="mi" data-act="undo">Undo ' + (S.undo === 'label' ? 'Label' : 'Remove') + ' on Built-in Display</button>';
+    s += '</div><div class="mw-grp">' +
+      '<button class="mi" data-act="pane" data-v="labels">Labels in use<span class="k">' + ACTIVE.length + ' on 2 displays ›</span></button>' +
+      '<div class="mw-info"><span style="display:flex;flex-direction:column;gap:5px;padding:3px 0"><span>Space used: ' + (S.over ? '81.0 MB' : '31.2 MB') + '</span>' +
+      (S.over ? '<span style="color:var(--w-danger);font-weight:600"><span aria-hidden="true">⚠︎ </span>63.4 MB in old images</span>' : '<span class="v" style="margin:0">13.2 MB in old images</span>') +
+      '</span><span class="grow" style="flex:1"></span><button type="button" class="btn sm" data-act="open-cleanup">Clean Up…</button></div></div>' +
+      '<hr><div class="mw-grp" style="background:transparent;padding:0">' +
+      '<button class="mi" data-act="pane" data-v="general">Settings…<span class="k">⌘,</span></button>' +
+      '<button class="mi" data-act="pane" data-v="config">Configuration…</button>' +
+      '<button class="mi" data-act="pane" data-v="about">About Desktop Name Manager</button>' +
+      '<button class="mi" data-act="close-menu">Quit<span class="k">⌘Q</span></button></div></section>';
+    return s;
+  }
+
+  function draft() { return { text: S.raw.trim().replace(/\s*\n\s*/g, ' ').replace(/\t/g, ' '), look: S.look, color: S.color, custom: S.custom, pos: S.pos, size: S.size }; }
+  function seg(act, items, cur, dis) {
+    return '<div class="mseg" role="group">' + items.map(function (it) {
+      return '<button type="button" data-act="' + act + '" data-v="' + it[0] + '" aria-pressed="' + (cur === it[0]) + '"' + (dis ? ' disabled' : '') + '>' + it[1] + '</button>';
+    }).join('') + '</div>';
+  }
+  function posGrid(act, cur, dis) {
+    return '<div class="posgrid" role="group" aria-label="Position">' + POS.map(function (p) {
+      return '<button type="button" data-act="' + act + '" data-v="' + p + '" aria-label="' + POS_NAME[p] + '" aria-pressed="' + (cur === p) + '"' + (dis ? ' disabled' : '') + '></button>';
+    }).join('') + '</div>';
+  }
+  function colorRow(act, cur, dis, id) {
+    return '<div class="colorrow">' + seg(act, [['auto', 'Automatic'], ['light', 'Light'], ['dark', 'Dark'], ['custom', 'Custom']], cur, dis) +
+      '<input type="color" class="well" id="' + id + '" value="' + S.custom + '" aria-label="Custom color"' + (dis ? ' disabled' : '') + '></div>';
+  }
+  var CROP = { 'top-left': '0 30 420 260', 'top': '430 30 420 260', 'top-right': '860 30 420 260', 'bottom-left': '0 520 420 260', 'bottom': '430 520 420 260', 'bottom-right': '860 520 420 260' };
+
+  function editor() {
+    var wp = deskWp(), d = draft(), problem = checkText(S.raw), unsupported = S.edState === 'unsupported', working = S.edState === 'working';
+    var dis = unsupported || working, r = resolve(d, wp), msg = '';
+    if (unsupported) msg = '<p class="msg" role="status"><span aria-hidden="true">⚠︎</span>' + (S.unsupported === 'unreadable' ? 'Cannot read wallpaper \u2018Lake.heic\u2019.' : S.unsupported === 'nofile' ? 'This Desktop has no wallpaper picture to label.' : 'Dynamic wallpapers are not supported.') + '</p>';
+    else if (S.edState === 'error') msg = '<p class="msg" role="alert"><span aria-hidden="true">⚠︎</span>' + esc(S.err) + '</p>';
+    else if (problem && S.touched && S.raw.trim()) msg = '<p class="msg" role="status"><span aria-hidden="true">⚠︎</span>' + esc(problem) + '</p>';
+    var showOpts = S.variant === 'open' || S.more;
+    var chips = ['auto', 'plain', 'halo', 'frosted'].map(function (id) {
+      var rr = resolve(Object.assign({}, d, { look: id }), wp);
+      return '<button type="button" class="chip" data-act="look" data-v="' + id + '" aria-pressed="' + (S.look === id) + '"' + (dis ? ' disabled' : '') + '>' +
+        '<span class="sw">' + wpSvg(wp, CROP[d.pos]) + '<span style="position:relative;' + lookCss(rr, 15) + '">Aa</span></span><span class="nm">' + LOOK_NAME[id] + '</span></button>';
+    }).join('');
+    var s = '<div class="editor"><div class="ed-head"><h2>Label this Desktop</h2><span class="sec">Built-in Display</span></div>' +
+      '<label for="ed-text" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Label</label>' +
+      '<input id="ed-text" class="field" type="text" autocomplete="off" spellcheck="false" placeholder="What is this Desktop for?" value="' + esc(shown(S.raw)) + '"' + (dis ? ' disabled' : '') + '>' + msg +
+      '<div class="preview" role="img" aria-label="Preview: ' + esc(d.text ? '"' + d.text + '", ' + LOOK_NAME[r.look] + ', ' + POS_NAME[d.pos].toLowerCase() : 'this Desktop, no label') + '">' +
+      wpSvg(wp) + '<div class="pbar"></div><div class="pdock"></div>' + (unsupported ? '' : labelEl(d, wp, 372 / 1280)) +
+      (unsupported ? '<div class="veil">' + (S.unsupported === 'unreadable' ? 'Unreadable picture' : S.unsupported === 'nofile' ? 'No wallpaper file' : 'Dynamic wallpaper') + '</div>' : '') + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px"><span class="cap">Style</span><div class="chips">' + chips + '</div>' +
+      '<p class="note">' + (S.look === 'auto' ? 'Automatic picks ' + LOOK_NAME[r.auto] + ' for this spot.' : 'Automatic would pick ' + LOOK_NAME[r.auto] + ' for this spot.') + '</p></div>';
+    if (S.variant === 'fold') s += '<button type="button" class="disclose" data-act="more" aria-expanded="' + S.more + '"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3.5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>More options</button>';
+    if (showOpts) s += '<div class="opts"><span>Color</span>' + colorRow('color', S.color, dis, 'ed-custom') +
+      '<span>Position</span>' + posGrid('pos', S.pos, dis) +
+      '<span>Size</span>' + seg('size', [['small', 'Small'], ['medium', 'Medium'], ['large', 'Large']], S.size, dis) + '</div>';
+    s += '<div class="ed-foot">' + (S.label && !unsupported ? '<button type="button" class="btn link" data-act="remove"' + (working ? ' disabled' : '') + '>Remove Label</button>' : '') +
+      '<span class="grow"></span><button type="button" class="btn" data-act="cancel"' + (working ? ' disabled' : '') + '>Cancel</button>' +
+      (unsupported ? '' : '<button type="button" class="btn primary" data-act="apply"' + (problem || working ? ' disabled' : '') + '>' + (working ? '<span class="spin" aria-hidden="true"></span>Applying…' : 'Apply <span aria-hidden="true">↩</span>') + '</button>') +
+      '</div></div>';
+    return s;
+  }
+
+  function titled(title, w, inner, extraStyle) {
+    return '<section class="win titled" role="dialog" aria-label="' + esc(title) + '" style="left:50%;top:' + (extraStyle || 96) + 'px;width:' + w + 'px;transform:translateX(-50%)">' +
+      '<div class="tbar"><span class="lights"><button type="button" data-act="close-win" aria-label="Close"></button><i></i><i></i></span><span class="ttl">' + esc(title) + '</span></div>' + inner + '</section>';
+  }
+  function welcome() {
+    return titled('Welcome', 440, '<div class="body about">' + appIcon(84) +
+      '<h2 style="margin:0;font-size:17px">Desktop Name Manager</h2>' +
+      '<p class="what">Gives each Desktop a label, written into its wallpaper, so you can tell your Desktops apart at a glance.</p>' +
+      '<p class="sec" style="font-size:12px;display:flex;align-items:center;gap:6px;justify-content:center">To label a Desktop, click <span class="glyphbar" style="height:20px;padding:0 6px;background:var(--w-ctl)">' + ICON_GLYPH + '<span>' + esc(S.mbtext) + '</span></span> in the menu bar.</p>' +
+      '<div class="row" style="width:100%;justify-content:flex-end"><button type="button" class="btn primary" data-act="welcome-done">OK</button></div></div>', 150);
+  }
+
+  var OLD = [
+    ['Q3 budget', 'Built-in Display', 'replaced 41 days ago', 4.2], ['Research', 'DP1', 'not seen for 33 days', 5.1], ['Travel plans', 'Built-in Display', 'removed 52 days ago', 3.9]
+  ];
+  var OLD_MORE = OLD.concat([
+    ['Design review', 'DP1', 'undone 64 days ago', 7.8], ['Thesis draft', 'DP1', 'not seen for 47 days', 8.6], ['Writing', 'Built-in Display', 'replaced 90 days ago', 6.4],
+    ['Code review', 'DP1', 'removed 38 days ago', 9.2], ['Home project', 'Built-in Display', 'not seen for 71 days', 10.1], ['Taxes 2025', 'DP1', 'replaced 120 days ago', 8.1]
+  ]);
+  var STORE_PATH = '~/Library/Application Support/com.altmansoftwaredesign.desktop-name-manager';
+  function mb(n) { return n.toFixed(1) + ' MB'; }
+  function cleanList() { return S.over ? OLD_MORE : OLD; }
+  function selSize() { var l = cleanList(); return S.sel.reduce(function (a, i) { return a + l[i][3]; }, 0); }
+  function plural(n, one) { return n + ' ' + one + (n === 1 ? '' : 's'); }
+  var CHECK = '<svg class="ok-ic" width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M4.8 8.2l2.1 2.1 4.3-4.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var REPO = 'github.com/inquinity/desktop-name-manager';
+  var DISPLAYS = [['Built-in Display', true, 'laptop'], ['DP1', false, 'desk, left']];
+  var ACTIVE = [['Q4 budget', 'Built-in Display', 4.6], ['Research', 'Built-in Display', 5.0], ['Writing', 'DP1', 3.9], ['Code review', 'DP1', 4.5]];
+  function ic(color, path) { return '<span class="ic" style="background:' + color + '"><svg width="14" height="14" viewBox="0 0 22 22" fill="none" aria-hidden="true">' + path + '</svg></span>'; }
+  var PANES = [
+    ['general', 'General', ic('#8e8e93', '<circle cx="11" cy="11" r="3.4" stroke="currentColor" stroke-width="2"/><path d="M11 2.5v3M11 16.5v3M2.5 11h3M16.5 11h3M5 5l2.1 2.1M14.9 14.9 17 17M17 5l-2.1 2.1M7.1 14.9 5 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>')],
+    ['cleanup', 'Clean Up', ic('#ff9f0a', '<path d="M4 6.5h14M9 6.5V4.5h4v2M6 6.5l1 11.5h8l1-11.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>')],
+    null,
+    ['config', 'Configuration', ic('#30b0c7', '<rect x="3" y="4" width="16" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 18.5h6M11 15v3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>')],
+    ['displays', 'Displays', ic('#5e5ce6', '<rect x="2" y="5" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="9" y="9" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="2"/>')],
+    ['labels', 'Labels', ic('#34c759', '<path d="M3.5 11.5V4.5h7l8 8-7 7-8-8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="7.5" cy="8.5" r="1.4" fill="currentColor"/>')],
+    null,
+    ['about', 'About', null]
+  ];
+  function srow(title, right, sub, attrs) {
+    return '<div class="srow"' + (attrs || '') + '><span class="t"><span>' + title + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' + (right || '') + '</div>';
+  }
+  function toggle(id, on, label) { return '<button type="button" class="toggle" role="switch" id="' + id + '" data-act="' + id + '" aria-checked="' + on + '" aria-label="' + label + '"></button>'; }
+  function paneGeneral() {
+    var keys = S.hotkeyTaken ? '⌘ Space' : S.hotkey ? '⌃⌥⌘L' : '';
+    return '<h3 class="gh">System</h3><div class="grp">' +
+      srow('Open at login', toggle('pf-login', S.login, 'Open at login')) +
+      srow('Menu bar shows', '<select class="select" id="pf-mode" aria-label="Menu bar shows">' +
+        [['both', 'Icon and text'], ['icon', 'Icon'], ['hidden', 'Nothing (hidden)']].map(function (o) { return '<option value="' + o[0] + '"' + (S.mode === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>') +
+      '</div><h3 class="gh">Hotkey</h3><div class="grp">' +
+      srow('Open the main window', '<span class="recorder" role="group" aria-label="Hotkey">' +
+        (keys ? keys + '<button type="button" data-act="hk-clear" aria-label="Clear hotkey">×</button>'
+          : '<button type="button" class="rec-empty" data-act="hk-record">Record Shortcut</button>') + '</span>',
+        S.hotkeyTaken ? '<span class="err" role="alert">⚠︎ Another app is using this shortcut. Choose another.</span>' : '') + '</div>' +
+      '<h3 class="gh">New Labels</h3><div class="grp">' +
+      srow('Style', seg('d-look', [['auto', 'Automatic'], ['plain', 'Plain'], ['halo', 'Halo'], ['frosted', 'Frosted']], S.defaults.look)) +
+      srow('Color', colorRow('d-color', S.defaults.color, false, 'pf-custom')) +
+      srow('Position', posGrid('d-pos', S.defaults.pos)) +
+      srow('Size', seg('d-size', [['small', 'Small'], ['medium', 'Medium'], ['large', 'Large']], S.defaults.size)) + '</div>';
+  }
+  function paneCleanup() {
+    var list = cleanList(), total = list.reduce(function (a, r) { return a + r[3]; }, 0);
+    var top = (S.over ? '<div class="banner" role="alert" style="margin-top:4px"><span aria-hidden="true">⚠︎</span>Old labeled images use ' + mb(total) + '. Deleting them frees the space.</div>' : '') +
+      '<h3 class="gh">Space</h3><div class="grp">' +
+      srow('Labeled images use', '<span class="v">' + (S.cleanup === 'none' ? '9.6 MB' : S.over ? '81.0 MB' : '31.2 MB') + '</span>') +
+      srow('<label for="pf-age">Older than</label>', '<span class="row" style="gap:6px"><input class="num" id="pf-age" type="number" min="1" value="30"><span>days</span></span>') + '</div>';
+    if (S.cleanup === 'none') return top + '<h3 class="gh">Old labeled images</h3><div class="grp">' + srow('No old images.') + '</div>';
+    var all = S.sel.length === list.length;
+    return top + '<h3 class="gh">Old labeled images</h3><div class="grp" style="padding:4px 6px">' +
+      '<table class="tbl"><thead><tr><th class="ck"><input type="checkbox" id="pf-all" aria-label="Select all"' + (all ? ' checked' : '') + '></th><th>Label</th><th>Display</th><th>Why</th><th class="r">Size</th></tr></thead><tbody>' +
+      list.map(function (r, i) {
+        var on = S.sel.indexOf(i) >= 0;
+        return '<tr' + (on ? ' class="on"' : '') + '><td class="ck"><input type="checkbox" class="pf-row" data-i="' + i + '" aria-label="Select ' + esc(r[0]) + '"' + (on ? ' checked' : '') + '></td><td>' + esc(r[0]) + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td><td class="r">' + mb(r[3]) + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<div class="row" style="margin-top:10px"><span class="hint">' + (S.sel.length ? plural(S.sel.length, 'image') + ' selected, ' + mb(selSize()) + '.' : plural(list.length, 'old labeled image') + ', ' + mb(total) + ' in all.') + '</span><span class="grow"></span>' +
+      '<button type="button" class="btn" data-act="cleanup-ask"' + (S.sel.length ? '' : ' disabled') + '>Delete Selected…</button></div>';
+  }
+  var EXT = '<span class="ext" aria-hidden="true">↗</span>', CHEV = '<span class="ext" aria-hidden="true">›</span>';
+  function paneConfig() {
+    return '<h3 class="gh">This Mac</h3><div class="grp">' +
+      srow('macOS', '<span class="v">27.2 (Apple silicon)</span>') +
+      srow('Separate Spaces', '<span class="v" style="display:flex;gap:6px;align-items:center">' + CHECK + 'On</span>') +
+      srow('Displays', '<span class="v">2</span>' + CHEV, '', ' data-act="pane" data-v="displays" role="button" tabindex="0" style="cursor:pointer"') + '</div>' +
+      '<h3 class="gh">Storage</h3><div class="grp">' +
+      srow('Labels in use', '<span class="v">4, 18.0 MB</span>' + CHEV, '', ' data-act="pane" data-v="labels" role="button" tabindex="0" style="cursor:pointer"') +
+      srow('Old labeled images', '<span class="v">13.2 MB</span><button type="button" class="btn sm" data-act="open-cleanup">Clean Up…</button>') +
+      srow('Data folder', '<button type="button" class="btn sm" data-act="noop">Show in Finder</button>', '<span class="mono path">' + STORE_PATH + '</span>') + '</div>';
+  }
+  function paneDisplays() {
+    return '<div class="grp">' + DISPLAYS.map(function (d, i) {
+      var tags = S.aliases[i].map(function (a) {
+        return '<span class="atag">' + esc(a) + '<button type="button" data-act="alias-rm" data-v="' + i + ':' + esc(a) + '" aria-label="Remove alias ' + esc(a) + '">×</button></span>';
+      }).join('');
+      var add = '<span class="aadd"><input id="alias-' + i + '" data-i="' + i + '" class="afield" placeholder="Add alias" maxlength="40" value="' + esc(S.aliasDraft[i]) + '" aria-label="Add an alias for ' + esc(d[0]) + '" autocomplete="off" spellcheck="false"><button type="button" data-act="alias-add" data-v="' + i + '" aria-label="Add" ' + (S.aliasDraft[i].trim() ? '' : 'disabled') + '>+</button></span>';
+      var m = S.aliasMsg && S.aliasMsg[0] === i ? '<p class="amsg' + (S.aliasMsg[2] ? ' bad' : '') + '" role="status">' + (S.aliasMsg[2] ? '<span aria-hidden="true">⚠︎ </span>' : '') + esc(S.aliasMsg[1]) + '</p>' : '';
+      return '<div class="srow drow"><span class="t"><span>' + esc(d[0]) + '</span>' + (d[1] ? '<small>Main display</small>' : '') + '</span>' +
+        '<span class="atags">' + (tags || '<span class="v">No aliases</span>') + add + '</span>' + m + '</div>';
+    }).join('') + '</div>';
+  }
+  function aliasAdd(i) {
+    var raw = S.aliasDraft[i].trim(), err = null;
+    if (!raw) return;
+    if (raw.toLowerCase() === 'main') err = 'main is reserved and cannot be used as an alias.';
+    else if (/^[0-9]+$/.test(raw)) err = 'An alias cannot be only digits.';
+    else if (!/^[A-Za-z0-9_-]+$/.test(raw)) err = 'Alias names cannot contain spaces or special characters. Use letters, numbers, hyphens, or underscores.';
+    else if (raw.length > 30) err = 'Alias names can be at most 30 characters.';
+    else if (DISPLAYS.some(function (d) { return d[0].toLowerCase() === raw.toLowerCase(); })) err = raw + ' is already the name of a connected display and cannot be used as an alias.';
+    if (err) { S.aliasMsg = [i, err, true]; return; }
+    var other = 1 - i, at = S.aliases[other].map(function (a) { return a.toLowerCase(); }).indexOf(raw.toLowerCase()), note = null;
+    if (S.aliases[i].some(function (a) { return a.toLowerCase() === raw.toLowerCase(); })) { S.aliasDraft[i] = ''; S.aliasMsg = null; return; }
+    if (at >= 0) { S.aliases[other].splice(at, 1); note = raw + ' moved here from ' + DISPLAYS[other][0] + '.'; }
+    S.aliases[i].push(raw); S.aliasDraft[i] = ''; S.aliasMsg = note ? [i, note, false] : null; S.focusId = 'alias-' + i;
+  }
+  function paneLabels() {
+    var used = ACTIVE.reduce(function (a, r) { return a + r[2]; }, 0);
+    return '<div class="grp" style="padding:4px 6px"><table class="tbl"><thead><tr><th>Label</th><th>Display</th><th class="r">Size</th></tr></thead><tbody>' +
+      ACTIVE.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td>' + r[1] + '</td><td class="r">' + mb(r[2]) + '</td></tr>'; }).join('') +
+      '</tbody></table></div><div class="row" style="margin-top:10px"><span class="hint">' + ACTIVE.length + ' labels in use, ' + mb(used) + '.</span></div>';
+  }
+  var ACKS = [
+    ['swift-argument-parser', 'Apple Inc. and the Swift project authors', 'Apache-2.0',
+     'Apache License, Version 2.0, with Runtime Library Exception.\n\nThe full text ships in the app as Licenses/swift-argument-parser-LICENSE.txt and is shown here, scrolling, in the built app.']
+  ];
+  function paneAbout() {
+    if (S.aboutView === 'ack') {
+      return '<div class="grp" style="padding:2px 0">' + ACKS.map(function (a) {
+        return '<details class="ack"><summary><span class="tri" aria-hidden="true">›</span><strong>' + esc(a[0]) + '</strong><span class="au">' + esc(a[1]) + '</span><span class="li">' + esc(a[2]) + '</span></summary><pre>' + esc(a[3]) + '</pre></details>';
+      }).join('') + '</div>';
+    }
+    return '<div class="grp hero">' + appIcon(96) + '<h2>Desktop Name Manager</h2><p class="ver">Version 0.4.0 (34)</p>' +
+      '<p class="tag">Labels for your Desktops, right in the wallpaper.</p></div>' +
+      '<h3 class="gh">Privacy</h3><div class="grp">' +
+      srow('Needs no permissions', CHECK, 'Labeling a Desktop needs nothing from macOS beyond its wallpaper.') +
+      srow('Never connects', CHECK, 'No network access, and nothing is collected about you.') + '</div>' +
+      '<h3 class="gh">Links</h3><div class="grp">' +
+      '<a class="srow" style="color:inherit;text-decoration:none" href="https://' + REPO + '" target="_blank" rel="noopener"><span class="t">GitHub</span>' + EXT + '</a>' +
+      srow('Acknowledgements', CHEV, '', ' data-act="about-ack" role="button" tabindex="0" style="cursor:pointer"') + '</div>';
+  }
+  function settingsWin() {
+    var cur = S.tab, side = '<nav class="side" aria-label="Settings"><span class="lights"><button type="button" data-act="close-win" aria-label="Close"></button><i></i><i></i></span>';
+    PANES.forEach(function (p) {
+      if (!p) { side += '<div style="height:12px"></div>'; return; }
+      side += '<button type="button" class="si" data-act="pane" data-v="' + p[0] + '"' + (cur === p[0] ? ' aria-current="page"' : '') + '>' +
+        (p[2] || '<span class="ic">' + appIcon(22) + '</span>') + p[1] + '</button>';
+    });
+    side += '</nav>';
+    var name = { general: 'General', cleanup: 'Clean Up', config: 'Configuration', displays: 'Displays', labels: 'Labels', about: 'About' }[cur];
+    var title = cur === 'about' && S.aboutView === 'ack' ? '<button type="button" class="back" data-act="about-main" aria-label="Back">‹</button>Acknowledgements' : name;
+    var body = { general: paneGeneral, cleanup: paneCleanup, config: paneConfig, displays: paneDisplays, labels: paneLabels, about: paneAbout }[cur]();
+    var sheet = '';
+    if (cur === 'cleanup' && S.cleanup === 'confirm') {
+      var n = S.sel.length;
+      sheet = '<div class="sheetveil"><div class="sheet" role="alertdialog" aria-label="Delete old labeled images"><h3>Delete ' + plural(n, 'old labeled image') + '?</h3>' +
+        '<p>' + (n === 1 ? 'It uses ' : 'They use ') + mb(selSize()) + '. A Desktop not on screen now that still shows one would fall back to the Mac\'s default wallpaper until you choose another or label it again.</p>' +
+        '<div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-act="cleanup-cancel">Cancel</button><button type="button" class="btn danger" data-act="cleanup-delete">Delete</button></div></div></div>';
+    }
+    return '<section class="win setwin" role="dialog" aria-label="' + esc(name) + '">' + side + '<div class="pane"><div class="ptitle">' + title + '</div>' + body + '</div>' + sheet + '</section>';
+  }
+  function iconSheet() {
+    var bars = '<div class="glyphbar" style="background:#e9e9ec;color:#1d1d1f">' + ICON_GLYPH + '</div>' +
+      '<div class="glyphbar" style="background:#2a2a2e;color:#ffffff">' + ICON_GLYPH + '</div>';
+    return titled('App icon draft', 560, '<div class="body"><div class="iconsheet">' +
+      '<div style="display:flex;align-items:flex-end;gap:22px">' + appIcon(160) + appIcon(64) + appIcon(32) + appIcon(16) + '</div>' +
+      '<div class="stack" style="align-items:center"><span class="cap">Menu-bar glyph</span>' + bars + '</div>' +
+      '</div><p class="hint" style="margin:0">A Desktop with a label tag in its corner. The menu-bar glyph keeps only the frame and the tag, so it reads at 16 points and works as a template image in light and dark menu bars.</p></div>', 110);
+  }
+
+  // ---------- Render ----------
+  var screen = document.getElementById('screen');
+  function render() {
+    var wp = deskWp();
+    screen.setAttribute('data-mac', S.mac);
+    var focused = document.activeElement && document.activeElement.id, selStart = null, selEnd = null;
+    var keepIds = /^(ed-text|q-text|alias-\d)$/;
+    if (keepIds.test(focused || '')) { selStart = document.activeElement.selectionStart; selEnd = document.activeElement.selectionEnd; }
+    var h = wpSvg(wp, null, 'wp') + (S.label && !S.unsupported ? labelEl(S.label, wp, 1) : '') + dock() + menubar();
+    if (S.mainPanel) h += mainWin(true);
+    if (S.panel) h += '<section class="win panel editor" role="dialog" aria-label="Label this Desktop">' + editor() + '</section>';
+    if (S.win === 'welcome') h += welcome();
+    if (S.win === 'settings') h += settingsWin();
+    if (S.win === 'icon') h += iconSheet();
+    screen.innerHTML = h;
+    var keep = keepIds.test(focused || '') && document.getElementById(focused);
+    if (keep && !keep.disabled) { keep.focus({ preventScroll: true }); try { keep.setSelectionRange(selStart, selEnd); } catch (e) { } }
+    else if (S.focusField && S.focusId) {
+      var f = document.getElementById(S.focusId);
+      if (f && !f.disabled) { f.focus({ preventScroll: true }); if (S.selectAll) f.select(); }
+    }
+    S.focusField = false;
+    document.querySelectorAll('.seg').forEach(function (g) {
+      var key = g.getAttribute('data-ctl');
+      g.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(S[key] === b.getAttribute('data-v'))); });
+    });
+  }
+  function fit() {
+    var w = document.getElementById('stage').clientWidth;
+    screen.style.setProperty('--s', String(w / 1280));
+  }
+
+  // ---------- Index, caption, routing ----------
+  var nav = document.getElementById('nav');
+  (function buildNav() {
+    var groups = [], s = '';
+    STATES.forEach(function (st) { if (groups.indexOf(st.g) < 0) groups.push(st.g); });
+    groups.forEach(function (g) {
+      s += '<div><h2>' + g + '</h2><ol>';
+      STATES.forEach(function (st, i) {
+        if (st.g !== g) return;
+        s += '<li><a href="#' + st.id + '" data-i="' + i + '"><span class="n">' + (i + 1) + '</span>' + esc(st.name) + (st.q ? '<span class="q" title="Has a review question">?</span>' : '') + '</a></li>';
+      });
+      s += '</ol></div>';
+    });
+    nav.innerHTML = s;
+  })();
+  function caption() {
+    var st = STATES[current];
+    var q = st.q ? '<div class="questions"><h4>For review</h4><ul>' + st.q.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>'
+      : '<div class="questions none">No open question for this state.</div>';
+    document.getElementById('caption').innerHTML = '<div><p class="eyebrow">' + esc(st.g) + '</p><h3>' + esc(st.name) + '</h3><p>' + esc(st.desc) + '</p>' +
+      '<div class="reqs">' + st.reqs.map(function (r) { return '<span>' + esc(r) + '</span>'; }).join('') + '</div></div>' + q;
+    document.getElementById('count').textContent = 'State ' + (current + 1) + ' of ' + STATES.length;
+    document.getElementById('prev').disabled = current === 0;
+    document.getElementById('next').disabled = current === STATES.length - 1;
+    nav.querySelectorAll('a').forEach(function (a) {
+      if (Number(a.getAttribute('data-i')) === current) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  }
+  function go(i, fromHash) {
+    current = Math.max(0, Math.min(STATES.length - 1, i));
+    try { window.getSelection().removeAllRanges(); } catch (e) { }
+    reset(); STATES[current].set(); S.focusField = S.edOpen || S.panel || S.menuOpen || S.mainPanel;
+    if (!fromHash && location.hash !== '#' + STATES[current].id) { try { history.replaceState(null, '', '#' + STATES[current].id); } catch (e) { location.hash = STATES[current].id; } }
+    caption(); render();
+  }
+  function fromHash() {
+    var id = location.hash.replace('#', ''), i = STATES.findIndex(function (s) { return s.id === id; });
+    go(i < 0 ? 0 : i, true);
+  }
+  window.addEventListener('hashchange', fromHash);
+  document.getElementById('prev').addEventListener('click', function () { go(current - 1); });
+  document.getElementById('next').addEventListener('click', function () { go(current + 1); });
+
+  document.querySelectorAll('.seg').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      S[g.getAttribute('data-ctl')] = b.getAttribute('data-v'); render();
+    });
+  });
+
+  // ---------- Behavior inside the screen ----------
+  var applyTimer = null;
+  function doApply() {
+    if (checkText(S.raw) || S.edState === 'working' || S.edState === 'unsupported') return;
+    S.edState = 'working'; render();
+    clearTimeout(applyTimer);
+    applyTimer = setTimeout(function () {
+      S.prev = S.label; S.label = draft(); S.undo = 'label'; S.edOpen = false; S.panel = false; S.edState = 'ready'; render();
+    }, 900);
+  }
+  // The main window's field: a new label gets the defaults from General; a relabel keeps the label's style.
+  function quickApply() {
+    var t = S.q.trim();
+    if (checkText(S.q) || (S.label && t === S.label.text)) return;
+    var base = S.label || { look: S.defaults.look, color: S.defaults.color, custom: S.custom, pos: S.defaults.pos, size: S.defaults.size };
+    S.prev = S.label; S.label = Object.assign({}, base, { text: t }); S.undo = 'label'; S.menuOpen = false; S.mainPanel = false; render();
+  }
+  screen.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+    var a = b.getAttribute('data-act'), v = b.getAttribute('data-v');
+    switch (a) {
+      case 'item': S.ring = false; if (S.edOpen) { S.edOpen = false; } else if (S.menuOpen) { S.menuOpen = false; } else { openMain(); S.focusField = true; } break;
+      case 'q-apply': quickApply(); return;
+      case 'pane': openPane(v); break;
+      case 'alias-add': aliasAdd(Number(v)); break;
+      case 'alias-rm': (function () { var k = v.indexOf(':'), i = Number(v.slice(0, k)), n = v.slice(k + 1); S.aliases[i] = S.aliases[i].filter(function (a) { return a !== n; }); S.aliasMsg = null; })(); break;
+      case 'pf-login': S.login = !S.login; break;
+      case 'close-menu': S.menuOpen = false; S.mainPanel = false; break;
+      case 'open-editor': var fl = S.mainPanel; S.menuOpen = false; S.mainPanel = false; S.panel = fl; S.edOpen = !fl; openEditorFrom(S.label); S.focusField = true; break;
+      case 'look': S.look = v; break;
+      case 'color': S.color = v; break;
+      case 'pos': S.pos = v; break;
+      case 'size': S.size = v; break;
+      case 'more': S.more = !S.more; break;
+      case 'apply': doApply(); return;
+      case 'cancel': S.edOpen = false; S.panel = false; break;
+      case 'remove': S.prev = S.label; S.label = null; S.undo = 'remove'; S.edOpen = false; S.panel = false; S.menuOpen = false; S.mainPanel = false; break;
+      case 'undo': S.label = S.prev; S.prev = null; S.undo = null; S.menuOpen = false; S.mainPanel = false; break;
+      case 'open-cleanup': openPane('cleanup'); S.sel = []; if (S.cleanup === 'none' || S.cleanup === 'confirm') S.cleanup = S.over ? 'over' : 'list'; break;
+      case 'close-win': S.win = null; S.ring = false; break;
+      case 'welcome-done': S.win = null; S.ring = false; break;
+      case 'cleanup-ask': S.cleanup = 'confirm'; break;
+      case 'cleanup-cancel': S.cleanup = S.over ? 'over' : 'list'; break;
+      case 'cleanup-delete': S.cleanup = 'none'; S.over = false; S.sel = []; break;
+      case 'd-look': S.defaults.look = v; break;
+      case 'd-color': S.defaults.color = v; break;
+      case 'd-pos': S.defaults.pos = v; break;
+      case 'd-size': S.defaults.size = v; break;
+      case 'hk-clear': S.hotkey = false; S.hotkeyTaken = false; break;
+      case 'hk-record': S.hotkey = true; break;
+      case 'about-ack': S.aboutView = 'ack'; break;
+      case 'about-main': S.aboutView = 'main'; break;
+      case 'noop': return;
+      default: return;
+    }
+    render();
+  });
+  screen.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.id === 'ed-text' || t.id === 'q-text') {
+      // Line breaks and control characters are ignored as typed or pasted (review round 3).
+      var clean = t.value.replace(BAD, '');
+      if (clean !== t.value) { var at = Math.max(0, t.selectionStart - (t.value.length - clean.length)); t.value = clean; try { t.setSelectionRange(at, at); } catch (x) { } }
+    }
+    if (t.id === 'ed-text') {
+      S.raw = t.value; S.touched = true;
+      if (S.edState === 'error') { S.edState = 'ready'; S.err = null; }
+      render();
+    } else if (t.id === 'q-text') {
+      S.q = t.value; S.qTouched = true; render();
+    } else if (t.classList && t.classList.contains('afield')) {
+      var ai = Number(t.getAttribute('data-i')); S.aliasDraft[ai] = t.value; if (S.aliasMsg && S.aliasMsg[0] === ai) S.aliasMsg = null; S.focusId = t.id; render();
+    } else if (t.id === 'ed-custom' || t.id === 'pf-custom') {
+      S.custom = t.value;
+      if (t.id === 'ed-custom') S.color = 'custom'; else S.defaults.color = 'custom';
+      render();
+    }
+  });
+  screen.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.id === 'pf-mode') { S.mode = t.value; if (S.mode === 'hidden') S.menuOpen = false; render(); }
+    if (t.id === 'pf-all') { S.sel = t.checked ? cleanList().map(function (r, i) { return i; }) : []; render(); }
+    if (t.classList && t.classList.contains('pf-row')) {
+      var i = Number(t.getAttribute('data-i'));
+      S.sel = S.sel.filter(function (x) { return x !== i; }); if (t.checked) S.sel.push(i); render();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    var inField = e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName);
+    if (e.key === 'Escape') {
+      if (S.cleanup === 'confirm') S.cleanup = S.over ? 'over' : 'list';
+      else if (S.edOpen || S.panel) { S.edOpen = false; S.panel = false; }
+      else if (S.menuOpen || S.mainPanel) { S.menuOpen = false; S.mainPanel = false; }
+      else return;
+      render(); return;
+    }
+    if (e.key === 'Enter' && e.target && (e.target.id === 'ed-text' || e.target.id === 'q-text') && (e.shiftKey || e.altKey)) { e.preventDefault(); return; }
+    if (e.key === 'Enter' && e.target && e.target.id === 'ed-text') { e.preventDefault(); doApply(); return; }
+    if (e.key === 'Enter' && e.target && e.target.id === 'q-text') { e.preventDefault(); quickApply(); return; }
+    if (e.key === 'Enter' && e.target && e.target.classList && e.target.classList.contains('afield')) { e.preventDefault(); aliasAdd(Number(e.target.getAttribute('data-i'))); render(); return; }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('srow') && e.target.hasAttribute('data-act')) { e.preventDefault(); e.target.click(); return; }
+    if (!inField && (e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !e.metaKey && !e.altKey && !e.ctrlKey) {
+      go(current + (e.key === 'ArrowRight' ? 1 : -1));
+    }
+  });
+
+  // Start with the Mac appearance the viewer's theme suggests.
+  var themed = document.documentElement.getAttribute('data-theme');
+  S.mac = themed ? themed : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(document.getElementById('stage'));
+  window.addEventListener('resize', fit);
+  fit();
+  fromHash();
+})();
+</script>

@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DesktopNameCore
+import DNMTestSupport
 
 /// Spec 009: commands that already write record which labels they saw showing; read-only ones change nothing.
 @Suite struct LastSeenTests {

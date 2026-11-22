@@ -123,7 +123,7 @@ location (including a copy of the stand-in picture placed elsewhere) is still la
   (`/System/Library/CoreServices/DefaultDesktop.heic` on macOS 27), the system MUST decline to label it, change
   nothing, and say why, as for the other unsupported kinds in FR-014 of spec 001. `dnm` MUST exit with code 3.
 - **FR-002**: The reason MUST be "macOS reports the default wallpaper when dynamic or unsupported wallpapers are
-  selected", shown inside the existing message, so the full line reads "This wallpaper is not supported yet: macOS
+  selected", shown inside the existing message, so the full line reads "This wallpaper is not supported: macOS
   reports the default wallpaper when dynamic or unsupported wallpapers are selected. Nothing was changed." (Q2)
 - **FR-003**: The stand-in MUST be recognized from the location macOS reports, compared after normalizing the
   path but without following links and without opening, reading or listing anything in system folders beyond
