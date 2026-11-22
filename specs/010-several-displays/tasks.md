@@ -96,6 +96,13 @@ synthetic display names (`main`, `DP`, `Side`) in tests and docs; build and test
   - Scenario 7 repeated on `9b682f5` under approved live control: both Desktop 2s labeled in order and then restored
     (exit 0 each); the lines print on each Desktop as the change is made. The second display was still on its Desktop
     2, as in the first run.
+  - Scenario 7 again on `dnm 0.3.1 build 35 (ec4c594)`, macOS 27.2.1, 2026-11-21, approved live control, the real
+    store (the Desktops on screen showed images the private store did not know). The first attempts were refused with
+    nothing changed: the built-in display's Desktop 2 still showed an image from a deleted store; the maintainer chose
+    a plain wallpaper for it. Then `dnm set main "Two" --display DP --desktop 2` labeled both Desktop 2s in order
+    (exit 0) and `dnm remove main DP --desktop 2` restored both (exit 0); neither shows a label afterwards and an
+    unrelated label on another DP Desktop was untouched. Each display's return to its starting Desktop was not
+    confirmed visually.
 
 ## Dependencies
 
