@@ -394,6 +394,8 @@ stage_build() {
     fi
 
     make_zip
+    # A new build voids an earlier notarization and verification: they are tied to a zip by its SHA-256.
+    rm -f "${artifact_directory}/notarization.json" "${artifact_directory}/notarized.sha256" "${artifact_directory}/verified.sha256"
     log_result "${zip_name}: SHA-256 $(recorded_sha256)"
 }
 
@@ -432,16 +434,26 @@ stage_notarize() {
     # Staple the ticket to the app, so it passes Gatekeeper offline, and zip it again: the download is the stapled
     # app, and the checksum is of that zip.
     [[ -d "${payload}/${app_name}" ]] || die "no payload folder: run the build stage again"
-    xcrun stapler staple "${payload}/${app_name}"
+    # The ticket can take a little while to reach Apple's ticket service after "Accepted".
+    local staple_attempt stapled=false
+    for staple_attempt in 1 2 3 4 5 6; do
+        if xcrun stapler staple "${payload}/${app_name}"; then stapled=true; break; fi
+        print_colored "$COLOR_YELLOW" "Stapling failed (try ${staple_attempt} of 6); the ticket may not be available yet..."
+        sleep 20
+    done
+    "$stapled" || die "the ticket could not be stapled to the app: run the notarize stage again later"
     xcrun stapler validate "${payload}/${app_name}"
     codesign --verify --deep --strict "${payload}/${app_name}" || die "stapling broke the app's signature"
     make_zip
+    recorded_sha256 >"${artifact_directory}/notarized.sha256"
     log_result "stapled the ticket to the app and zipped it again: SHA-256 $(recorded_sha256)"
 }
 
 stage_verify() {
     require_file "$zip_path" build
     require_file "${artifact_directory}/notarization.json" notarize
+    [[ "$(cat "${artifact_directory}/notarized.sha256" 2>/dev/null)" == "$(recorded_sha256)" ]] \
+        || die "this zip is not the notarized and stapled one: run build and notarize again"
     (cd "$artifact_directory" && shasum -a 256 -c "${zip_name}.sha256" >/dev/null) || die "the zip no longer matches its SHA-256"
     local unpacked="${temporary_directory}/unpacked"
     ditto -x -k "$zip_path" "$unpacked"
@@ -468,6 +480,7 @@ stage_verify() {
             die "syspolicy_check distribution found: $(tr '\n' ';' <"$policy_log" | cut -c1-300)"
         fi
     fi
+    recorded_sha256 >"${artifact_directory}/verified.sha256"
     log_result "checksum matches: $(recorded_sha256)"
 }
 
@@ -501,7 +514,10 @@ stage_draft() {
     require_command gh
     require_file "$zip_path" build
     grep -q "Accepted" "${artifact_directory}/notarization.json" 2>/dev/null || die "the zip is not notarized: run notarize and verify first"
-    grep -q " verify: " "$procedure_log" 2>/dev/null || die "the download was not verified: run verify first"
+    [[ "$(cat "${artifact_directory}/notarized.sha256" 2>/dev/null)" == "$(recorded_sha256)" ]] \
+        || die "this zip is not the one that was notarized and stapled: run build, notarize and verify again"
+    [[ "$(cat "${artifact_directory}/verified.sha256" 2>/dev/null)" == "$(recorded_sha256)" ]] \
+        || die "this zip was not verified: run verify first"
     local notes
     notes="$(render_release_notes)"
     gh release create "$tag" "$zip_path" "${zip_path}.sha256" --repo "$release_repository" --draft --verify-tag \
@@ -512,11 +528,6 @@ stage_draft() {
 stage_publish() {
     require_confirmation "check the draft ${tag}'s download against the recorded SHA-256, then make the release PUBLIC"
     require_command gh
-    # brew puts the app in /Applications and refuses to replace one it did not install.
-    local applications_directory="/Applications"
-    if [[ -e "${applications_directory}/${app_name}" ]] && ! "$cask_installed"; then
-        die "${applications_directory}/${app_name} exists and was not installed by the cask: move it aside for the cask test"
-    fi
     local is_draft
     is_draft="$(gh release view "$tag" --repo "$release_repository" --json isDraft -q .isDraft 2>/dev/null)" \
         || die "there is no release ${tag}: run draft first"
@@ -620,6 +631,11 @@ stage_cask() {
     cask_installed_at_start=$cask_installed
     if "$cask_installed" && ! "$uninstall_first"; then
         die "desktop-name-manager is installed on this Mac, and the cask test would uninstall it. Run this stage again with --uninstall-first, push the tap, then run the reinstall stage."
+    fi
+    # brew puts the app in /Applications and refuses to replace one it did not install.
+    local applications_directory="/Applications"
+    if [[ -e "${applications_directory}/${app_name}" ]] && ! "$cask_installed"; then
+        die "${applications_directory}/${app_name} exists and was not installed by the cask: move it aside for the cask test"
     fi
     local is_draft
     is_draft="$(gh release view "$tag" --repo "$release_repository" --json isDraft -q .isDraft 2>/dev/null || printf 'missing')"

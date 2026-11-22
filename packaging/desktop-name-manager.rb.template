@@ -17,6 +17,8 @@ cask "desktop-name-manager" do
 
   # The app, and dnm (also as desktop-name), which runs from inside the app and is the same tool as the standalone one.
   app "Desktop Name Manager.app"
+  # A running menu-bar app is asked to quit before an upgrade or uninstall replaces it.
+  uninstall quit: "com.altmansoftwaredesign.desktop-name-manager"
   binary "#{appdir}/Desktop Name Manager.app/Contents/Helpers/dnm"
   binary "#{appdir}/Desktop Name Manager.app/Contents/Helpers/dnm", target: "desktop-name"
 

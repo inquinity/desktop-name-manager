@@ -28,9 +28,9 @@ brew trust --tap inquinity/tap   # Homebrew 7 and later load casks only from tap
 brew install --cask inquinity/tap/desktop-name-manager
 ```
 
-This installs `dnm` and the same tool as `desktop-name`. The release is signed and notarized by Apple; the
-first run needs a network connection once, for macOS's notarization check, and after that the tool works
-offline and never connects to the network. To check a download yourself, follow the steps in its
+This installs the app (in `/Applications`), and `dnm` and the same tool as `desktop-name`, which run from inside
+the app. The release is signed and notarized by Apple, with the ticket stapled to the app; neither the app nor
+`dnm` ever connects to the network. To check a download yourself, follow the steps in its
 [release notes](https://github.com/inquinity/desktop-name-manager/releases).
 
 To build from source instead (Xcode 27 command-line tools): `just build-release`, then use

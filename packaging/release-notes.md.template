@@ -1,4 +1,4 @@
-Desktop Name Manager @VERSION@: the `dnm` command-line tool (also installed as `desktop-name`).
+Desktop Name Manager @VERSION@: the menu-bar app, and the `dnm` command-line tool (also installed as `desktop-name`).
 
 @NOTES@
 
@@ -10,8 +10,8 @@ brew trust --tap inquinity/tap   # Homebrew 7 and later load casks only from tap
 brew install --cask inquinity/tap/desktop-name-manager
 ```
 
-macOS 26 or later, Apple silicon only. The first run after installing needs a network connection once, for
-macOS's notarization check; after that the tool works offline and never connects to the network.
+macOS 26 or later, Apple silicon only. The app is notarized and the ticket is stapled to it, so it passes
+macOS's check without a network connection; neither the app nor `dnm` ever connects to the network.
 
 ## How this release was checked
 
