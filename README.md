@@ -36,6 +36,28 @@ offline and never connects to the network. To check a download yourself, follow 
 To build from source instead (Xcode 27 command-line tools): `just build-release`, then use
 `build.noindex/release/dnm`.
 
+## The app
+
+Desktop Name Manager is also a menu-bar app. It labels the Desktop on screen, with the same labels and files as
+`dnm`, so each reads what the other made.
+
+- **The menu bar.** Click the item (a small icon, with "dnm" beside it unless you change that in Settings) to open
+  the main window: the Desktop's label, a field to type a new one, Remove Label, Undo (for 60 seconds), how many labels
+  are in use, and the space old labeled images take. Return applies.
+- **The editor.** "Style and Preview…" shows the label over your wallpaper as you type, with the style, text color,
+  position and size options.
+- **Hotkeys.** Two optional shortcuts, off until you record them in Settings: one opens the main window, one the
+  editor, on the display you are using. Pressing a shortcut again moves the window to the next display.
+- **Settings.** The menu-bar item (icon and text, icon, or hidden), the defaults for new labels, the hotkeys, Open at
+  login, Clean Up (it lists old labeled images, and deletes the ones you choose after asking), Configuration, the
+  Displays pane (display aliases), the Labels pane and About.
+- **First launch.** A welcome window appears once. Opening the app again while it runs opens Settings, so Settings
+  are always reachable even with the menu-bar item hidden.
+- **No permission, no network.** The app asks for no macOS permission and never connects to the network. It cannot
+  switch Desktops, so it labels only the one on screen. `dnm --desktop` and `dnm cleanup --scan` can reach the rest
+  (they need the Accessibility permission). `docs/app-and-cli.md` lists what each offers.
+- **`dnm` is inside the app** (`Desktop Name Manager.app/Contents/Helpers/dnm`) and behaves exactly as before.
+
 ## Try it
 
 ```sh
@@ -246,8 +268,8 @@ the shortcuts act on the display under the pointer.
   **Know what you are granting:** a command-line tool has no app of its own, so macOS gives the permission
   to the terminal app, and every program you run in that terminal can then send keystrokes and clicks
   too. Grant it only if you need `--desktop`, consider a separate terminal app just for it, and turn it
-  off when you no longer need it. The planned menu-bar app will hold the permission itself, so the
-  terminal will not need it.
+  off when you no longer need it. The menu-bar app does not use the permission (it labels only the Desktop on screen),
+  so it does not need it.
 - **The shortcuts turned on**: System Settings > **Keyboard** (near the bottom of the sidebar) >
   Keyboard Shortcuts… > Mission Control, then **expand** the Mission Control group and turn on "Move left
   a space" and "Move right a space". The Shortcuts… button in Desktop & Dock does not list them.
@@ -308,7 +330,7 @@ Homebrew never deletes that folder itself.
 ## Status
 
 Early. The command-line tool (spec 001, `specs/001-labels-and-cli/`) is built and its first preview
-release, 0.1.0, is being prepared (spec 005, `specs/005-packaging-and-release/`). The menu-bar app and the other planned features are not built
+release, 0.1.0, is being prepared (spec 005, `specs/005-packaging-and-release/`). The menu-bar app (spec 014) is built for 0.4.0; the other planned features are not built
 yet. `prototype/` holds the proof of concept that validated the approach, and
 `docs/research/` holds what testing and research found. The build order and the MVP are in
 [ROADMAP.md](ROADMAP.md).
