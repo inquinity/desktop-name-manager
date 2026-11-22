@@ -52,6 +52,14 @@ other unsupported kinds. It reads nothing new: the reported file is already open
   kind uses, so it stays as is, FR-005) this becomes the reason "macOS reports the default wallpaper when dynamic or
   unsupported wallpapers are selected". No workaround in the message; it goes in the README.
 
+### Session 2026-11-22
+
+- Q3: Does the refusal apply before macOS 27? → A: No. Only macOS 27 and later recognize the stand-in
+  (`WallpaperKind.standInLocations(onMajorVersion:)`): on macOS 26 the same file may be a wallpaper the person
+  really chose, so labeling it works as in 0.3.0. The maintainer tests on macOS 26 after the 0.4.0 release, through
+  `brew install`. The path comparison is not an undocumented API (it fails by not matching, not by crashing), which
+  [CLAUDE.md](../../CLAUDE.md) now records.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A dynamic wallpaper is refused, not replaced (Priority: P1)
