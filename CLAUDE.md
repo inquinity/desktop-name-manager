@@ -16,6 +16,7 @@ untracked notes may exist in `working-notes/`; if `working-notes/HANDOFF.md` exi
   - Labeling must need no macOS permissions.
   - Any Accessibility use must be explicit and opt-in.
   - No private macOS interfaces in the product (no SkyLight calls, no undocumented system files or preferences, not even read-only); the App Store is a goal. Research tools in `prototype/` may use them and are never shipped.
+  - A fixed path string compared against what a public API reports, and never opened by the product, is not an undocumented interface. Recognizing macOS's default-wallpaper stand-in (spec 015) is the one such case; a path that stops matching degrades detection, so each new macOS gets the spec 015 live check.
 - **No network access and no telemetry** in the app or CLI.
 - **Protect the user's wallpaper during live tests.** Tests change the real wallpaper:
   - back up `~/Library/Application Support/com.apple.wallpaper/Store/Index.plist` first,
