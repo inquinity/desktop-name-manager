@@ -22,6 +22,14 @@ dropped (the same process as the sibling project).
   color, position and size options. It also removes and undoes labels, lists the labels in use, cleans up old
   labeled images, and manages display aliases. It needs no permission and never connects to the network. It uses
   the same labels as `dnm`, so each reads what the other made. The release now installs the app; `dnm` and
-  `desktop-name` are still installed and unchanged (they run from inside the app).
+  `desktop-name` are still installed (they run from inside the app, in
+  `Desktop Name Manager.app/Contents/Helpers/dnm`, and work as before apart from the messages below).
 - The app labels only the Desktop on screen. To label a Desktop that is not showing, or every Desktop at once,
   keep using `dnm --desktop` and `dnm cleanup --scan` (see `docs/app-and-cli.md`).
+- Messages for a wallpaper `dnm` cannot label changed: the dynamic-wallpaper refusal above, "not supported" without
+  "yet", a new message for a Desktop with no wallpaper file, and "Cannot read wallpaper" for an unreadable one. A file
+  that is not an image is now refused earlier. Exit codes are unchanged. A script that matched the old wording needs
+  updating.
+- The download is now `desktop-name-manager-<version>-arm64.zip` and holds the app; `dnm` is inside it, in
+  `Desktop Name Manager.app/Contents/Helpers/dnm`, no longer at the top. With Homebrew, `dnm` and `desktop-name` are
+  links into the installed app: uninstall with `brew uninstall --cask desktop-name-manager`, not by deleting the app.

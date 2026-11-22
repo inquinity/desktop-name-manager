@@ -56,7 +56,7 @@ Desktop Name Manager is also a menu-bar app. It labels the Desktop on screen, wi
 - **No permission, no network.** The app asks for no macOS permission and never connects to the network. It cannot
   switch Desktops, so it labels only the one on screen. `dnm --desktop` and `dnm cleanup --scan` can reach the rest
   (they need the Accessibility permission). `docs/app-and-cli.md` lists what each offers.
-- **`dnm` is inside the app** (`Desktop Name Manager.app/Contents/Helpers/dnm`) and behaves exactly as before.
+- **`dnm` is inside the app** (`Desktop Name Manager.app/Contents/Helpers/dnm`) and works as before, apart from clearer messages for a wallpaper it cannot label (see the release notes).
 
 ## Try it
 
