@@ -125,6 +125,7 @@ final class PopoverPresenter: NSObject, NSPopoverDelegate, NSWindowDelegate {
         self.display = display
         if page == .editor { openEditor(closesWindowOnCancel: true) } else { showMainPage(for: display) }
         watch()
+        rereadAfterSwitch()
         if let button {
             let popover = NSPopover()
             popover.behavior = .transient
@@ -285,6 +286,17 @@ final class PopoverPresenter: NSObject, NSPopoverDelegate, NSWindowDelegate {
     }
 
     // MARK: - Following the store
+
+    /// macOS reports a new Desktop's wallpaper up to about 1.6 s after a switch (spike S1, research R5), so a window
+    /// opened soon after one would name the previous Desktop's label. While the main window is open, read again at
+    /// 0.5, 1, 1.5 and 2 s; the model keeps text the person has already typed.
+    private func rereadAfterSwitch() {
+        for delay in [0.5, 1.0, 1.5, 2.0] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                if case .main(let model)? = self?.content.page { model.storeChanged() }
+            }
+        }
+    }
 
     /// While the main window is open, a change from `dnm` or another run updates its label and Undo (T040). A store
     /// that does not exist yet is not watched; nothing can change it but this window.

@@ -85,6 +85,16 @@ a measurement or a live check during the build (named in `tasks.md`), with the f
   reports the new Desktop's image when the main window is opened right after a switch (`dnm` waits up to 3 s for the
   wallpaper to settle after a switch). Fallbacks: (a) the screen under the pointer; (b) re-read once after 0.5 s while
   the window is open.
+- **Spike S1 results** (2026-11-21, `dnm 0.4.0 build 58`, macOS 27.2.1, two displays, private store, hotkey driven
+  under approved live control, Finder in front):
+  - (a) `NSScreen.main` followed the display of the frontmost app's window while the pointer was on the other
+    display (built-in with Finder in front and the pointer on DP). FR-012's rule stands.
+  - (b) **Not met at open time.** After a Ctrl+arrow switch `desktopImageURL(for:)` still reported the previous
+    Desktop's image for about 1 to 1.6 s: with the hotkey pressed 0.1, 0.3, 0.5 and 1.0 s after a switch, the read
+    at open was stale each time and was right by 0.5 s (built-in, 1.0 s) to 1.5 s (built-in, 0.1 s) later; waiting
+    1.5 s or more first, it was right at once. Same on both displays. The fallback applies, longer than planned: while
+    the main window is open it reads again at 0.5, 1, 1.5 and 2 s (`PopoverPresenter.rereadAfterSwitch`).
+  - Not run: a full-screen app in front, and "Displays have separate Spaces" off (needs a log out).
 - **Rationale**: no public interface names the current Desktop; the wallpaper on screen is what `dnm show` already
   relies on, so the app and `dnm` agree.
 - **Alternatives**: following every switch with `activeSpaceDidChangeNotification` (the design before round 3; no
