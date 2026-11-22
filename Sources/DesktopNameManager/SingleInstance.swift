@@ -16,10 +16,17 @@ enum SingleInstance {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
         configuration.createsNewApplicationInstance = false
-        // The request is sent asynchronously: wait for it (briefly) before this copy quits.
-        let sent = DispatchSemaphore(value: 0)
-        NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, _ in sent.signal() }
-        _ = sent.wait(timeout: .now() + 3)
+        // The request is sent asynchronously: let it go out (briefly) before this copy quits. The run loop keeps
+        // turning, so a completion delivered on the main queue is not left waiting.
+        let sent = SentFlag()
+        NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, _ in
+            DispatchQueue.main.async { sent.value = true }
+        }
+        let deadline = Date().addingTimeInterval(3)
+        while !sent.value, Date() < deadline { RunLoop.current.run(until: Date().addingTimeInterval(0.05)) }
         return true
     }
 }
+
+/// Set and read on the main queue only.
+private final class SentFlag: @unchecked Sendable { var value = false }

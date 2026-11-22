@@ -259,7 +259,9 @@ final class PopoverPresenter: NSObject, NSPopoverDelegate, NSWindowDelegate {
     // MARK: - Closing
 
     func close() {
-        popover?.performClose(nil)
+        // `close()`, not `performClose`: the delegate may refuse the latter (the color panel is in use), which would
+        // leave a popover on screen that nothing refers to any more.
+        popover?.close()
         popover = nil
         if let panel {
             self.panel = nil
@@ -304,6 +306,13 @@ final class PopoverPresenter: NSObject, NSPopoverDelegate, NSWindowDelegate {
         watcher?.stop()
         watcher = try? StoreWatcher(store: controller.labeler.store) { [weak self] in
             if case .main(let model)? = self?.content.page { model.storeChanged() }
+        }
+        // No store yet: `dnm` may create it while the window is open, so look again until the window closes.
+        if watcher == nil, isShown {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                guard let self, self.isShown, self.watcher == nil else { return }
+                self.watch()
+            }
         }
     }
 }
