@@ -113,7 +113,9 @@ release_display="${version} build ${build_number}"
 release_subject="Release ${version} build ${build_number}"
 notes_file="${repository_root}/docs/release-notes/${version}.md"
 artifact_directory="${repository_root}/build.noindex/release-artifacts/${version}"
-zip_name="dnm-${version}-arm64.zip"
+zip_name="desktop-name-manager-${version}-arm64.zip"
+app_name="Desktop Name Manager.app"
+payload="${artifact_directory}/payload"
 zip_path="${artifact_directory}/${zip_name}"
 gate_record="${repository_root}/specs/005-packaging-and-release/releases/${version}.md"
 procedure_log="${artifact_directory}/procedure-log.md"
@@ -312,79 +314,100 @@ stage_build() {
         stamp_flags+=("$stamp_flag")
     done <<<"$stamp_output"
 
-    print_colored "$COLOR_BRIGHTYELLOW" "Building dnm ${version} for arm64..."
-    local build_arguments=(-c release --arch arm64 --product dnm --scratch-path build.noindex --force-resolved-versions)
-    swift build "${build_arguments[@]}" "${stamp_flags[@]}"
-    local built_binary
-    built_binary="$(swift build "${build_arguments[@]}" --show-bin-path)/dnm"
-    [[ -x "$built_binary" ]] || die "the build produced no binary at ${built_binary}"
+    print_colored "$COLOR_BRIGHTYELLOW" "Building dnm and the app ${version} for arm64..."
+    local build_arguments=(-c release --arch arm64 --scratch-path build.noindex --force-resolved-versions)
+    swift build "${build_arguments[@]}" --product dnm "${stamp_flags[@]}"
+    swift build "${build_arguments[@]}" --product DesktopNameManager "${stamp_flags[@]}"
+    local bin_path
+    bin_path="$(swift build "${build_arguments[@]}" --show-bin-path)"
+    [[ -x "${bin_path}/dnm" && -x "${bin_path}/DesktopNameManager" ]] || die "the build produced no dnm or app binary in ${bin_path}"
 
-    local payload="${artifact_directory}/payload"
     rm -rf "$payload"
     mkdir -p "$payload"
-    cp "$built_binary" "${payload}/dnm"
+    # The bundle is assembled from this build (contracts/app-bundle.md); signing is done below.
+    scripts/make-app.sh --build-directory "$bin_path" --output "$payload" release
     cp LICENSE Acknowledgements.md "$payload/"
-    # The license files of the components compiled into dnm (constitution 2.1.0).
+    # The license files of the components compiled in (constitution 2.1.0).
     local license_file
     while IFS= read -r license_file; do
         mkdir -p "${payload}/$(dirname "$license_file")"
         cp "$license_file" "${payload}/${license_file}"
     done < <(scripts/make-acknowledgements.sh --binary-license-files)
-    local binary="${payload}/dnm"
+    local app="${payload}/${app_name}"
+    local binary="${app}/Contents/Helpers/dnm"
+    local app_binary="${app}/Contents/MacOS/DesktopNameManager"
 
     local reported_version
     reported_version="$("$binary" --version)"
     if [[ -n "$expected_version" && "$reported_version" != "$expected_version" ]]; then
         die "the release build reports ${reported_version}, not ${expected_version}"
     fi
-    log_result "built dnm ${reported_version} for $(lipo -archs "$binary")"
+    [[ "$(plutil -extract CFBundleShortVersionString raw -o - "${app}/Contents/Info.plist")" == "$version" ]] \
+        || die "the app's Info.plist does not carry version ${version}"
+    log_result "built dnm ${reported_version} for $(lipo -archs "$binary") and the app"
     generate_completion_files "$binary" "$payload"
 
-    # Security plan S7: no build folder, home folder or user name inside the binary.
-    local leaked=""
-    for needle in "$repository_root" "$HOME" "$(id -un)"; do
-        if strings -a "$binary" | grep -qF "$needle"; then leaked="yes"; fi
+    # Security plan S7: no build folder, home folder or user name inside either executable.
+    local leaked="" executable
+    for executable in "$binary" "$app_binary"; do
+        for needle in "$repository_root" "$HOME" "$(id -un)"; do
+            if strings -a "$executable" | grep -qF "$needle"; then leaked="yes"; fi
+        done
     done
-    [[ -z "$leaked" ]] || die "the binary contains the build folder, the home folder or the user name"
-    log_result "no build folder, home folder or user name in the binary"
+    [[ -z "$leaked" ]] || die "an executable contains the build folder, the home folder or the user name"
+    log_result "no build folder, home folder or user name in dnm or the app"
 
     # Only system libraries, and none for networking or private frameworks (the linkage test's rules).
     local libraries
-    libraries="$(otool -L "$binary" | tail -n +2 | awk '{print $1}')"
-    if grep -vE '^(/usr/lib/|/System/Library/Frameworks/)' <<<"$libraries" | grep -q .; then
-        die "the binary links a library outside /usr/lib and /System/Library/Frameworks"
-    fi
-    if grep -qE 'Network\.framework|CFNetwork|SkyLight|WebKit|SystemConfiguration|NetworkExtension|MultipeerConnectivity|libcurl|PrivateFrameworks' <<<"$libraries"; then
-        die "the binary links a networking or private framework"
-    fi
-    log_result "links only allowed system libraries ($(wc -l <<<"$libraries" | tr -d ' '))"
+    for executable in "$binary" "$app_binary"; do
+        libraries="$(otool -L "$executable" | tail -n +2 | awk '{print $1}')"
+        if grep -vE '^(/usr/lib/|/System/Library/Frameworks/)' <<<"$libraries" | grep -q .; then
+            die "$(basename "$executable") links a library outside /usr/lib and /System/Library/Frameworks"
+        fi
+        if grep -qE 'Network\.framework|CFNetwork|SkyLight|WebKit|SystemConfiguration|NetworkExtension|MultipeerConnectivity|libcurl|PrivateFrameworks' <<<"$libraries"; then
+            die "$(basename "$executable") links a networking or private framework"
+        fi
+    done
+    log_result "dnm and the app link only allowed system libraries"
 
-    # Hardened runtime, no entitlements. A secure timestamp needs a real identity (and the network).
+    # Hardened runtime, no entitlements, nested code first and then the bundle (no --deep: it hides what is
+    # signed). A secure timestamp needs a real identity (and the network).
     local timestamp_option="--timestamp"
     [[ "$signing_identity" == "-" ]] && timestamp_option="--timestamp=none"
     codesign --force --sign "$signing_identity" --options runtime "$timestamp_option" \
         --identifier com.altmansoftwaredesign.dnm "$binary"
-    codesign --verify --strict --verbose=2 "$binary"
+    codesign --force --sign "$signing_identity" --options runtime "$timestamp_option" "$app"
+    codesign --verify --deep --strict --verbose=2 "$app"
+    if [[ -n "$(codesign -d --entitlements - "$app" 2>/dev/null)" || -n "$(codesign -d --entitlements - "$binary" 2>/dev/null)" ]]; then
+        die "the app or dnm carries entitlements; a release has none"
+    fi
     if [[ "$signing_identity" != "-" ]]; then
-        local details
-        details="$(codesign -dvv "$binary" 2>&1)"
-        grep -q "Authority=Developer ID Application" <<<"$details" || die "the signature is not a Developer ID Application signature"
-        grep -qE "flags=.*runtime" <<<"$details" || die "the signature lacks the hardened runtime"
-        log_result "signed with a Developer ID Application identity, hardened runtime, timestamp, no entitlements"
+        local details signed
+        for signed in "$binary" "$app"; do
+            details="$(codesign -dvv "$signed" 2>&1)"
+            grep -q "Authority=Developer ID Application" <<<"$details" || die "the signature of $(basename "$signed") is not a Developer ID Application signature"
+            grep -qE "flags=.*runtime" <<<"$details" || die "the signature of $(basename "$signed") lacks the hardened runtime"
+        done
+        log_result "dnm, then the app, signed with a Developer ID Application identity, hardened runtime, timestamp, no entitlements"
     else
         log_result "signed ad hoc (dry run)"
     fi
 
+    make_zip
+    log_result "${zip_name}: SHA-256 $(recorded_sha256)"
+}
+
+# The download: the payload folder, as it is now (the notarize stage zips it again once the ticket is stapled).
+# Extended attributes are left out (the signature is in the files; ditto would store them as "._" files).
+make_zip() {
     rm -f "$zip_path" "${zip_path}.sha256"
-    # The signature is embedded in the binary, so extended attributes (which ditto would store as "._" files)
-    # are left out.
     ditto -c -k --norsrc --noextattr --noqtn "$payload" "$zip_path"
     local contents expected
-    contents="$(zipinfo -1 "$zip_path" | grep -v '/$' | sort | tr '\n' ' ')"
-    expected="$({ printf '%s\n' dnm LICENSE Acknowledgements.md completions/_dnm completions/_desktop-name completions/dnm.bash; scripts/make-acknowledgements.sh --binary-license-files; } | sort | tr '\n' ' ')"
-    [[ "$contents" == "$expected" ]] || die "the zip holds \"${contents}\", not exactly \"${expected}\""
+    contents="$(zipinfo -1 "$zip_path" | grep -v '/$' | sort | tr '\n' ';')"
+    expected="$(cd "$payload" && find . -type f | sed 's|^\./||' | sort | tr '\n' ';')"
+    [[ "$contents" == "$expected" ]] || die "the zip does not hold exactly the payload folder's files"
+    ! zipinfo -1 "$zip_path" | grep -qE '(^|/)(\._|\.DS_Store)' || die "the zip holds resource-fork or Finder files"
     (cd "$artifact_directory" && shasum -a 256 "$zip_name" >"${zip_name}.sha256")
-    log_result "${zip_name}: SHA-256 $(recorded_sha256)"
 }
 
 stage_notarize() {
@@ -406,6 +429,14 @@ stage_notarize() {
     # Only the start of Apple's submission id is recorded: enough to find it in `notarytool history`, and the
     # gate record is public (the hygiene scan refuses UUID-shaped identifiers).
     log_result "notarized: status Accepted, submission ${submission:0:8}…"
+    # Staple the ticket to the app, so it passes Gatekeeper offline, and zip it again: the download is the stapled
+    # app, and the checksum is of that zip.
+    [[ -d "${payload}/${app_name}" ]] || die "no payload folder: run the build stage again"
+    xcrun stapler staple "${payload}/${app_name}"
+    xcrun stapler validate "${payload}/${app_name}"
+    codesign --verify --deep --strict "${payload}/${app_name}" || die "stapling broke the app's signature"
+    make_zip
+    log_result "stapled the ticket to the app and zipped it again: SHA-256 $(recorded_sha256)"
 }
 
 stage_verify() {
@@ -414,25 +445,27 @@ stage_verify() {
     (cd "$artifact_directory" && shasum -a 256 -c "${zip_name}.sha256" >/dev/null) || die "the zip no longer matches its SHA-256"
     local unpacked="${temporary_directory}/unpacked"
     ditto -x -k "$zip_path" "$unpacked"
-    local binary="${unpacked}/dnm"
+    local app="${unpacked}/${app_name}"
+    local binary="${app}/Contents/Helpers/dnm"
     # Mark it as downloaded, as a browser or Homebrew would, so macOS performs its first-run check.
-    xattr -w com.apple.quarantine "0081;$(printf '%x' "$(date +%s)");dnm-release;" "$binary"
+    xattr -rw com.apple.quarantine "0081;$(printf '%x' "$(date +%s)");dnm-release;" "$app"
     local reported
-    reported="$("$binary" --version)" || die "macOS refused to run the quarantined binary"
-    [[ "$reported" == "$release_display" ]] || die "the downloaded binary reports ${reported}, not ${release_display}"
-    log_result "a quarantined copy ran and reported ${reported} (macOS's first-run check passed)"
+    reported="$("$binary" --version)" || die "macOS refused to run the quarantined dnm"
+    [[ "$reported" == "$release_display" ]] || die "the downloaded dnm reports ${reported}, not ${release_display}"
+    log_result "a quarantined copy of dnm ran and reported ${reported} (macOS's first-run check passed)"
+    codesign --verify --deep --strict "$app" || die "the downloaded app's signature does not verify"
+    xcrun stapler validate "$app" >/dev/null || die "the downloaded app has no valid notarization ticket"
+    spctl --assess --type execute --verbose=2 "$app" 2>"${temporary_directory}/spctl.log" \
+        || die "Gatekeeper rejects the downloaded app: $(tr '\n' ';' <"${temporary_directory}/spctl.log")"
+    grep -q "Notarized Developer ID" "${temporary_directory}/spctl.log" || die "Gatekeeper accepts the app but not as Notarized Developer ID"
+    log_result "the quarantined app: signature verifies, ticket stapled, Gatekeeper accepts it (Notarized Developer ID)"
     if command -v syspolicy_check >/dev/null; then
-        local policy_log="${temporary_directory}/syspolicy.log" findings
-        if syspolicy_check distribution "$binary" >"$policy_log" 2>&1; then
-            log_result "syspolicy_check distribution: no issues"
+        local policy_log="${temporary_directory}/syspolicy.log"
+        if syspolicy_check distribution "$app" >"$policy_log" 2>&1; then
+            log_result "syspolicy_check distribution on the app: no issues"
         else
-            # Each finding's title follows a line of dashes. A ticket cannot be stapled to a bare binary or a zip
-            # (research R7, FR-005), so "Notary Ticket Missing" alone is expected: macOS checks notarization
-            # online at the first run, which the quarantined run above just passed. Anything else fails.
-            findings="$(awk '/^-{10,}$/ { if ((getline line) > 0 && line !~ /^-+$/ && line ~ /[^ ]/) print line }' "$policy_log" | sort -u)"
-            [[ "$findings" == "Notary Ticket Missing" ]] \
-                || die "syspolicy_check distribution found: $(tr '\n' ';' <<<"${findings:-$(tail -n 3 "$policy_log")}")"
-            log_result "syspolicy_check distribution: only \"Notary Ticket Missing\" (expected for a zip; the online first-run check passed)"
+            # The ticket is stapled, so nothing should be left to report.
+            die "syspolicy_check distribution found: $(tr '\n' ';' <"$policy_log" | cut -c1-300)"
         fi
     fi
     log_result "checksum matches: $(recorded_sha256)"
@@ -479,6 +512,11 @@ stage_draft() {
 stage_publish() {
     require_confirmation "check the draft ${tag}'s download against the recorded SHA-256, then make the release PUBLIC"
     require_command gh
+    # brew puts the app in /Applications and refuses to replace one it did not install.
+    local applications_directory="/Applications"
+    if [[ -e "${applications_directory}/${app_name}" ]] && ! "$cask_installed"; then
+        die "${applications_directory}/${app_name} exists and was not installed by the cask: move it aside for the cask test"
+    fi
     local is_draft
     is_draft="$(gh release view "$tag" --repo "$release_repository" --json isDraft -q .isDraft 2>/dev/null)" \
         || die "there is no release ${tag}: run draft first"
@@ -622,7 +660,20 @@ stage_cask() {
     done
     main_version="$("${prefix}/bin/dnm" --version)"
     alias_version="$("${prefix}/bin/desktop-name" --version)"
+    local installed_app="${applications_directory}/${app_name}" app_problem=""
+    if [[ ! -d "$installed_app" ]]; then
+        app_problem="the app is not in ${applications_directory}"
+    elif ! codesign --verify --deep --strict "$installed_app" 2>/dev/null; then
+        app_problem="the installed app's signature does not verify"
+    elif [[ "$(plutil -extract CFBundleShortVersionString raw -o - "${installed_app}/Contents/Info.plist")" != "$version" \
+        || "$(plutil -extract CFBundleVersion raw -o - "${installed_app}/Contents/Info.plist")" != "$build_number" ]]; then
+        app_problem="the installed app does not carry ${release_display}"
+    elif [[ "$("${installed_app}/Contents/Helpers/dnm" --version)" != "$release_display" ]]; then
+        app_problem="the dnm inside the installed app does not report ${release_display}"
+    fi
     brew uninstall --cask "${temporary_tap}/desktop-name-manager"
+    [[ -z "$app_problem" ]] || die "after a local install, ${app_problem}"
+    [[ ! -e "$installed_app" ]] || die "uninstalling left the app behind"
     [[ "$main_version" == "$release_display" && "$alias_version" == "$release_display" ]] \
         || die "after a local install, dnm reports ${main_version} and desktop-name ${alias_version}, not ${release_display}"
     [[ ! -e "${prefix}/bin/dnm" && ! -e "${prefix}/bin/desktop-name" ]] || die "uninstalling left dnm or desktop-name behind"
@@ -631,7 +682,7 @@ stage_cask() {
     done
     [[ -z "$missing_completions" ]] || die "installing the cask did not put these completion files in place:${missing_completions}"
     [[ -z "$leftover_completions" ]] || die "uninstalling left these completion files behind:${leftover_completions}"
-    log_result "local install, run (dnm and desktop-name report ${release_display}), completion files in place and uninstall passed"
+    log_result "local install (the app in /Applications, signed, ${release_display}; dnm and desktop-name report ${release_display}), completion files in place and uninstall passed"
     remove_temporary_tap
 
     cp "$cask" "${tap_directory}/Casks/desktop-name-manager.rb"
@@ -674,10 +725,12 @@ stage_reinstall() {
     alias_reported="$("${prefix}/bin/desktop-name" --version)"
     [[ "$reported" == "$release_display" && "$alias_reported" == "$release_display" ]] \
         || die "after the reinstall, dnm reports ${reported} and desktop-name ${alias_reported}, not ${release_display}"
+    [[ "$(plutil -extract CFBundleShortVersionString raw -o - "/Applications/${app_name}/Contents/Info.plist" 2>/dev/null)" == "$version" ]] \
+        || die "after the reinstall, the app in /Applications is not ${version}"
     while IFS= read -r completion_file; do
         [[ -e "$completion_file" ]] || die "after the reinstall, ${completion_file} is not in place"
     done < <(completion_files)
-    log_result "reinstall: dnm reports ${release_display} from the tap, completion files in place"
+    log_result "reinstall: dnm reports ${release_display} from the tap, the app is in /Applications, completion files in place"
 }
 
 stage_record() {

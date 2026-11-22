@@ -8,6 +8,8 @@
 # Usage: scripts/make-app.sh [--dev] [--output DIR] [--dry-run] [--help] <debug|release>
 #   --dev          use the development bundle ID (…desktop-name-manager.dev) and sign ad hoc, for running locally
 #   --output DIR   where to put the bundle (default: build.noindex/app; an existing bundle there is replaced)
+#   --build-directory DIR  where the two executables are (default: build.noindex/<debug|release>; the release
+#                  procedure passes the folder SwiftPM reports for its architecture-specific build)
 #   --dry-run, -n  print the bundle's layout and what would be done, without writing anything
 # Release signing, notarization and packaging belong to the release procedure (spec 005), not to this script.
 
@@ -35,6 +37,7 @@ app_name="Desktop Name Manager"
 release_bundle_id="com.altmansoftwaredesign.desktop-name-manager"
 output_directory="${repository_root}/build.noindex/app"
 configuration=""
+build_directory_override=""
 development=false
 dry_run=false
 
@@ -43,6 +46,7 @@ usage() {
     print_colored "$COLOR_YELLOW" "  debug|release  which build to package (build.noindex/<configuration>/)"
     print_colored "$COLOR_YELLOW" "  --dev          development bundle ID (.dev) and an ad-hoc signature, for running locally"
     print_colored "$COLOR_YELLOW" "  --output DIR   where to put the bundle (default: build.noindex/app)"
+    print_colored "$COLOR_YELLOW" "  --build-directory DIR  where the executables are (default: build.noindex/<configuration>)"
     print_colored "$COLOR_YELLOW" "  --dry-run, -n  print the layout and the steps without writing anything"
     print_colored "$COLOR_YELLOW" "Assembles \"${app_name}.app\" from an existing build; it builds nothing."
 }
@@ -53,6 +57,9 @@ while (($# > 0)); do
         --output)
             [[ $# -ge 2 ]] || { print_colored "$COLOR_RED" "--output needs a directory."; exit 2; }
             output_directory="$2"; shift 2 ;;
+        --build-directory)
+            [[ $# -ge 2 ]] || { print_colored "$COLOR_RED" "--build-directory needs a directory."; exit 2; }
+            build_directory_override="$2"; shift 2 ;;
         -n|--dry-run) dry_run=true; shift ;;
         -h|--help) usage; exit 0 ;;
         debug|release)
@@ -68,7 +75,7 @@ if [[ -z "$configuration" ]]; then
     exit 2
 fi
 
-build_directory="${repository_root}/build.noindex/${configuration}"
+build_directory="${build_directory_override:-${repository_root}/build.noindex/${configuration}}"
 resources_source="${repository_root}/Resources/App"
 bundle="${output_directory}/${app_name}.app"
 contents="${bundle}/Contents"
@@ -106,7 +113,7 @@ require_file() {
 # missing executables, so the layout can be checked before anything is built.
 for executable in DesktopNameManager dnm; do
     if "$dry_run" && [[ ! -f "${build_directory}/${executable}" ]]; then
-        print_colored "$COLOR_RED" "Not built yet: build.noindex/${configuration}/${executable} (a real run would stop here)."
+        print_colored "$COLOR_RED" "Not built yet: ${build_directory#"${repository_root}/"}/${executable} (a real run would stop here)."
     else
         require_file "${build_directory}/${executable}" "Build first: just build (or just build-release)."
     fi

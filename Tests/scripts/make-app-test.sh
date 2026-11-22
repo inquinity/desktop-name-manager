@@ -73,6 +73,11 @@ version_from_xcconfig() {
 }
 needs_a_configuration() { ! "$make_app" --dry-run >/dev/null 2>&1; }
 rejects_unknown_options() { ! "$make_app" --dry-run --sign debug >/dev/null 2>&1; }
+build_directory_is_used() {
+    "$make_app" --dry-run --build-directory /nonexistent-dnm-build release 2>&1 | sed 's/\x1b\[[0-9;]*m//g' \
+        | grep -qF "Not built yet: /nonexistent-dnm-build/DesktopNameManager"
+}
+build_directory_needs_a_value() { ! "$make_app" --dry-run release --build-directory >/dev/null 2>&1; }
 template_has_no_usage_descriptions() { ! grep -q 'UsageDescription' "${repository_root}/Resources/App/Info.plist"; }
 template_is_an_accessory_app() {
     [[ "$(plutil -extract LSUIElement raw "${repository_root}/Resources/App/Info.plist")" == "true" ]]
@@ -85,6 +90,8 @@ check "without --dev the release bundle ID is used" release_bundle_id
 check "the version and build come from Version.xcconfig" version_from_xcconfig
 check "a configuration is required" needs_a_configuration
 check "an unknown option is refused" rejects_unknown_options
+check "--build-directory names where the executables are" build_directory_is_used
+check "--build-directory needs a value" build_directory_needs_a_value
 check "the Info.plist template asks for no permission" template_has_no_usage_descriptions
 check "the Info.plist template makes an accessory app (LSUIElement)" template_is_an_accessory_app
 

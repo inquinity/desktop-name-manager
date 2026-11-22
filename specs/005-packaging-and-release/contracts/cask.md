@@ -7,7 +7,7 @@ Rendered by `scripts/release.sh <version> cask` from `packaging/desktop-name-man
 |---|---|---|
 | `version` | the release version | FR-009 |
 | `sha256` | the zip's SHA-256 | FR-009; Homebrew refuses a mismatch |
-| `url` | `https://github.com/inquinity/desktop-name-manager/releases/download/v#{version}/dnm-#{version}-arm64.zip` | FR-007, FR-009 |
+| `url` | `https://github.com/inquinity/desktop-name-manager/releases/download/v#{version}/desktop-name-manager-#{version}-arm64.zip` (from 0.4.0; `dnm-#{version}-arm64.zip` before) | FR-007, FR-009 |
 | `name` | `Desktop Name Manager` | |
 | `desc` | one line describing what it does | Homebrew audit |
 | `homepage` | `https://github.com/inquinity/desktop-name-manager` | |
@@ -29,3 +29,9 @@ gives working `dnm --version` and `desktop-name --version` with the same output,
 Homebrew's `share/zsh/site-functions` and `etc/bash_completion.d`, and uninstalling removes them, before
 anything is pushed (FR-011). The test installs and uninstalls the cask under its real name, so the `cask` stage
 refuses to run while the cask is installed on that Mac.
+
+## From 0.4.0 (amendment-app.md)
+
+The zip holds `Desktop Name Manager.app` (with `dnm` in `Contents/Helpers/`), and the cask has `app "Desktop Name
+Manager.app"`, `binary "#{appdir}/Desktop Name Manager.app/Contents/Helpers/dnm"` and the same with `target:
+"desktop-name"`, besides the completion stanzas. Still no `zap`.

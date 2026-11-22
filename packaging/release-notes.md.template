@@ -24,15 +24,17 @@ https://github.com/inquinity/desktop-name-manager/blob/v@VERSION@/specs/005-pack
 ## Verify the download
 
 ```sh
-shasum -a 256 -c dnm-@VERSION@-arm64.zip.sha256   # expects: dnm-@VERSION@-arm64.zip: OK
-ditto -x -k dnm-@VERSION@-arm64.zip dnm-@VERSION@
-codesign -dvv dnm-@VERSION@/dnm 2>&1 | grep -E "Authority=Developer ID|flags=.*runtime"
-codesign --verify --strict --verbose=2 dnm-@VERSION@/dnm
+shasum -a 256 -c desktop-name-manager-@VERSION@-arm64.zip.sha256   # expects: desktop-name-manager-@VERSION@-arm64.zip: OK
+ditto -x -k desktop-name-manager-@VERSION@-arm64.zip dnm-@VERSION@
+codesign -dvv "dnm-@VERSION@/Desktop Name Manager.app/Contents/Helpers/dnm" 2>&1 | grep -E "Authority=Developer ID|flags=.*runtime"
+codesign --verify --deep --strict --verbose=2 "dnm-@VERSION@/Desktop Name Manager.app"
+xcrun stapler validate "dnm-@VERSION@/Desktop Name Manager.app"
 ```
 
-The zip also holds `LICENSE`, `Acknowledgements.md` (the open-source components in `dnm`, with their
-licenses) and their license texts in `Licenses/`; `dnm about` lists them too.
+The zip holds `Desktop Name Manager.app` (with `dnm` inside it, in `Contents/Helpers/`), `LICENSE`,
+`Acknowledgements.md` (the open-source components, with their licenses), their license texts in `Licenses/`, and the
+shell completions in `completions/`; `dnm about` lists the components too.
 
-SHA-256 of `dnm-@VERSION@-arm64.zip`: `@SHA256@`. Changing a single byte of the zip makes the checksum
-check fail. The binary is signed with a Developer ID and the hardened runtime, and notarized by Apple: a
-quarantined copy (as a browser or Homebrew downloads it) runs without a Gatekeeper warning.
+SHA-256 of `desktop-name-manager-@VERSION@-arm64.zip`: `@SHA256@`. Changing a single byte of the zip makes the checksum
+check fail. The app and `dnm` are signed with a Developer ID and the hardened runtime, and the app is notarized by Apple
+and stapled: a quarantined copy (as a browser or Homebrew downloads it) runs without a Gatekeeper warning.
