@@ -312,6 +312,8 @@ final class PopoverPresenter: NSObject, NSPopoverDelegate, NSWindowDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
                 guard let self, self.isShown, self.watcher == nil else { return }
                 self.watch()
+                // The store was made after the window opened: read it once, as a change would.
+                if self.watcher != nil, case .main(let model)? = self.content.page { model.storeChanged() }
             }
         }
     }
