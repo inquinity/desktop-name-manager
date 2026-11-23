@@ -460,6 +460,8 @@ stage_verify() {
     local app="${unpacked}/${app_name}"
     local binary="${app}/Contents/Helpers/dnm"
     # Mark it as downloaded, as a browser or Homebrew would, so macOS performs its first-run check.
+    # The license files are read-only in the bundle, and xattr cannot mark a read-only file: this copy is temporary.
+    chmod -R u+w "$unpacked"
     xattr -rw com.apple.quarantine "0081;$(printf '%x' "$(date +%s)");dnm-release;" "$app"
     local reported
     reported="$("$binary" --version)" || die "macOS refused to run the quarantined dnm"
