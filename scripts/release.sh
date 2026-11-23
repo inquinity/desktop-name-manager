@@ -494,7 +494,7 @@ render_release_notes() {
     # The composed notes without their title (GitHub shows the release title).
     body="$(sed '1{/^# /d;}' "$notes_file" | sed '/./,$!d')"
     toolchain="$(swift --version 2>&1 | head -n 1)"
-    commit="$(git rev-parse --short "$tag")"
+    commit="$(git rev-parse --short "${tag}^{commit}")"
     NOTES="$body" TOOLCHAIN="$toolchain" COMMIT="$commit" SHA="$sha" VERSION="$version" BUILD="$build_number" \
         perl -0pe 's/\@NOTES\@/$ENV{NOTES}/g; s/\@TOOLCHAIN\@/$ENV{TOOLCHAIN}/g; s/\@COMMIT\@/$ENV{COMMIT}/g;
                    s/\@SHA256\@/$ENV{SHA}/g; s/\@BUILD\@/$ENV{BUILD}/g; s/\@VERSION\@/$ENV{VERSION}/g' \
