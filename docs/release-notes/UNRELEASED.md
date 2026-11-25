@@ -7,5 +7,4 @@ scripts/compose-release-notes.sh builds <version>.md from this file; this commen
 dropped (the same process as the sibling project).
 -->
 
-- **Requires macOS 27 or later, on an Apple-silicon Mac.** 0.4.0 is the last release that runs on macOS 26, and Intel
-  Macs are not supported. If you are on macOS 26, stay on 0.4.0: Homebrew will not install this release there.
+_(nothing yet)_
