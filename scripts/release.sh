@@ -720,7 +720,8 @@ stage_reinstall() {
     local tap_cask="inquinity/tap/desktop-name-manager" served="" attempt
     for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
         brew update >/dev/null 2>&1 || true
-        served="$(brew info --cask "$tap_cask" 2>/dev/null | sed -nE '1s/^.*: ([0-9][0-9.]*).*$/\1/p')"
+        # The first line is "<name>: <version>", or "<name>: <installed> → <available>" when an upgrade is pending: take the last version.
+        served="$(brew info --cask "$tap_cask" 2>/dev/null | sed -n 1p | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | tail -n 1)"
         [[ "$served" == "$version" ]] && break
         print_colored "$COLOR_YELLOW" "The tap serves ${served:-nothing} (waiting for ${version}; try ${attempt} of 12)..."
         sleep 10
