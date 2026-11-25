@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Assemble a folder you can copy to another Mac (by USB stick or similar) to run the live checks there.
-# It builds a universal (Apple silicon and Intel) release of dnm and collects the live scripts, the
+# It builds an Apple-silicon release of dnm (macOS 27 and later; Intel is not supported) and collects the live scripts, the
 # quickstart and instructions. The build is for testing only: it is not Developer ID signed or notarized.
 #
 # Usage: scripts/make-live-kit.sh [--output DIR] [--dry-run] [--help]
@@ -34,7 +34,7 @@ usage() {
     print_colored "$COLOR_YELLOW" "Usage: scripts/make-live-kit.sh [--output DIR] [--dry-run] [--help]"
     print_colored "$COLOR_YELLOW" "  --output DIR   where to put the kit (default: dist/dnm-live-kit; it is replaced if it exists)"
     print_colored "$COLOR_YELLOW" "  --dry-run, -n  print what would be done without building or writing"
-    print_colored "$COLOR_YELLOW" "Builds a universal dnm and collects the live scripts and instructions to copy to another Mac."
+    print_colored "$COLOR_YELLOW" "Builds an Apple-silicon dnm and collects the live scripts and instructions to copy to another Mac."
 }
 
 while (($# > 0)); do
@@ -59,12 +59,12 @@ if [[ "$("${repository_root}/scripts/tree-state")" == "dirty" ]]; then
 fi
 
 if "$dry_run"; then
-    print_colored "$COLOR_CYAN" "[dry run] would build: swift build -c release --arch arm64 --arch x86_64 --product dnm --scratch-path build.noindex"
+    print_colored "$COLOR_CYAN" "[dry run] would build: swift build -c release --arch arm64 --product dnm --scratch-path build.noindex"
     print_colored "$COLOR_CYAN" "[dry run] would write the kit for commit ${commit}${dirty} to ${output_directory}"
     exit 0
 fi
 
-print_colored "$COLOR_BRIGHTYELLOW" "Building a universal release of dnm (commit ${commit}${dirty})..."
+print_colored "$COLOR_BRIGHTYELLOW" "Building a release of dnm (commit ${commit}${dirty})..."
 # Stamp the build with a new build number and its commit, so `dnm --version` in the kit says what the testers run.
 # One flag per line, so a checkout path with spaces stays one argument.
 # Captured first, so a failed stamp or bump stops the kit instead of shipping an unstamped build.
@@ -73,31 +73,27 @@ stamp_flags=()
 while IFS= read -r stamp_flag; do
     stamp_flags+=("$stamp_flag")
 done <<<"$stamp_output"
-(cd "$repository_root" && swift build -c release --arch arm64 --arch x86_64 --product dnm --scratch-path "${repository_root}/build.noindex" \
+(cd "$repository_root" && swift build -c release --arch arm64 --product dnm --scratch-path "${repository_root}/build.noindex" \
     --force-resolved-versions "${stamp_flags[@]}")
 built_binary="${repository_root}/build.noindex/out/Products/Release/dnm"
 [[ -x "$built_binary" ]] || { print_colored "$COLOR_RED" "Cannot find the built binary at ${built_binary}"; exit 1; }
 architectures="$(lipo -archs "$built_binary")"
-[[ "$architectures" == *arm64* && "$architectures" == *x86_64* ]] || {
-    print_colored "$COLOR_RED" "The binary is not universal (found: ${architectures})."
+[[ "$architectures" == "arm64" ]] || {
+    print_colored "$COLOR_RED" "The binary is not arm64 (found: ${architectures})."
     exit 1
 }
 
-# The switch-timing research tool (public interfaces only), universal like dnm.
+# The switch-timing research tool (public interfaces only), built like dnm.
 print_colored "$COLOR_BRIGHTYELLOW" "Building the switch-timing tool..."
 timing_build_directory="${repository_root}/build.noindex/research"
 mkdir -p "$timing_build_directory"
-for architecture in arm64 x86_64; do
-    swiftc -O -target "${architecture}-apple-macos26" -o "${timing_build_directory}/switch-timing-${architecture}" \
-        "${repository_root}/prototype/switch-timing.swift"
-done
-lipo -create -output "${timing_build_directory}/switch-timing-universal" \
-    "${timing_build_directory}/switch-timing-arm64" "${timing_build_directory}/switch-timing-x86_64"
+swiftc -O -target "arm64-apple-macos27" -o "${timing_build_directory}/switch-timing" \
+    "${repository_root}/prototype/switch-timing.swift"
 
 rm -rf "$output_directory"
 mkdir -p "${output_directory}/Tests/live" "${output_directory}/results"
 cp "$built_binary" "${output_directory}/dnm"
-cp "${timing_build_directory}/switch-timing-universal" "${output_directory}/switch-timing"
+cp "${timing_build_directory}/switch-timing" "${output_directory}/switch-timing"
 # License files travel with the binaries (constitution 2.1.0).
 cp "${repository_root}/LICENSE" "${repository_root}/Acknowledgements.md" "${output_directory}/"
 while IFS= read -r license_file; do
@@ -134,7 +130,7 @@ notarized, and not for installing.
 
 ## Before you start
 
-- macOS 26 or later. Any Mac, Intel or Apple silicon.
+- macOS 27 or later, on an Apple-silicon Mac.
 - Be at the Mac, idle, and on the Desktop you want to label.
 - In System Settings > Wallpaper, turn OFF "Show on all Spaces".
 - Steps 4 and 5 label the MAIN display (the one with the menu bar); watch that screen. Step 6 labels every display.
@@ -192,8 +188,7 @@ notarized, and not for installing.
    ```
 
 7. Run the Desktop-switching check (scenarios 21 to 23). First give Terminal the Accessibility permission
-   (System Settings > Privacy & Security > Accessibility on macOS 26, or Device Control and Data Access on
-   macOS 27; on 27 there is no Accessibility item in that list). Turn on the Desktop-switching shortcuts:
+   (System Settings > Device Control and Data Access; macOS 27 has no Accessibility item in that list). Turn on the Desktop-switching shortcuts:
    System Settings > Keyboard (near the bottom of the sidebar) > Keyboard Shortcuts… > Mission Control, then
    expand the Mission Control group and check "Move left a space" and "Move right a space" (the Shortcuts…
    button in Desktop & Dock does not list them). Make sure each display has at least three

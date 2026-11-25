@@ -207,7 +207,7 @@ acknowledgements_current() { scripts/make-acknowledgements.sh --check >/dev/null
 
 live_checks_recorded() {
     local notes="specs/001-labels-and-cli/review-notes.md"
-    grep -qE '^### Live run.*macOS 26' "$notes" && grep -qE '^### Live run.*macOS 27' "$notes"
+    grep -qE '^### Live run.*macOS 27' "$notes"
 }
 
 maintainer_gates_checked() {
@@ -269,7 +269,7 @@ stage_check() {
     else
         gate "no GitHub release ${tag} exists yet" version_is_unreleased
     fi
-    gate "live checks are recorded for macOS 26 and macOS 27" live_checks_recorded
+    gate "live checks are recorded for macOS 27" live_checks_recorded
     gate "Acknowledgements.md is up to date (license check)" acknowledgements_current
     gate "every maintainer gate in ${gate_record#"${repository_root}"/} is checked" maintainer_gates_checked
     gate "just test passes" tests_pass

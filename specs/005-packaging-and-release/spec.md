@@ -59,6 +59,15 @@ Asked in this session:
   (`xattr -dr com.apple.quarantine "$(brew --prefix)/Caskroom/desktop-name-manager"`) before the first run. FR-009
   is worded accordingly.
 
+### Session 2026-11-24
+
+- Q: Is macOS 26 still supported? → A: No. 0.4.0 is the first and only release for macOS 26. From 0.5.0 the minimum is
+  macOS 27 and Apple silicon only, so the cask says `depends_on macos: :golden_gate` and `arch: :arm64`, Intel is out for
+  good (no universal build), and the macOS 26 gate and live runs go away. Reason: the only macOS 26 machine available was
+  Intel, which Homebrew no longer supports; every Apple-silicon Mac runs macOS 27; the app is new and has no installed
+  base (the constitution's minimum-macOS rule). The scenarios and requirements below that name macOS 26 describe 0.1.0
+  to 0.4.0.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The maintainer cuts a release that has passed its gates (Priority: P1)
@@ -225,7 +234,7 @@ If a published release turns out to be bad, the maintainer can withdraw it quick
 - The tap already exists, is public, and the maintainer can push to it. "Quiet" means unlisted, not private: the cask file is visible in the public tap, and anyone who knows the name can install it. A truly private channel (a separate private tap, or private downloads) is a different, later decision.
 - The maintainer holds the Developer ID identity and the notarization profile on their own Mac, and builds, signs and notarizes locally rather than in CI. The existing release pipeline of a sibling project is the starting reference for the steps.
 - The first release contains only the command-line tool (and its alias). The menu-bar app (spec 002) adds an app bundle to the cask later; this spec's requirements apply to it then.
-- Supported platform: macOS 26 or later on Apple-silicon Macs. Intel Macs are deferred (a universal build, with testing on the maintainer's 2019 MacBook Pro, is revisited later) and the cask refuses them until then.
+- Supported platform: **from 0.5.0, macOS 27 or later on Apple-silicon Macs** (0.4.0 was the last release for macOS 26; decided 2026-11-24, see Session 2026-11-24). Before that: macOS 26 or later on Apple-silicon Macs. Intel Macs are deferred (a universal build, with testing on the maintainer's 2019 MacBook Pro, is revisited later) and the cask refuses them until then.
 - The pre-release code and security reviews are the ones defined in the constitution and recorded in `specs/001-labels-and-cli/review-notes.md`-style records; for later features, the record lives with that feature.
 - The download is a zip of the binary (FR-005); the exact tool for each step is decided in planning.
 - Submitting to the official Homebrew cask repository is out of scope and needs the popularity and age thresholds noted in the project notes.

@@ -108,14 +108,7 @@ import DNMTestSupport
         #expect(try WallpaperKind.classify(current(still), standIns: [standIn]) == .supported(still))
     }
 
-    @Test func onlyMacOS27AndLaterHaveStandIns() {
-        #expect(WallpaperKind.standInLocations(onMajorVersion: 26).isEmpty)
-        #expect(WallpaperKind.standInLocations(onMajorVersion: 27).map(\.lastPathComponent) == ["DefaultDesktop.heic"])
-        #expect(WallpaperKind.standInLocations(onMajorVersion: 28).count == 1)
-    }
-
-    // The real list is empty before macOS 27, so this one runs only where the stand-in exists.
-    @Test(.enabled(if: ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27))
+    @Test
     func settingALabelOnTheStandInChangesNothingAndExitsThree() throws {
         let h = try LabelerHarness(); defer { h.cleanUp() }
         h.system.show(URL(fileURLWithPath: "/System/Library/CoreServices/DefaultDesktop.heic"), on: h.display)

@@ -3,7 +3,9 @@ import PackageDescription
 
 let package = Package(
     name: "desktop-name-manager",
-    platforms: [.macOS(.v26)],
+    // macOS 27 and later, Apple silicon only (0.5.0). The version string, not `.v27`, so that the CodeQL job, which has to
+    // run on Xcode 26 (see .github/workflows/codeql.yml), can still read this manifest.
+    platforms: [.macOS("27.0")],
     products: [
         .library(name: "DesktopNameCore", targets: ["DesktopNameCore"]),
         .executable(name: "dnm", targets: ["dnm"]),

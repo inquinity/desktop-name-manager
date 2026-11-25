@@ -16,7 +16,7 @@ untracked notes may exist in `working-notes/`; if `working-notes/HANDOFF.md` exi
   - Labeling must need no macOS permissions.
   - Any Accessibility use must be explicit and opt-in.
   - No private macOS interfaces in the product (no SkyLight calls, no undocumented system files or preferences, not even read-only); the App Store is a goal. Research tools in `prototype/` may use them and are never shipped.
-  - A fixed path string compared against what a public API reports, and never opened by the product, is not an undocumented interface. Recognizing macOS's default-wallpaper stand-in (spec 015) is the one such case (macOS 27 and later only); a path that stops matching degrades detection, so each new macOS gets the spec 015 live check.
+  - A fixed path string compared against what a public API reports, and never opened by the product, is not an undocumented interface. Recognizing macOS's default-wallpaper stand-in (spec 015) is the one such case; a path that stops matching degrades detection, so each new macOS gets the spec 015 live check.
 - **No network access and no telemetry** in the app or CLI.
 - **Protect the user's wallpaper during live tests.** Tests change the real wallpaper:
   - back up `~/Library/Application Support/com.apple.wallpaper/Store/Index.plist` first,
@@ -26,7 +26,7 @@ untracked notes may exist in `working-notes/`; if `working-notes/HANDOFF.md` exi
 
 ## Build and test
 
-- Build and test with `just build`, `just test` and `just build-release` (Swift 6.4, macOS 26 or later). They pass `--scratch-path build.noindex`, so build output goes to `build.noindex/` and not SwiftPM's `.build/`; keep it that way (plain `swift build` creates `.build/`, which is only git-ignored). Unit and contract tests use a fake wallpaper system and a temporary store; they never change the real wallpaper.
+- Build and test with `just build`, `just test` and `just build-release` (Swift 6.4, macOS 27 or later, Apple silicon only from 0.5.0). They pass `--scratch-path build.noindex`, so build output goes to `build.noindex/` and not SwiftPM's `.build/`; keep it that way (plain `swift build` creates `.build/`, which is only git-ignored). Unit and contract tests use a fake wallpaper system and a temporary store; they never change the real wallpaper.
 - The version and build number live in `Version.xcconfig` (as in the sibling project; `just version`). The version is the one being worked on (a release moves it to the next revision). `just build` and `just build-release` add one to the build number and stamp it, the version and the commit into the binary (`scripts/build-stamp.sh --bump`), so `dnm --version` prints `0.2.2 build 6 (<commit>[+])`; only a release build (spec 005, `just release` then `just publish`) prints `0.2.2 build 6`. A build-number-only change to `Version.xcconfig` is not "uncommitted" (`scripts/tree-state`); commit it with the work. Quote `dnm --version` when reporting what you tested.
 - `just periphery` (`scripts/periphery.sh`) runs the unused-code gate (it must stay clean).
 - Set `DNM_STORE_DIR` to a throwaway directory for any live run so real labels are untouched, and follow the backup and restore rules in the live-test bullet above.

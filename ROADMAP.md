@@ -106,7 +106,7 @@ Exit criteria:
    Mac with the measured `--desktop` settings.
 2. Spec 005 clarified for the MVP stage, then planned and built: a release procedure that signs with the
    Developer ID, notarizes, publishes the download on GitHub Releases, and updates the unlisted cask.
-3. `brew install` of the quiet cask works on macOS 26 and 27 (Apple silicon and Intel), and Gatekeeper
+3. `brew install` of the quiet cask works on macOS 27 (Apple silicon; 0.4.0 was the last release for macOS 26, and Intel is out), and Gatekeeper
    accepts the tool.
 4. A period of daily use; problems go to `specs/001-labels-and-cli/known-issues.md` or the backlog.
 
@@ -117,7 +117,7 @@ The menu-bar app (M2) comes after the MVP.
 | Gate | M1: MVP (unlisted cask) | M5: 1.0.0 (listed) |
 |---|---|---|
 | Unit, contract and Periphery checks pass | yes | yes |
-| Live checks on macOS 26 and 27 | the ones above | the full quickstart (T070) |
+| Live checks on macOS 27 (26 only up to 0.4.0) | the ones above | the full quickstart (T070) |
 | Signed and notarized build | yes | yes |
 | Independent code review (`/code-review ultra`) | **open question** | yes (T091, T072) |
 | Security review and CodeQL | **open question** | yes (T072) |

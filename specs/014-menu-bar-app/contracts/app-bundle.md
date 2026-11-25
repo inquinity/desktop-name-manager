@@ -33,7 +33,7 @@ Desktop Name Manager.app/
 | `CFBundleShortVersionString` | `MARKETING_VERSION` from `Version.xcconfig` |
 | `CFBundleVersion` | `CURRENT_PROJECT_VERSION` from `Version.xcconfig` |
 | `CFBundleIconFile` | `AppIcon` |
-| `LSMinimumSystemVersion` | `26.0` |
+| `LSMinimumSystemVersion` | `27.0` (`26.0` in 0.4.0) |
 | `LSUIElement` | `true` (no Dock icon; shown while a window is open, by switching the activation policy) |
 | `LSApplicationCategoryType` | `public.app-category.utilities` |
 | `NSHumanReadableCopyright` | the MIT copyright line |

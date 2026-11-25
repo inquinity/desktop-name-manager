@@ -19,8 +19,8 @@ The command-line tool is `dnm`.
 
 ## Install
 
-With [Homebrew](https://brew.sh), on macOS 26 or later with Apple silicon (Intel Macs are not supported
-yet):
+With [Homebrew](https://brew.sh), on macOS 27 or later with Apple silicon (macOS 26 and Intel Macs are not supported; 0.4.0 is the last release
+for macOS 26):
 
 ```sh
 brew tap inquinity/tap
@@ -260,9 +260,8 @@ Desktop it started on. The pointer moves to that display and returns. Don't type
 the shortcuts act on the display under the pointer.
 
 `--desktop` is opt-in and needs two things, which `dnm check` reports:
-- **Accessibility** for the app you run `dnm` from (your terminal): System Settings > Privacy &
-  Security > Accessibility on macOS 26, or **Device Control and Data Access** on macOS 27 (which has no
-  Accessibility item there). Quit and reopen the app after turning it on. macOS gives apps no public way to switch Desktops, so `dnm` presses
+- **Accessibility** for the app you run `dnm` from (your terminal): System Settings > **Device Control and
+  Data Access** (macOS 27 has no Accessibility item there). Quit and reopen the app after turning it on. macOS gives apps no public way to switch Desktops, so `dnm` presses
   macOS's own "Move left a space" and "Move right a space" shortcuts. Nothing else is typed or read.
   `dnm` never asks for the permission itself; without it, `--desktop` stops and changes nothing.
   **Know what you are granting:** a command-line tool has no app of its own, so macOS gives the permission

@@ -24,7 +24,7 @@ separately from spec 014 and is not part of that spec's merge gate; 0.4.0 cannot
 - **A-4.** The cask installs the app in `/Applications` and the two command names; upgrading from 0.3.x keeps the
   labels; uninstalling keeps the wallpapers.
 - **A-5.** Nothing is published, pushed or changed in the tap without `--confirm`, as before.
-- **A-6.** The release notes and the gate record add the macOS 26 checks (spec 014 quickstart scenario 15) as a gate
+- **A-6.** (0.4.0 only; from 0.5.0 macOS 27 is the minimum and there is no macOS 26 gate.) The release notes and the gate record add the macOS 26 checks (spec 014 quickstart scenario 15) as a gate
   for 0.4.0.
 
 ## Tasks

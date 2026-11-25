@@ -16,15 +16,9 @@ public enum WallpaperKind: Equatable, Sendable {
     /// Knowing this undocumented location is a maintainer-approved deviation from constitution principle I
     /// (spec 015 Q1, plan Complexity Tracking): it is only compared with what the public reader reports, never
     /// opened, listed or followed. Revisit on each macOS release.
-    ///
-    /// Only macOS 27 and later report it (decided 2026-11-22): on macOS 26 the same file may be a wallpaper the
-    /// person really chose, so nothing is refused there.
-    static var standInLocations: [URL] { standInLocations(onMajorVersion: ProcessInfo.processInfo.operatingSystemVersion.majorVersion) }
-
-    /// The stand-in locations for a macOS major version; tests give the version.
-    static func standInLocations(onMajorVersion major: Int) -> [URL] {
-        major >= 27 ? [URL(fileURLWithPath: "/System/Library/CoreServices/DefaultDesktop.heic")] : []
-    }
+    /// macOS 27 is the minimum (0.5.0), so the stand-in is always looked for. Before 0.5.0 it was recognized only on
+    /// macOS 27 and later (spec 015 Q3).
+    static let standInLocations = [URL(fileURLWithPath: "/System/Library/CoreServices/DefaultDesktop.heic")]
 
     /// Classifies what a display currently shows.
     /// - Parameter standIns: locations refused as stand-ins; tests replace it (spec 015 FR-007).
