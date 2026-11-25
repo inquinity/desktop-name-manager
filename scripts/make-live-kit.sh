@@ -115,7 +115,7 @@ Version:        $("${output_directory}/dnm" --version)
 Source commit:  ${commit}${dirty}
 Built (UTC):    $(date -u +%Y-%m-%dT%H:%M:%SZ)
 Architectures:  ${architectures}
-Minimum macOS:  26.0
+Minimum macOS:  27.0
 Toolchain:      $(swift --version 2>&1 | head -n 1)
 SHA-256 of dnm: ${binary_checksum}
 Signing:        ad hoc only. Not Developer ID signed, not notarized. For testing only.

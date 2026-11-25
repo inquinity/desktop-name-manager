@@ -108,8 +108,11 @@ import DNMTestSupport
         #expect(try WallpaperKind.classify(current(still), standIns: [standIn]) == .supported(still))
     }
 
-    @Test
-    func settingALabelOnTheStandInChangesNothingAndExitsThree() throws {
+    @Test func theRealStandInListNamesTheDefaultDesktop() {
+        #expect(WallpaperKind.standInLocations.map(\.path) == ["/System/Library/CoreServices/DefaultDesktop.heic"])
+    }
+
+    @Test func settingALabelOnTheStandInChangesNothingAndExitsThree() throws {
         let h = try LabelerHarness(); defer { h.cleanUp() }
         h.system.show(URL(fileURLWithPath: "/System/Library/CoreServices/DefaultDesktop.heic"), on: h.display)
         do {

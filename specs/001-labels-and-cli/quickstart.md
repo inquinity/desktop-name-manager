@@ -5,7 +5,7 @@ How to prove the feature works end to end. Commands and options are defined in
 
 ## Prerequisites
 
-- macOS 26.0 or later (the minimum; see research R3). Run the live checks on 26 and on 27, with "Displays have separate Spaces"
+- macOS 27.0 or later from 0.5.0 (the minimum; 26.0 up to 0.4.0, see research R3 and spec 005 Session 2026-11-24). Run the live checks on 27, with "Displays have separate Spaces"
   on and at least three Desktops on one display.
 - Xcode 27 command-line tools.
 - For the legibility sweep only: the untracked `wallpaper-samples/` folder.
@@ -100,6 +100,6 @@ contrast threshold, and you look at every rendering once. The images stay out of
 ## Exit criteria for this feature
 
 - `swift test` passes.
-- Live scenarios 1 to 23 pass on macOS 26 and macOS 27 (scenario 4 by hand).
+- Live scenarios 1 to 23 pass on macOS 27 (on 26 and 27 up to 0.4.0; scenario 4 by hand).
 - Code review and security review of the changes are recorded before any release
   (constitution, Development Workflow).
